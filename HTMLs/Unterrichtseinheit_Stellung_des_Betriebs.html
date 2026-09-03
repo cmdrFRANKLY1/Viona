@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lernenden-Version: Stellung des Betriebs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root { color-scheme:dark; --bg-main:#101412; --bg-card:#1a201d; --ink:#edf4f0; --ink-soft:#aebdb6; --accent:#54c7b8; --accent-light:#193a35; --accent-2:#ff9877; --line:#35423c; --ok:#59d58f; --warn:#ff7b87; --tab-bg:#242c28; --surface:#202824; --surface-soft:#18201c; --ok-bg:#173827; --warn-bg:#422329; --radius:12px; --shadow:0 14px 34px -12px rgba(0,0,0,.65); }
+        * { box-sizing:border-box; }
+        body { margin:0; font-family:"Source Sans 3",sans-serif; color:var(--ink); background:var(--bg-main); line-height:1.6; }
+        button,select,textarea { font:inherit; }
+        .shell { max-width:1180px; margin:0 auto; padding:36px 20px; }
+        .hero { background:linear-gradient(135deg,#26312c 0%,#0b665e 100%); color:#fff; border:1px solid #3d5148; border-radius:var(--radius); padding:44px 30px; margin-bottom:22px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+        .hero::after { content:""; position:absolute; top:-22%; right:-8%; width:280px; height:280px; background:rgba(255,255,255,.08); border-radius:50%; }
+        .kicker { text-transform:uppercase; font-weight:700; font-size:.9rem; letter-spacing:1.5px; color:#9ff3e5; margin-bottom:8px; }
+        h1,h2,h3 { font-family:"Barlow Condensed",sans-serif; margin:0; line-height:1.1; }
+        h1 { font-size:clamp(2rem,4.7vw,3.2rem); margin-bottom:14px; }
+        .subtitle { font-size:1.1rem; max-width:900px; opacity:.94; margin:0 0 18px; }
+        .meta,.actions { display:flex; gap:10px; flex-wrap:wrap; }
+        .chip { background:rgba(255,255,255,.14); padding:6px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.25); font-size:.86rem; }
+        .tabs,.panel { background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
+        .tabs { padding:12px; margin-bottom:18px; position:sticky; top:0; z-index:20; }
+        .tab-list { display:flex; gap:8px; flex-wrap:wrap; }
+        .tab-btn,.btn,.choice,.sector { font-weight:700; cursor:pointer; transition:.2s ease; }
+        .tab-btn { border:1px solid var(--line); background:var(--tab-bg); color:var(--ink); padding:9px 13px; border-radius:8px; }
+        .tab-btn:hover,.choice:hover,.sector:hover { border-color:var(--accent); transform:translateY(-1px); }
+        .tab-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+        .topic-pane { display:none; animation:fadeIn .28s ease; }
+        .topic-pane.active { display:block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+        .panel { margin-bottom:16px; overflow:hidden; }
+        .panel-head { padding:16px 20px; border-bottom:1px solid var(--line); background:var(--surface); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+        .panel-head h2 { font-size:1.75rem; color:var(--accent); }
+        .panel-body { padding:20px; }
+        .grid { display:grid; gap:16px; }
+        .grid > *,.task-grid > * { min-width:0; }
+        .grid-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .grid-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .card,.definition,.mission { border:1px solid var(--line); border-radius:10px; padding:16px; background:var(--surface); }
+        .mission { grid-column:1/-1; border-left:4px solid var(--accent-2); padding:20px; }
+        .card h3,.mission h3 { color:var(--accent-2); font-size:1.3rem; margin-bottom:8px; }
+        .mission-head { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:14px; }
+        .mission-number { color:var(--accent); font-weight:700; text-transform:uppercase; font-size:.8rem; letter-spacing:.06em; }
+        .task-meta { display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+        .task-meta span { border:1px solid var(--line); border-radius:6px; padding:3px 8px; color:var(--ink-soft); font-size:.82rem; white-space:nowrap; }
+        .scenario { background:var(--surface-soft); border:1px solid var(--line); border-radius:8px; padding:13px 15px; margin:12px 0; }
+        .scenario strong { color:var(--accent); }
+        .task-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr); gap:16px; margin-top:14px; }
+        .task-box { border-top:1px solid var(--line); padding-top:12px; }
+        .task-box h4 { margin:0 0 6px; color:var(--accent); font-size:1rem; }
+        .task-box ol,.task-box ul { margin:6px 0; padding-left:20px; }
+        .task-box li { margin-bottom:5px; }
+        .deliverable { border-left:3px solid var(--accent); padding:8px 12px; background:var(--accent-light); margin-top:10px; }
+        details { margin-top:10px; color:var(--ink-soft); }
+        summary { color:var(--accent); cursor:pointer; font-weight:700; }
+        .definition { background:var(--surface-soft); }
+        .definition .term { color:var(--accent); font-size:1.15rem; font-weight:700; margin-bottom:6px; }
+        .small { font-size:.92rem; color:var(--ink-soft); }
+        .bullet-list { margin:8px 0 0; padding-left:20px; }
+        .bullet-list li { margin-bottom:6px; }
+        .process { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:12px; }
+        .process-step { border-left:4px solid var(--accent); background:var(--surface); border-radius:8px; padding:12px; }
+        .cycle-figure { grid-column:1/-1; margin:0; border:1px solid var(--line); border-radius:10px; background:var(--surface-soft); overflow:hidden; }
+        .cycle-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:18px 20px 12px; border-bottom:1px solid var(--line); }
+        .cycle-head h3 { color:var(--accent-2); font-size:1.35rem; margin-bottom:5px; }
+        .cycle-head p { margin:0; color:var(--ink-soft); max-width:650px; }
+        .flow-filters { display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+        .flow-filter { border:1px solid var(--line); border-radius:7px; background:var(--tab-bg); color:var(--ink); padding:7px 10px; cursor:pointer; font-weight:700; white-space:nowrap; }
+        .flow-filter.active { background:var(--accent); border-color:var(--accent); color:#10201d; }
+        .diagram-scroll { overflow-x:auto; padding:14px; }
+        .economy-map { display:block; width:100%; min-width:780px; height:auto; }
+        .economy-map .node { fill:#242d29; stroke:#53635b; stroke-width:2; }
+        .economy-map .node-main { fill:#17463f; stroke:#54c7b8; }
+        .economy-map .node-title { fill:#fff; font:700 25px "Barlow Condensed",sans-serif; text-anchor:middle; }
+        .economy-map .node-copy { fill:#d3dfd9; font:600 16px "Source Sans 3",sans-serif; text-anchor:middle; }
+        .economy-map .flow { fill:none; stroke-width:3; transition:opacity .25s ease; }
+        .economy-map .flow-label { font:600 17px "Source Sans 3",sans-serif; text-anchor:middle; paint-order:stroke fill; stroke:#101713; stroke-width:1.5px; stroke-linejoin:round; transition:opacity .25s ease; }
+        .economy-map .flow.leistung { stroke:#65aea5; }
+        .economy-map .flow.geld { stroke:#d58670; }
+        .economy-map .flow.finanz { stroke:#c8aa61; }
+        .economy-map .flow-label.leistung { fill:#c6e3de; }
+        .economy-map .flow-label.geld { fill:#edb9aa; }
+        .economy-map .flow-label.finanz { fill:#e2d2a5; }
+        .economy-map [data-flow].muted { opacity:.1; }
+        .diagram-legend { display:flex; flex-wrap:wrap; gap:16px; padding:0 20px 16px; color:var(--ink-soft); font-size:.9rem; }
+        .legend-line { display:inline-block; width:28px; height:3px; margin-right:7px; vertical-align:middle; border-radius:3px; }
+        .legend-line.leistung { background:#65aea5; }
+        .legend-line.geld { background:#d58670; }
+        .legend-line.finanz { background:#c8aa61; }
+        .cycle-caption { padding:12px 20px; border-top:1px solid var(--line); color:var(--ink-soft); font-size:.92rem; }
+        table { width:100%; border-collapse:collapse; }
+        th,td { border-bottom:1px solid var(--line); text-align:left; vertical-align:top; padding:10px; }
+        th { background:var(--accent-light); color:var(--accent); font-size:.9rem; text-transform:uppercase; letter-spacing:.04em; }
+        tr:last-child td { border-bottom:none; }
+        .btn { border:none; border-radius:8px; background:var(--accent); color:#fff; padding:10px 14px; }
+        .btn:hover { background:#3aa99d; transform:translateY(-1px); }
+        .choice-grid,.sector-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px; }
+        .choice,.sector { text-align:left; border:1px solid var(--line); border-radius:8px; padding:11px; background:var(--tab-bg); color:var(--ink); }
+        .choice.correct { background:var(--ok-bg); border-color:var(--ok); }
+        .choice.wrong { background:var(--warn-bg); border-color:var(--warn); }
+        .sector.active { background:var(--accent-light); border-color:var(--accent); }
+        .feedback,.result-box { margin-top:12px; padding:11px 12px; border:1px solid var(--line); border-radius:8px; min-height:48px; }
+        .feedback.good,.result-box.good { border-color:var(--ok); background:var(--ok-bg); }
+        .feedback.bad,.result-box.bad { border-color:var(--warn); background:var(--warn-bg); }
+        .score { color:var(--accent); font-weight:700; }
+        .quiz-item { border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:10px; background:var(--surface); }
+        .quiz-item p { margin:0 0 8px; font-weight:700; }
+        .quiz-item label { display:block; margin:4px 0; cursor:pointer; }
+        textarea,select,input[type="text"],input[type="number"] { width:100%; border:1px solid var(--line); border-radius:8px; padding:10px; background:#111714; color:var(--ink); }
+        label.field { display:block; margin-top:10px; font-weight:700; }
+        label.field span { display:block; margin-bottom:4px; }
+        .field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+        textarea { min-height:110px; resize:vertical; }
+        .footer-note { margin:18px 0 0; text-align:center; color:var(--ink-soft); font-size:.92rem; }
+        .sources a { color:var(--accent); }
+        @media (max-width:960px) { .grid-3,.process { grid-template-columns:1fr 1fr; } }
+        @media (max-width:760px) { .shell { padding:20px 12px; } .hero { padding:30px 16px; } .tabs { position:static; } .grid-2,.grid-3,.choice-grid,.sector-grid,.process,.task-grid,.field-grid { grid-template-columns:1fr; } .mission-head,.cycle-head { display:block; } .task-meta,.flow-filters { justify-content:flex-start; margin-top:10px; } .tab-btn { width:100%; text-align:left; } table { display:block; max-width:100%; overflow-x:auto; } th,td { min-width:130px; padding:8px; } .diagram-scroll { padding:8px; } .economy-map { min-width:900px; } }
+    </style>
+</head>
+<body>
+<main class="shell">
+    <header class="hero">
+        <div class="kicker">Unterrichtseinheit - Wirtschafts- und Sozialkunde</div>
+        <h1>Die Stellung des Betriebs in Wirtschaft und Gesellschaft</h1>
+        <p class="subtitle">Wie ist ein Betrieb in die Soziale Marktwirtschaft eingebunden? Untersuche Wirtschaftsordnung, Anspruchsgruppen, Güter- und Geldströme, betriebliche Ziele und verantwortungsvolle Standortentscheidungen.</p>
+        <div class="meta"><span class="chip">Dauer: 90-120 Minuten</span><span class="chip">Format: Input + Missionen + Transfer</span><span class="chip">Level: Ausbildung / WiSo</span></div>
+    </header>
+
+    <nav class="tabs"><div class="tab-list" role="tablist" aria-label="Themenreiter">
+        <button class="tab-btn active" data-tab="ziele" role="tab" aria-selected="true" type="button">1. Lernziele</button>
+        <button class="tab-btn" data-tab="ordnung" role="tab" aria-selected="false" type="button">2. Ordnungsrahmen</button>
+        <button class="tab-btn" data-tab="markt" role="tab" aria-selected="false" type="button">3. Soziale Marktwirtschaft</button>
+        <button class="tab-btn" data-tab="stakeholder" role="tab" aria-selected="false" type="button">4. Anspruchsgruppen</button>
+        <button class="tab-btn" data-tab="kreislauf" role="tab" aria-selected="false" type="button">5. Wirtschaftskreislauf</button>
+        <button class="tab-btn" data-tab="ziele-betrieb" role="tab" aria-selected="false" type="button">6. Betriebsziele</button>
+        <button class="tab-btn" data-tab="standort" role="tab" aria-selected="false" type="button">7. Standort & Verantwortung</button>
+        <button class="tab-btn" data-tab="fallstudie" role="tab" aria-selected="false" type="button">8. Fallstudie</button>
+        <button class="tab-btn" data-tab="quiz" role="tab" aria-selected="false" type="button">9. Wissenscheck</button>
+    </div></nav>
+
+    <section id="ziele" class="topic-pane active" role="tabpanel"><article class="panel"><div class="panel-head"><h2>Lernziele und Kompetenzen</h2><span class="score">Aufgabenpunkte: <span id="score">0</span>/12</span></div><div class="panel-body grid grid-3">
+        <div class="card"><h3>Fachziel</h3><ul class="bullet-list"><li>Gesellschafts-, Rechts- und Wirtschaftsordnung unterscheiden.</li><li>Grundzüge der Sozialen Marktwirtschaft erklären.</li><li>Die Rolle des Betriebs im Wirtschaftskreislauf darstellen.</li></ul></div>
+        <div class="card"><h3>Methodenziel</h3><ul class="bullet-list"><li>Geld- und Güterströme korrekt zuordnen.</li><li>Interessen von Anspruchsgruppen analysieren.</li><li>Zielbeziehungen und Standortfaktoren bewerten.</li></ul></div>
+        <div class="card"><h3>Prüfungsziel</h3><ul class="bullet-list"><li>Betrieb und Unternehmen abgrenzen.</li><li>Staatliche Eingriffe begründet einordnen.</li><li>Eine betriebliche Entscheidung fachsprachlich beurteilen.</li></ul></div>
+        <article class="definition" style="grid-column:1/-1"><div class="term">Dein roter Faden: NovaByte IT-Systemhaus GmbH</div><p>Du arbeitest während der gesamten Einheit als angehende Fachinformatikerin oder angehender Fachinformatiker bei NovaByte. Das Systemhaus betreut mittelständische Unternehmen und Kommunen. In sechs Aufträgen analysierst du reale Schnittstellen zwischen Technik, Recht und Wirtschaft. Deine Ergebnisse bilden am Ende ein kurzes Infrastruktur-Memo für die Geschäftsleitung.</p><p class="small"><strong>Unterrichtshinweis:</strong> Die Aufgaben bauen aufeinander auf. Sichere Zwischenergebnisse stichpunktartig in deinen Notizen; sie werden in Auftrag 6 wieder benötigt.</p></article>
+    </div></article></section>
+
+    <section id="ordnung" class="topic-pane" role="tabpanel"><article class="panel"><div class="panel-head"><h2>Gesellschaftsordnung: verbindliche Spielregeln</h2></div><div class="panel-body grid grid-3">
+        <article class="card"><h3>Rechtsordnung</h3><p>Sie umfasst verbindliche Rechtsnormen. Für Betriebe sind unter anderem Vertragsrecht, Arbeitsrecht, Steuerrecht, Datenschutz sowie Umwelt- und Verbraucherschutz relevant.</p></article>
+        <article class="card"><h3>Politische Ordnung</h3><p>Sie bestimmt, wie staatliche Entscheidungen entstehen und Macht kontrolliert wird. Deutschland ist ein demokratischer und sozialer Bundesstaat.</p></article>
+        <article class="card"><h3>Wirtschaftsordnung</h3><p>Sie regelt, wie Eigentum, Produktion, Preise und die Verteilung knapper Güter grundsätzlich koordiniert werden.</p></article>
+        <article class="definition" style="grid-column:1/-1"><div class="term">Verfassungsrechtlicher Rahmen</div><p>Das Grundgesetz schreibt nicht wörtlich eine bestimmte Wirtschaftsordnung fest. Es schützt unter anderem Berufsfreiheit und Eigentum, bindet Eigentum aber zugleich an das Gemeinwohl. Das Sozialstaatsprinzip verpflichtet den Staat zu sozialer Sicherung und Ausgleich. Innerhalb dieses Rahmens wurde die Soziale Marktwirtschaft politisch ausgestaltet.</p></article>
+        <article class="card"><h3>Betrieb oder Unternehmen?</h3><p>Der <strong>Betrieb</strong> ist die organisatorisch-technische Einheit der Leistungserstellung. Das <strong>Unternehmen</strong> ist die rechtlich-wirtschaftliche Einheit und kann mehrere Betriebe besitzen.</p><p class="small">Beispiel: Eine AG ist das Unternehmen; ihre Werke an verschiedenen Orten sind Betriebe.</p></article>
+        <article class="card"><h3>Warum Regeln nötig sind</h3><p>Verträge, Eigentumsrechte und Haftungsregeln schaffen Verlässlichkeit. Kartellrecht schützt Wettbewerb; Arbeits-, Verbraucher- und Umweltschutz begrenzen negative Folgen wirtschaftlicher Tätigkeit.</p></article>
+        <article class="mission" data-mission="ordnung" data-points="1"><div class="mission-head"><div><div class="mission-number">Praxisauftrag 1</div><h3>Compliance-Triage: Darf das Monitoring live gehen?</h3></div><div class="task-meta"><span>8 Minuten</span><span>Partnerarbeit</span><span>Rolle: IT-Operations</span></div></div><div class="scenario"><strong>Ticket NB-204:</strong> NovaByte soll auf 80 Beschäftigten-PCs eines Kunden ein Monitoring ausrollen. Das Tool protokolliert Programmstarts, Nutzungszeiten und Bildschirmaufnahmen. Der Projektleiter schreibt: „Technisch läuft es. Bitte heute noch produktiv schalten.“ Angaben zu Zweck, Rechtsgrundlage, Löschfrist und Zugriffsrechten fehlen.</div><div class="task-grid"><div class="task-box"><h4>Arbeitsauftrag</h4><ol><li>Markiert im Ticket mindestens drei rechtlich oder organisatorisch ungeklärte Punkte.</li><li>Entscheidet, wie ihr als IT-Fachkraft zuerst handelt.</li><li>Formuliert anschließend einen Zwei-Satz-Kommentar für das Ticketsystem.</li></ol><div class="choice-grid"><button class="choice" data-correct="false" data-feedback="Technische Machbarkeit ersetzt keine rechtliche Freigabe. Bildschirmaufnahmen und Nutzungsdaten können personenbezogen sein." type="button">Sofort ausrollen, weil das Tool technisch getestet ist.</button><button class="choice" data-correct="true" data-feedback="Richtig: Erst Zweck, Rechtsgrundlage, Datenminimierung, Löschfristen, Berechtigungen und gegebenenfalls Beteiligungsrechte klären; danach technisch umsetzen." type="button">Rollout stoppen und Datenschutz, Zweck, Datenumfang, Zugriffe sowie Beteiligungsrechte klären.</button><button class="choice" data-correct="false" data-feedback="Eine mündliche Zustimmung einzelner Beschäftigter löst weder alle Datenschutz- noch Beteiligungsfragen." type="button">Nur die Beschäftigten mündlich um Erlaubnis bitten.</button></div></div><aside class="task-box"><h4>Abgabeprodukt</h4><p class="deliverable">Ticketkommentar mit Entscheidung, zwei offenen Prüfpunkten und nächstem Ansprechpartner.</p><h4>Erfolgskriterien</h4><ul><li>Technik und Rechtsrahmen getrennt betrachtet</li><li>Mindestens drei offene Punkte erkannt</li><li>Kein unbegründetes Rechtsurteil gefällt</li></ul><details><summary>Gestufte Hilfe</summary><p>Frage: Welche Daten werden wozu erhoben, wer darf sie sehen, wie lange bleiben sie gespeichert und wer muss beteiligt werden?</p></details></aside></div><div class="feedback" aria-live="polite">Trefft zuerst eine Entscheidung und begründet sie dann im Ticketkommentar.</div></article>
+    </div></article></section>
+
+    <section id="markt" class="topic-pane" role="tabpanel"><article class="panel"><div class="panel-head"><h2>Soziale Marktwirtschaft: Freiheit mit Ordnungsrahmen</h2></div><div class="panel-body grid grid-2">
+        <article class="card"><h3>Marktwirtschaftliche Elemente</h3><ul class="bullet-list"><li>Privateigentum an Produktionsmitteln</li><li>Vertrags-, Konsum- und Gewerbefreiheit im gesetzlichen Rahmen</li><li>Dezentrale Planung durch Haushalte und Unternehmen</li><li>Preisbildung überwiegend durch Angebot und Nachfrage</li><li>Wettbewerb als Anreiz für Innovation und effizienten Mitteleinsatz</li></ul></article>
+        <article class="card"><h3>Soziale und ordnungspolitische Elemente</h3><ul class="bullet-list"><li>Sozialversicherungen und Grundsicherung</li><li>Arbeits- und Verbraucherschutz</li><li>Kartellaufsicht und Fusionskontrolle</li><li>Konjunktur-, Struktur- und Umweltpolitik</li><li>Steuern und Transfers zum sozialen Ausgleich</li></ul></article>
+        <article class="definition" style="grid-column:1/-1"><div class="term">Preis als Signal</div><p>Steigt die Nachfrage bei unverändertem Angebot, steigt tendenziell der Preis. Das signalisiert Knappheit und kann Anbieter zu mehr Produktion bewegen. Preise erfüllen Informations-, Lenkungs- und Ausgleichsfunktionen. In der Realität beeinflussen auch Kosten, Marktmacht, Erwartungen und staatliche Regeln die Preisbildung.</p></article>
+        <article class="card"><h3>Wann greift der Staat ein?</h3><table><thead><tr><th>Problem</th><th>Mögliche Reaktion</th></tr></thead><tbody><tr><td>Marktmacht oder Kartelle</td><td>Kartellverbot, Fusionskontrolle</td></tr><tr><td>Umweltschäden</td><td>Grenzwerte, Abgaben oder Emissionshandel</td></tr><tr><td>Informationsgefälle</td><td>Kennzeichnungs- und Beratungspflichten</td></tr><tr><td>Soziale Risiken</td><td>Sozialversicherungen und Transfers</td></tr></tbody></table></article>
+        <article class="mission" data-mission="markt" data-points="1"><div class="mission-head"><div><div class="mission-number">Praxisauftrag 2</div><h3>Beschaffung unter Druck: Fairer Wettbewerb?</h3></div><div class="task-meta"><span>7 Minuten</span><span>Think-Pair-Share</span><span>Rolle: Technical Procurement</span></div></div><div class="scenario"><strong>Nachricht eines Distributors:</strong> „Wenn NovaByte bei Ausschreibung A nicht anbietet, sorgen wir dafür, dass zwei Partner bei Ausschreibung B über eurem Preis bleiben.“ Der Auftrag umfasst Netzwerkhardware für eine Berufsschule.</div><div class="task-grid"><div class="task-box"><h4>Arbeitsauftrag</h4><ol><li>Benennt das wirtschaftliche Problem in einem Fachbegriff.</li><li>Bewertet Folgen für Auftraggeber, Konkurrenz und NovaByte.</li><li>Wählt die professionelle Reaktion.</li></ol><div class="choice-grid"><button class="choice" data-correct="true" data-feedback="Richtig: Das Angebot deutet auf eine wettbewerbsbeschränkende Absprache hin. Nicht mitwirken, Belege sichern und intern an Compliance beziehungsweise Rechtsberatung eskalieren." type="button">Ablehnen, Nachricht dokumentieren und intern an Compliance oder Rechtsberatung melden.</button><button class="choice" data-correct="false" data-feedback="Eine Absprache wird nicht zulässig, weil sie kurzfristig wirtschaftlich attraktiv erscheint; sie schädigt den Wettbewerb und kann rechtliche Folgen haben." type="button">Annehmen, wenn NovaByte dadurch beide Aufträge wahrscheinlicher erhält.</button><button class="choice" data-correct="false" data-feedback="Löschen beseitigt das Problem nicht und vernichtet möglicherweise wichtige Dokumentation für die interne Prüfung." type="button">Nachricht löschen und ohne Dokumentation normal weiterarbeiten.</button></div></div><aside class="task-box"><h4>Abgabeprodukt</h4><p class="deliverable">60-Sekunden-Eskalation: Sachverhalt, Risiko, empfohlener nächster Schritt.</p><h4>Erfolgskriterien</h4><ul><li>Wettbewerbsbeschränkung erkannt</li><li>Keine eigene Schuldzuweisung ohne Prüfung</li><li>Beweissicherung und Eskalationsweg genannt</li></ul><details><summary>Gestufte Hilfe</summary><p>Überlegt, ob Preise und Angebote noch unabhängig im Wettbewerb entstehen.</p></details></aside></div><div class="feedback" aria-live="polite">Wählt eine Reaktion und bereitet danach eure 60-Sekunden-Eskalation vor.</div></article>
+    </div></article></section>
+
+    <section id="stakeholder" class="topic-pane" role="tabpanel"><article class="panel"><div class="panel-head"><h2>Anspruchsgruppen und ihre Interessen</h2></div><div class="panel-body grid grid-2">
+        <article class="definition" style="grid-column:1/-1"><div class="term">Stakeholder-Ansatz</div><p>Anspruchsgruppen sind Personen oder Organisationen, die den Betrieb beeinflussen oder von seinen Entscheidungen betroffen sind. Die Betriebsleitung muss Interessen erkennen, Zielkonflikte abwägen und gesetzliche Pflichten beachten.</p></article>
+        <article class="card"><h3>Interne Anspruchsgruppen</h3><table><thead><tr><th>Gruppe</th><th>Typische Interessen</th></tr></thead><tbody><tr><td>Eigentümer</td><td>Gewinn, Wertsteigerung, Einfluss, Bestand</td></tr><tr><td>Beschäftigte</td><td>Sicheres Einkommen, Gesundheit, Entwicklung, Mitbestimmung</td></tr><tr><td>Management</td><td>Zielerreichung, Handlungsspielraum, Erfolg</td></tr></tbody></table></article>
+        <article class="card"><h3>Externe Anspruchsgruppen</h3><table><thead><tr><th>Gruppe</th><th>Typische Interessen</th></tr></thead><tbody><tr><td>Kundschaft</td><td>Qualität, faire Preise, Sicherheit, Service</td></tr><tr><td>Lieferanten</td><td>Verlässliche Aufträge und pünktliche Zahlung</td></tr><tr><td>Staat</td><td>Rechtstreue, Steuern, Beschäftigung</td></tr><tr><td>Banken</td><td>Zins, Tilgung, Bonität</td></tr><tr><td>Öffentlichkeit</td><td>Umwelt- und Sozialverträglichkeit</td></tr></tbody></table></article>
+        <article class="mission"><div class="mission-head"><div><div class="mission-number">Praxisauftrag 3</div><h3>Stakeholder-Matrix: Bereitschaftsdienst neu planen</h3></div><div class="task-meta"><span>12 Minuten</span><span>Vierergruppen</span><span>Rolle: Service-Team</span></div></div><div class="scenario"><strong>Change Request CR-18:</strong> Ein neuer kommunaler Kunde verlangt Reaktionszeiten rund um die Uhr. Die Geschäftsleitung erwägt einen Bereitschaftsdienst mit zwei Personen. Das Budget ist knapp; gleichzeitig dürfen Servicequalität, Gesundheit und Arbeitszeitregeln nicht unter die Entscheidung geraten.</div><div class="task-grid"><div class="task-box"><h4>Arbeitsauftrag</h4><ol><li>Jede Person übernimmt eine Anspruchsgruppe.</li><li>Formuliert Interesse, Befürchtung und rote Linie eurer Gruppe.</li><li>Verhandelt eine Lösung mit mindestens zwei konkreten Schutzmaßnahmen.</li></ol><div class="sector-grid" id="stakeholderButtons"><button class="sector" data-info="Beschäftigte: planbare Dienste, ausreichende Ruhezeiten, faire Vergütung und Schutz vor Überlastung." type="button">Beschäftigte</button><button class="sector" data-info="Kunde: verlässliche Reaktionszeit, transparente Eskalation und möglichst geringe Ausfallzeiten." type="button">Kommunaler Kunde</button><button class="sector" data-info="Geschäftsleitung: tragfähige Kosten, erfüllbare Verträge, kalkulierbares Haftungs- und Personalrisiko." type="button">Geschäftsleitung</button><button class="sector" data-info="Betriebsrat beziehungsweise Interessenvertretung: Einhaltung von Mitbestimmung, Arbeitszeit und Gesundheitsschutz." type="button">Interessenvertretung</button></div><div id="stakeholderInfo" class="feedback">Wählt eure Rolle. Die Rolleninformation ist der Startpunkt, noch nicht die fertige Lösung.</div></div><aside class="task-box"><h4>Abgabeprodukt</h4><p class="deliverable">Mini-Betriebsvereinbarung mit Dienstmodell, Eskalationsweg und zwei Schutzmaßnahmen.</p><h4>Erfolgskriterien</h4><ul><li>Alle vier Interessen sichtbar</li><li>Zielkonflikt konkret benannt</li><li>Lösung organisatorisch und wirtschaftlich umsetzbar</li></ul><button id="stakeholderDone" class="btn" type="button">Gruppenergebnis sichern</button><details><summary>Gestufte Hilfe</summary><p>Mögliche Bausteine: Rotation, Rufbereitschaft statt Dauerarbeit, klare Prioritäten, Zeitausgleich, Vertretung und monatliche Auswertung.</p></details></aside></div></article>
+    </div></article></section>
+
+    <section id="kreislauf" class="topic-pane" role="tabpanel"><article class="panel"><div class="panel-head"><h2>Der Betrieb im Wirtschaftskreislauf</h2></div><div class="panel-body grid grid-2">
+        <article class="card"><h3>Einfacher Wirtschaftskreislauf</h3><p>Private Haushalte bieten Betrieben Produktionsfaktoren an, besonders Arbeit. Betriebe zahlen dafür Einkommen. Betriebe liefern Konsumgüter und Dienstleistungen; Haushalte zahlen Konsumausgaben.</p><p class="small"><strong>Denkregel:</strong> Reale Leistungen und die zugehörigen Geldzahlungen fließen jeweils in entgegengesetzte Richtungen.</p></article>
+        <article class="card"><h3>Erweiterter Wirtschaftskreislauf</h3><p>Zusätzlich werden Staat, Kreditinstitute und Ausland betrachtet. Ersparnisse und Kredite verbinden Haushalte, Banken und Investitionen. Importe und Exporte verbinden die inländische Wirtschaft mit dem Ausland.</p></article>
+        <article class="definition" style="grid-column:1/-1"><div class="term">Fünf Sektoren und typische Ströme</div><div class="process"><div class="process-step"><strong>Haushalte</strong><br />Arbeit, Konsum, Sparen</div><div class="process-step"><strong>Betriebe</strong><br />Produktion, Löhne, Investitionen</div><div class="process-step"><strong>Staat</strong><br />Steuern, Transfers, Staatsnachfrage</div><div class="process-step"><strong>Banken & Ausland</strong><br />Kredite, Zinsen, Im- und Exporte</div></div></article>
+        <article class="card"><h3>Beispiele korrekt einordnen</h3><table><thead><tr><th>Vorgang</th><th>Strom</th><th>Richtung</th></tr></thead><tbody><tr><td>Betrieb zahlt Lohn</td><td>Geldstrom</td><td>Betrieb → Haushalt</td></tr><tr><td>Beschäftigte leisten Arbeit</td><td>Leistungsstrom</td><td>Haushalt → Betrieb</td></tr><tr><td>Bank vergibt Investitionskredit</td><td>Geldstrom</td><td>Bank → Betrieb</td></tr><tr><td>Betrieb liefert Ware ins Ausland</td><td>Güterstrom / Export</td><td>Inland → Ausland</td></tr></tbody></table></article>
+        <figure class="cycle-figure" aria-labelledby="cycleTitle cycleCaption"><div class="cycle-head"><div><h3 id="cycleTitle">NovaByte im erweiterten Wirtschaftskreislauf</h3><p>Folge den Pfeilen immer vom Ausgangspunkt zur Pfeilspitze. Nutze die Filter, um die drei Stromarten einzeln zu untersuchen.</p></div><div class="flow-filters" aria-label="Stromarten filtern"><button class="flow-filter active" data-show-flow="all" type="button">Alle</button><button class="flow-filter" data-show-flow="leistung" type="button">Leistung</button><button class="flow-filter" data-show-flow="geld" type="button">Geld</button><button class="flow-filter" data-show-flow="finanz" type="button">Finanzsektor</button></div></div><div class="diagram-scroll"><svg class="economy-map" viewBox="0 0 1000 650" role="img" aria-label="Erweiterter Wirtschaftskreislauf mit Haushalten, NovaByte, Staat, Bank und Ausland sowie beschrifteten Pfeilen"><defs><marker id="arrowLeistung" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#65aea5" /></marker><marker id="arrowGeld" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#d58670" /></marker><marker id="arrowFinanz" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#c8aa61" /></marker></defs>
+            <rect class="node" x="40" y="245" width="190" height="105" rx="10" /><text class="node-title" x="135" y="285">Haushalte</text><text class="node-copy" x="135" y="312">Arbeit · Konsum · Sparen</text>
+            <rect class="node node-main" x="405" y="245" width="190" height="105" rx="10" /><text class="node-title" x="500" y="282">NovaByte</text><text class="node-copy" x="500" y="308">IT-Systemhaus</text><text class="node-copy" x="500" y="329">Leistung · Löhne · Investition</text>
+            <rect class="node" x="770" y="245" width="190" height="105" rx="10" /><text class="node-title" x="865" y="285">Staat</text><text class="node-copy" x="865" y="312">Steuern · Transfers · Aufträge</text>
+            <rect class="node" x="405" y="500" width="190" height="105" rx="10" /><text class="node-title" x="500" y="540">Bank</text><text class="node-copy" x="500" y="567">Sparen · Kredite · Zinsen</text>
+            <rect class="node" x="405" y="40" width="190" height="105" rx="10" /><text class="node-title" x="500" y="80">Ausland</text><text class="node-copy" x="500" y="107">Import · Export · Zahlungen</text>
+            <g data-flow="leistung"><path class="flow leistung" marker-end="url(#arrowLeistung)" d="M230 270 L405 270" /><text class="flow-label leistung" x="317" y="258">Arbeitsleistung</text></g>
+            <g data-flow="geld"><path class="flow geld" marker-end="url(#arrowGeld)" d="M405 325 L230 325" /><text class="flow-label geld" x="317" y="344">Löhne</text></g>
+            <g data-flow="leistung"><path class="flow leistung" marker-end="url(#arrowLeistung)" d="M405 245 C360 185 275 185 195 245" /><text class="flow-label leistung" x="285" y="180">IT-Dienstleistungen</text></g>
+            <g data-flow="geld"><path class="flow geld" marker-end="url(#arrowGeld)" d="M195 350 C275 410 360 410 405 350" /><text class="flow-label geld" x="300" y="407">Konsumausgaben</text></g>
+            <g data-flow="geld"><path class="flow geld" marker-end="url(#arrowGeld)" d="M595 270 L770 270" /><text class="flow-label geld" x="683" y="258">Steuern und Abgaben</text></g>
+            <g data-flow="leistung"><path class="flow leistung" marker-end="url(#arrowLeistung)" d="M770 335 C730 385 635 385 595 335" /><text class="flow-label leistung" x="683" y="390">öffentliche IT-Aufträge</text></g>
+            <g data-flow="finanz"><path class="flow finanz" marker-end="url(#arrowFinanz)" d="M155 350 C155 540 275 552 405 552" /><text class="flow-label finanz" x="262" y="535">Ersparnisse</text></g>
+            <g data-flow="finanz"><path class="flow finanz" marker-end="url(#arrowFinanz)" d="M470 500 L470 350" /><text class="flow-label finanz" x="425" y="430">Kredite</text></g>
+            <g data-flow="geld"><path class="flow geld" marker-end="url(#arrowGeld)" d="M530 350 L530 500" /><text class="flow-label geld" x="578" y="430">Tilgung · Zinsen</text></g>
+            <g data-flow="leistung"><path class="flow leistung" marker-end="url(#arrowLeistung)" d="M470 245 L470 145" /><text class="flow-label leistung" x="420" y="222">IT-Exporte</text></g>
+            <g data-flow="geld"><path class="flow geld" marker-end="url(#arrowGeld)" d="M530 145 L530 245" /><text class="flow-label geld" x="590" y="198">Exporterlöse</text></g>
+            <g data-flow="geld"><path class="flow geld" marker-end="url(#arrowGeld)" d="M865 350 C865 570 710 575 595 575" /><text class="flow-label geld" x="727" y="559">Subventionen · staatliche Käufe</text></g>
+        </svg></div><div class="diagram-legend" aria-hidden="true"><span><i class="legend-line leistung"></i>Güter- und Leistungsstrom</span><span><i class="legend-line geld"></i>Geldstrom</span><span><i class="legend-line finanz"></i>Vermittlung durch den Finanzsektor</span></div><figcaption id="cycleCaption" class="cycle-caption"><strong>Leseregel:</strong> Zu einer realen Leistung gehört meist ein Geldstrom in Gegenrichtung. Die Bank vermittelt Ersparnisse und Kredite; der Staat erhebt Abgaben und fragt zugleich Leistungen nach.</figcaption></figure>
+        <article class="mission"><div class="mission-head"><div><div class="mission-number">Praxisauftrag 4</div><h3>Servicevertrag als Wirtschaftskreislauf</h3></div><div class="task-meta"><span>10 Minuten</span><span>Einzelarbeit + Abgleich</span><span>Rolle: Service-Controlling</span></div></div><div class="scenario"><strong>Monatsabschluss:</strong> NovaByte betreibt für eine Kommune Server und Clients. Die Kommune überweist die Servicepauschale, eine NovaByte-Administratorin überwacht die Systeme und eine Bank finanziert neue Ersatzserver.</div><div class="task-grid"><div class="task-box"><h4>Ordne jeden Vorgang vollständig zu</h4><label class="field" for="flow1"><span>1. Kommune überweist die Servicepauschale</span></label><select id="flow1"><option value="">Bitte wählen ...</option><option value="correct">Geldstrom: Kunde → NovaByte</option><option>Leistungsstrom: NovaByte → Bank</option><option>Geldstrom: NovaByte → Kunde</option></select><label class="field" for="flow2"><span>2. Administratorin überwacht Kundensysteme</span></label><select id="flow2"><option value="">Bitte wählen ...</option><option>Geldstrom: Kunde → NovaByte</option><option value="correct">Leistungsstrom: NovaByte → Kunde</option><option>Güterstrom: Bank → NovaByte</option></select><label class="field" for="flow3"><span>3. Bank zahlt den Investitionskredit aus</span></label><select id="flow3"><option value="">Bitte wählen ...</option><option value="correct">Geldstrom: Bank → NovaByte</option><option>Leistungsstrom: NovaByte → Staat</option><option>Güterstrom: Kunde → Bank</option></select><div class="actions"><button id="flowButton" class="btn" type="button">Zuordnung prüfen</button></div></div><aside class="task-box"><h4>Abgabeprodukt</h4><p class="deliverable">Drei korrekt beschriftete Pfeile mit Akteuren, Richtung und Stromart.</p><h4>Transferfrage</h4><p>Welcher Gegenstrom gehört jeweils zur Zahlung des Kunden und zum Kredit der Bank?</p><details><summary>Gestufte Hilfe</summary><p>Geld ist ein Geldstrom. Administration ist eine Dienstleistung. Zum Kredit gehören später Tilgung und Zinsen in Gegenrichtung.</p></details></aside></div><div id="flowFeedback" class="feedback" aria-live="polite">Ordne alle drei Vorgänge zu. Korrigiere anschließend mögliche Fehler.</div></article>
+    </div></article></section>
+
+    <section id="ziele-betrieb" class="topic-pane" role="tabpanel"><article class="panel"><div class="panel-head"><h2>Betriebliche Ziele und Zielbeziehungen</h2></div><div class="panel-body grid grid-3">
+        <article class="card"><h3>Sachziele</h3><p>Sie beschreiben Art, Menge, Qualität, Ort und Zeitpunkt der Leistung: Was soll für wen erstellt werden?</p><p class="small">Beispiel: 5.000 reparierbare E-Bikes pro Jahr herstellen.</p></article>
+        <article class="card"><h3>Ökonomische Ziele</h3><p>Gewinn, Rentabilität, Liquidität, Produktivität, Wachstum, Marktanteil und langfristige Existenzsicherung.</p></article>
+        <article class="card"><h3>Soziale und ökologische Ziele</h3><p>Faire Arbeitsbedingungen, Ausbildung, Arbeitssicherheit, Ressourcenschutz, Emissionsminderung und Kreislaufwirtschaft.</p></article>
+        <article class="definition" style="grid-column:1/-1"><div class="term">Ziele messbar formulieren</div><p>Ein prüfbares Ziel benennt Inhalt, Ausmaß und Zeitraum: „Den Stromverbrauch je produziertem Fahrrad bis Ende 2027 um 12 Prozent gegenüber 2026 senken.“ Solche Kriterien ermöglichen Kontrolle und begründete Entscheidungen.</p></article>
+        <article class="card"><h3>Zielharmonie</h3><p>Die Erreichung eines Ziels fördert ein anderes. Weniger Materialausschuss senkt Kosten und Ressourcenverbrauch.</p></article>
+        <article class="card"><h3>Zielkonflikt</h3><p>Die Erreichung eines Ziels erschwert ein anderes. Eine besonders kurze Lieferzeit kann Lager- und Personalkosten erhöhen.</p></article>
+        <article class="card"><h3>Zielneutralität</h3><p>Zwei Ziele beeinflussen sich im betrachteten Fall nicht erkennbar. Die Beziehung hängt immer von Situation und Zeitraum ab.</p></article>
+        <article class="mission"><div class="mission-head"><div><div class="mission-number">Praxisauftrag 5</div><h3>Aus einem Wunsch wird ein steuerbares IT-Ziel</h3></div><div class="task-meta"><span>10 Minuten</span><span>Partnerarbeit</span><span>Rolle: Service Management</span></div></div><div class="scenario"><strong>Unbrauchbare Vorgabe:</strong> „Der Support soll besser und nachhaltiger werden.“ Die Teamleitung braucht zwei messbare Ziele für das nächste Quartal.</div><div class="task-grid"><div class="task-box"><h4>Ziel-Builder</h4><div class="field-grid"><label class="field" for="goalArea"><span>Zielbereich</span><select id="goalArea"><option value="">Bitte wählen ...</option><option>Reaktionszeit im Support</option><option>Erstlösungsquote</option><option>Energieverbrauch der Testsysteme</option><option>Hardware-Wiederverwendung</option></select></label><label class="field" for="goalValue"><span>Zielwert in Prozent</span><input id="goalValue" type="number" min="1" max="100" placeholder="z. B. 15" /></label></div><label class="field" for="goalMeasure"><span>Messung, Termin und Zielbeziehung</span><textarea id="goalMeasure" placeholder="Bis zum Ende des nächsten Quartals ... Gemessen wird mit ... Das zweite Ziel ..."></textarea></label><div class="actions"><button id="goalButton" class="btn" type="button">Zielformulierung prüfen</button></div></div><aside class="task-box"><h4>Abgabeprodukt</h4><p class="deliverable">Ein SMART formuliertes IT-Serviceziel plus ein zweites Ziel, das dazu in Harmonie oder Konflikt steht.</p><h4>Erfolgskriterien</h4><ul><li>Kennzahl und Ausgangsbezug</li><li>realistischer Zielwert</li><li>Termin und Messquelle</li><li>Zielbeziehung begründet</li></ul><details><summary>Gestufte Hilfe</summary><p>Muster: „Wir senken/erhöhen [Kennzahl] bis [Termin] von/um [Wert]. Datenquelle ist [System].“</p></details></aside></div><div id="goalFeedback" class="feedback" aria-live="polite">Fülle Zielbereich, Zielwert sowie Messung, Termin und Zielbeziehung aus.</div></article>
+    </div></article></section>
+
+    <section id="standort" class="topic-pane" role="tabpanel"><article class="panel"><div class="panel-head"><h2>Standort, Nachhaltigkeit und gesellschaftliche Verantwortung</h2></div><div class="panel-body grid grid-2">
+        <article class="card"><h3>Harte Standortfaktoren</h3><ul class="bullet-list"><li>Nähe zu Absatz- und Beschaffungsmärkten</li><li>Verkehrswege, digitale Netze und Energieversorgung</li><li>Arbeitskräfteangebot und Lohnniveau</li><li>Grundstückskosten, Steuern und Förderungen</li></ul></article>
+        <article class="card"><h3>Weiche Standortfaktoren</h3><ul class="bullet-list"><li>Wohn- und Lebensqualität</li><li>Bildungs-, Kultur- und Freizeitangebot</li><li>Image der Region</li><li>Kooperationsnetzwerke und Innovationsklima</li></ul></article>
+        <article class="definition" style="grid-column:1/-1"><div class="term">Ökonomisch, ökologisch und sozial abwägen</div><p>Ein Standort ist nicht allein wegen niedriger Kosten vorteilhaft. Transportwege, Fachkräftebindung, Versorgungssicherheit, Umweltwirkungen und Akzeptanz können langfristig wichtiger sein. Nachhaltiges Wirtschaften verbindet wirtschaftliche Tragfähigkeit mit Umwelt- und Sozialverantwortung.</p></article>
+        <article class="card"><h3>Unternehmerische Verantwortung</h3><p>Rechtstreue ist die Mindestanforderung. Darüber hinaus können Betriebe Lieferketten transparent gestalten, Ausbildung fördern, Ressourcen effizient nutzen und Auswirkungen ihrer Entscheidungen offenlegen.</p></article>
+        <article class="card"><h3>Externe Effekte</h3><p>Externe Effekte treffen Dritte, ohne vollständig im Marktpreis enthalten zu sein. Lärm oder Emissionen sind negative Beispiele; Ausbildung und Innovation können positive Wirkungen erzeugen.</p></article>
+    </div></article></section>
+
+    <section id="fallstudie" class="topic-pane" role="tabpanel"><article class="panel"><div class="panel-head"><h2>Fallstudie: NovaByte plant die Hosting-Plattform</h2></div><div class="panel-body grid grid-2">
+        <article class="card"><h3>Entscheidungsvorlage</h3><p>Der neue Kommunalauftrag erfordert eine ausfallsichere Hosting-Plattform. Zwei realistische Varianten stehen zur Wahl:</p><table><thead><tr><th>Kriterium</th><th>A: eigener Serverraum</th><th>B: deutsches Rechenzentrum</th></tr></thead><tbody><tr><td>Kosten</td><td>95.000 Euro Investition plus Energie und Wartung</td><td>4.800 Euro monatlich, skalierbar</td></tr><tr><td>Verfügbarkeit</td><td>Eine Strom- und Internetanbindung</td><td>Redundante Strom- und Netzanbindung</td></tr><tr><td>Personal</td><td>Volle Kontrolle, aber keine 24/7-Besetzung</td><td>Infrastruktur 24/7 betreut; Verantwortung bleibt zu steuern</td></tr><tr><td>Nachhaltigkeit</td><td>Strommix und Auslastung selbst beeinflussbar</td><td>Erneuerbarer Strom dokumentiert, geteilte Infrastruktur</td></tr><tr><td>Standort</td><td>Direkter Zugang im Büro</td><td>180 km Entfernung, Remote Hands verfügbar</td></tr></tbody></table></article>
+        <article class="card"><h3>Auftragsrahmen</h3><p><strong>Adressat:</strong> Geschäftsleitung und Serviceleitung</p><p><strong>Ziel:</strong> Eine nachvollziehbare Empfehlung, keine bloße Bauchentscheidung.</p><p><strong>Nicht vergessen:</strong> NovaByte bleibt auch bei ausgelagerter Infrastruktur für Vertragsgestaltung, Berechtigungen, Überwachung und Notfallplanung verantwortlich.</p><h3 style="margin-top:16px">Bewertungsraster</h3><table><thead><tr><th>Kriterium</th><th>Punkte</th></tr></thead><tbody><tr><td>Mindestens vier Falldaten korrekt genutzt</td><td>0-2</td></tr><tr><td>Wirtschaft, Technik und Stakeholder abgewogen</td><td>0-2</td></tr><tr><td>Risiko plus Gegenmaßnahme genannt</td><td>0-2</td></tr><tr><td>Klare, folgerichtige Empfehlung</td><td>0-2</td></tr></tbody></table></article>
+        <article class="mission"><div class="mission-head"><div><div class="mission-number">Praxisauftrag 6 · Abschluss</div><h3>Infrastruktur-Memo für die Geschäftsleitung</h3></div><div class="task-meta"><span>25 Minuten</span><span>Dreierteam</span><span>Rolle: IT-Beratung</span></div></div><div class="task-grid"><div class="task-box"><h4>Arbeitsprozess</h4><ol><li><strong>Einzeln, 4 Min:</strong> Markiert entscheidungsrelevante Falldaten.</li><li><strong>Team, 8 Min:</strong> Gewichtet Verfügbarkeit, Kosten, Personal, Nachhaltigkeit und Standort.</li><li><strong>Memo, 10 Min:</strong> Formuliert Empfehlung, Risiko und Gegenmaßnahme.</li><li><strong>Review, 3 Min:</strong> Tauscht mit einem Nachbarteam und prüft anhand des Rasters.</li></ol><label class="field" for="locationChoice"><span>Empfohlene Variante</span></label><select id="locationChoice"><option value="">Bitte wählen ...</option><option value="a">A: eigener Serverraum</option><option value="b">B: deutsches Rechenzentrum</option><option value="hybrid">Gestufte oder hybride Lösung</option></select><label class="field" for="locationReason"><span>Entscheidungsmemo</span></label><textarea id="locationReason" placeholder="Empfehlung: ... Begründung mit Falldaten: ... Betroffene Stakeholder: ... Hauptrisiko: ... Gegenmaßnahme: ..."></textarea><div class="actions"><button id="caseButton" class="btn" type="button">Memo auf Vollständigkeit prüfen</button></div></div><aside class="task-box"><h4>Abgabeprodukt</h4><p class="deliverable">Entscheidungsmemo mit mindestens 120 Wörtern und ausgefülltem Peer-Review-Raster.</p><h4>Erfolgskriterien</h4><ul><li>Mindestens vier konkrete Falldaten</li><li>ökonomische und technische Abwägung</li><li>mindestens zwei Anspruchsgruppen</li><li>Risiko mit passender Gegenmaßnahme</li></ul><details><summary>Gestufte Hilfe</summary><p>Satzstarter: „Wir empfehlen ..., weil die Daten ... zeigen. Für ... bedeutet das ... Das größte Risiko ist ... Wir begrenzen es durch ...“</p></details></aside></div><div id="caseFeedback" class="feedback" aria-live="polite">Die automatische Prüfung kontrolliert nur die Vollständigkeit. Die fachliche Qualität bewertet ihr anschließend mit dem Raster.</div></article>
+    </div></article></section>
+
+    <section id="quiz" class="topic-pane" role="tabpanel"><article class="panel"><div class="panel-head"><h2>Wissenscheck</h2><button id="quizButton" class="btn" type="button">Auswerten</button></div><div class="panel-body"><form id="quizForm">
+        <div class="quiz-item"><p>1. Welche Aussage grenzt Betrieb und Unternehmen korrekt ab?</p><label><input type="radio" name="q1" value="a" /> Beide Begriffe bedeuten immer exakt dasselbe.</label><label><input type="radio" name="q1" value="b" /> Der Betrieb erstellt Leistungen; das Unternehmen ist die rechtlich-wirtschaftliche Einheit.</label><label><input type="radio" name="q1" value="c" /> Nur ein Betrieb kann Verträge schließen.</label></div>
+        <div class="quiz-item"><p>2. Was kennzeichnet die Soziale Marktwirtschaft?</p><label><input type="radio" name="q2" value="a" /> Ausschließlich staatliche Produktionsplanung.</label><label><input type="radio" name="q2" value="b" /> Völlig ungeregelte Märkte ohne soziale Sicherung.</label><label><input type="radio" name="q2" value="c" /> Marktwirtschaftliche Freiheit innerhalb eines sozialen und rechtlichen Ordnungsrahmens.</label></div>
+        <div class="quiz-item"><p>3. Ein Betrieb zahlt Körperschaftsteuer. Welche Einordnung stimmt?</p><label><input type="radio" name="q3" value="a" /> Geldstrom vom Betrieb zum Staat.</label><label><input type="radio" name="q3" value="b" /> Güterstrom vom Staat zum Haushalt.</label><label><input type="radio" name="q3" value="c" /> Leistungsstrom von der Bank zum Ausland.</label></div>
+        <div class="quiz-item"><p>4. Welche Kombination ist eine Zielharmonie?</p><label><input type="radio" name="q4" value="a" /> Weniger Materialausschuss senkt Kosten und Abfall.</label><label><input type="radio" name="q4" value="b" /> Kürzere Lieferzeit erhöht zwingend alle Kosten.</label><label><input type="radio" name="q4" value="c" /> Höhere Qualität hat nie Einfluss auf andere Ziele.</label></div>
+        <div class="quiz-item"><p>5. Welcher ist ein harter Standortfaktor?</p><label><input type="radio" name="q5" value="a" /> Freizeitwert der Region.</label><label><input type="radio" name="q5" value="b" /> Verkehrsanbindung und Energiekosten.</label><label><input type="radio" name="q5" value="c" /> Persönlicher Geschmack der Geschäftsleitung.</label></div>
+        <div class="quiz-item"><p>6. Welche Aussage zu staatlichem Handeln trifft zu?</p><label><input type="radio" name="q6" value="a" /> Wettbewerbspolitik kann Marktmissbrauch begrenzen.</label><label><input type="radio" name="q6" value="b" /> In einer Sozialen Marktwirtschaft darf der Staat keine Regeln setzen.</label><label><input type="radio" name="q6" value="c" /> Der Staat legt grundsätzlich alle Preise fest.</label></div>
+    </form><div id="quizResult" class="result-box" aria-live="polite">Beantworte alle Fragen und werte sie aus.</div></div></article></section>
+
+    <footer class="footer-note sources"><strong>Fachliche Vertiefung:</strong> Eigenständig formuliertes Lernmaterial zu zentralen WiSo-Inhalten. Weiterführend: <a href="https://www.bpb.de/kurz-knapp/lexika/lexikon-der-wirtschaft/" target="_blank" rel="noopener">bpb: Lexikon der Wirtschaft</a>, <a href="https://www.gesetze-im-internet.de/gg/" target="_blank" rel="noopener">Grundgesetz</a> und <a href="https://www.bundeskartellamt.de/" target="_blank" rel="noopener">Bundeskartellamt</a>.</footer>
+</main>
+<script>
+    const scoreElement = document.getElementById("score");
+    const awarded = new Set();
+    let points = 0;
+
+    function addPoints(mission, amount) {
+        if (!awarded.has(mission)) {
+            awarded.add(mission);
+            points += amount;
+            scoreElement.textContent = points;
+        }
+    }
+
+    document.querySelectorAll(".tab-btn").forEach((button) => button.addEventListener("click", () => {
+        const target = button.dataset.tab;
+        document.querySelectorAll(".tab-btn").forEach((item) => {
+            item.classList.remove("active");
+            item.setAttribute("aria-selected", "false");
+        });
+        document.querySelectorAll(".topic-pane").forEach((pane) => pane.classList.remove("active"));
+        button.classList.add("active");
+        button.setAttribute("aria-selected", "true");
+        document.getElementById(target).classList.add("active");
+        if (target === "kreislauf" && window.innerWidth <= 760) {
+            const diagram = document.querySelector(".diagram-scroll");
+            requestAnimationFrame(() => { diagram.scrollLeft = (diagram.scrollWidth - diagram.clientWidth) / 2; });
+        }
+        window.scrollTo({ top: document.querySelector(".tabs").offsetTop, behavior: "smooth" });
+    }));
+
+    document.querySelectorAll("[data-show-flow]").forEach((button) => button.addEventListener("click", () => {
+        const selected = button.dataset.showFlow;
+        document.querySelectorAll("[data-show-flow]").forEach((item) => item.classList.toggle("active", item === button));
+        document.querySelectorAll(".economy-map [data-flow]").forEach((flow) => {
+            flow.classList.toggle("muted", selected !== "all" && flow.dataset.flow !== selected);
+        });
+    }));
+
+    document.querySelectorAll("[data-mission]").forEach((mission) => {
+        mission.querySelectorAll(".choice").forEach((button) => button.addEventListener("click", () => {
+            const correct = button.dataset.correct === "true";
+            mission.querySelectorAll(".choice").forEach((choice) => choice.classList.remove("correct", "wrong"));
+            button.classList.add(correct ? "correct" : "wrong");
+            const feedback = mission.querySelector(".feedback");
+            feedback.className = `feedback ${correct ? "good" : "bad"}`;
+            feedback.textContent = button.dataset.feedback;
+            if (correct) addPoints(mission.dataset.mission, Number(mission.dataset.points));
+        }));
+    });
+
+    const viewedStakeholders = new Set();
+    document.querySelectorAll("#stakeholderButtons .sector").forEach((button) => button.addEventListener("click", () => {
+        document.querySelectorAll("#stakeholderButtons .sector").forEach((sector) => sector.classList.remove("active"));
+        button.classList.add("active");
+        viewedStakeholders.add(button.textContent.trim());
+        const feedback = document.getElementById("stakeholderInfo");
+        feedback.className = "feedback good";
+        feedback.textContent = button.dataset.info;
+    }));
+
+    document.getElementById("stakeholderDone").addEventListener("click", () => {
+        const feedback = document.getElementById("stakeholderInfo");
+        const complete = viewedStakeholders.size === 4;
+        feedback.className = `feedback ${complete ? "good" : "bad"}`;
+        feedback.innerHTML = complete ? "<strong>Rollen vollständig.</strong> Haltet jetzt Dienstmodell, Eskalationsweg und zwei Schutzmaßnahmen schriftlich fest." : `<strong>Noch ${4 - viewedStakeholders.size} Rolle(n) offen.</strong> Öffnet jede Perspektive, bevor ihr eure Vereinbarung sichert.`;
+        if (complete) addPoints("stakeholder", 2);
+    });
+
+    document.getElementById("flowButton").addEventListener("click", () => {
+        const correct = ["flow1", "flow2", "flow3"].filter((id) => document.getElementById(id).value === "correct").length;
+        const feedback = document.getElementById("flowFeedback");
+        feedback.className = `feedback ${correct === 3 ? "good" : "bad"}`;
+        feedback.innerHTML = correct === 3 ? "<strong>3/3 korrekt.</strong> Ergänzt nun mündlich die Gegenströme: Dienstleistung sowie Tilgung und Zinsen." : `<strong>${correct}/3 korrekt.</strong> Prüfe bei jedem Vorgang zuerst: Fließt Geld oder eine reale Leistung, und von wem zu wem?`;
+        if (correct === 3) addPoints("kreislauf", 2);
+    });
+
+    document.getElementById("goalButton").addEventListener("click", () => {
+        const area = document.getElementById("goalArea").value;
+        const value = Number(document.getElementById("goalValue").value);
+        const measure = document.getElementById("goalMeasure").value.trim();
+        const complete = area && value >= 1 && value <= 100 && measure.split(/\s+/).length >= 12 && /\d/.test(measure);
+        const feedback = document.getElementById("goalFeedback");
+        feedback.className = `feedback ${complete ? "good" : "bad"}`;
+        feedback.innerHTML = complete ? "<strong>Formal vollständig.</strong> Tauscht das Ziel mit einem Partnerteam und prüft zusätzlich Realisierbarkeit sowie die begründete Zielbeziehung." : "<strong>Noch nicht prüfbar.</strong> Ergänze einen Zielbereich, einen Wert zwischen 1 und 100 sowie mindestens zwölf Wörter mit messbarem Termin oder Zeitraum.";
+        if (complete) addPoints("ziele", 2);
+    });
+
+    document.getElementById("caseButton").addEventListener("click", () => {
+        const location = document.getElementById("locationChoice").value;
+        const reason = document.getElementById("locationReason").value.trim();
+        const feedback = document.getElementById("caseFeedback");
+        const wordCount = reason ? reason.split(/\s+/).length : 0;
+        const complete = location && wordCount >= 120;
+        feedback.className = `feedback ${complete ? "good" : "bad"}`;
+        feedback.innerHTML = complete ? `<strong>Memo formal vollständig (${wordCount} Wörter).</strong> Führt jetzt das Peer-Review mit dem 8-Punkte-Raster durch; die Wortzahl allein bewertet noch nicht die fachliche Qualität.` : `<strong>Noch nicht vollständig (${wordCount}/120 Wörter).</strong> Ergänzt Falldaten, Stakeholder, Hauptrisiko und eine passende Gegenmaßnahme.`;
+        if (complete) addPoints("fallstudie", 4);
+    });
+
+    const answers = { q1:"b", q2:"c", q3:"a", q4:"a", q5:"b", q6:"a" };
+    document.getElementById("quizButton").addEventListener("click", () => {
+        const data = new FormData(document.getElementById("quizForm"));
+        let correct = 0;
+        Object.entries(answers).forEach(([question, answer]) => {
+            if (data.get(question) === answer) correct += 1;
+        });
+        const result = document.getElementById("quizResult");
+        result.className = `result-box ${correct >= 5 ? "good" : "bad"}`;
+        result.innerHTML = correct >= 5 ? `<strong>${correct}/6 richtig.</strong> Du kannst die Stellung des Betriebs sicher einordnen und auf Fälle übertragen.` : `<strong>${correct}/6 richtig.</strong> Wiederhole besonders Ordnungsrahmen, Ströme, Zielbeziehungen und Standortfaktoren.`;
+    });
+</script>
+</body>
+</html>
