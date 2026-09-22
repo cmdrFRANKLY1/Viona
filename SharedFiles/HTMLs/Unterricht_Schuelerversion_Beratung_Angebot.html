@@ -1,0 +1,662 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beratung und Angebot - Schülerversion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-main: #f4f7f6;
+            --bg-card: #ffffff;
+            --ink: #1a202c;
+            --ink-soft: #4a5568;
+            --accent: #6d28d9;
+            --accent-2: #bc4d2a;
+            --line: #e2e8f0;
+            --tab-bg: #f0edfb;
+            --ok: #276749;
+            --warn: #c53030;
+            --radius: 12px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Source Sans 3", sans-serif;
+            color: var(--ink);
+            background: var(--bg-main);
+            line-height: 1.6;
+        }
+        .shell { max-width: 1100px; margin: 0 auto; padding: 30px 18px; }
+        .hero {
+            background: linear-gradient(135deg, #2d1b69 0%, #6d28d9 65%, #a855f7 100%);
+            color: #fff;
+            border-radius: var(--radius);
+            padding: 34px 24px;
+            margin-bottom: 18px;
+        }
+        .kicker { text-transform: uppercase; font-weight: 700; font-size: 0.86rem; opacity: 0.9; }
+        h1, h2, h3 { font-family: "Barlow Condensed", sans-serif; margin: 0; line-height: 1.1; }
+        h1 { font-size: clamp(1.9rem, 4vw, 3rem); margin: 8px 0 10px; }
+        .meta { display: flex; gap: 8px; flex-wrap: wrap; }
+        .chip { background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 6px 11px; font-size: 0.85rem; }
+        .tabs {
+            background: var(--bg-card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 10px;
+            margin-bottom: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .tab-list { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tab-btn {
+            border: 1px solid var(--line);
+            background: var(--tab-bg);
+            color: var(--ink);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: 700;
+            font-family: "Source Sans 3", sans-serif;
+            cursor: pointer;
+        }
+        .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .topic-pane { display: none; }
+        .topic-pane.active { display: block; }
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .panel-head { background: #faf9ff; border-bottom: 1px solid var(--line); padding: 14px 18px; }
+        .panel-head h2 { color: var(--accent); font-size: 1.65rem; }
+        .panel-body { padding: 18px; }
+        .grid { display: grid; gap: 14px; }
+        .grid > * { min-width: 0; }
+        .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .task-grid { grid-template-columns: 1fr; }
+        .card {
+            min-width: 0;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px;
+            background: #fff;
+            overflow: hidden;
+        }
+        .card h3 { color: var(--accent-2); font-size: 1.25rem; margin-bottom: 8px; }
+        .bullet-list { margin: 8px 0 0; padding-left: 18px; }
+        .bullet-list li { margin-bottom: 6px; }
+        .phase { border-left: 4px solid var(--accent); background: #f9f7ff; border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; }
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+            padding: 9px;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            hyphens: auto;
+        }
+        th { background: #f5f3ff; color: var(--accent); }
+        tr:last-child td { border-bottom: none; }
+        .table-wrap table { min-width: 560px; }
+        .sample-offer .table-wrap table { min-width: 620px; }
+        .quiz-item { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 10px; background: #f8fafc; }
+        .quiz-item p { margin: 0 0 8px; font-weight: 700; }
+        .quiz-item label { display: block; margin: 4px 0; }
+        .sample-offer {
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            background: #fcfcff;
+            padding: 18px;
+            box-shadow: inset 0 0 0 1px #eef2ff;
+        }
+        .sample-offer h3 { margin-bottom: 10px; }
+        .offer-sheet {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 22px;
+            overflow: hidden;
+        }
+        .offer-top {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+        .offer-box {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px;
+            background: #fafafa;
+        }
+        .offer-box strong { display: block; margin-bottom: 6px; color: var(--accent); }
+        .offer-line {
+            padding: 8px 0;
+            border-bottom: 1px dashed #dbe4f0;
+        }
+        .offer-line:last-child { border-bottom: none; }
+        .offer-subject {
+            margin: 16px 0 10px;
+            padding: 10px 12px;
+            background: #f5f3ff;
+            border-left: 4px solid var(--accent);
+            font-weight: 700;
+        }
+        .offer-total {
+            margin-top: 14px;
+            border: 1px solid #ddd6fe;
+            border-radius: 8px;
+            background: #faf5ff;
+            padding: 12px;
+        }
+        .offer-total div {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .offer-total div:last-child { margin-bottom: 0; font-weight: 700; color: var(--accent); }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .btn {
+            border: none;
+            border-radius: 8px;
+            background: var(--accent);
+            color: #fff;
+            padding: 9px 14px;
+            font-family: "Source Sans 3", sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-secondary { background: #fff; color: var(--accent); border: 1px solid var(--line); }
+        .status { margin-top: 10px; font-weight: 700; }
+        .ok { color: var(--ok); }
+        .warn { color: var(--warn); }
+        .footer-note { text-align: center; color: var(--ink-soft); font-size: 0.9rem; margin-top: 10px; }
+        @media (max-width: 980px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .offer-top { grid-template-columns: 1fr; }
+            .panel-body { padding: 16px; }
+        }
+        @media (max-width: 760px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .tab-btn { width: 100%; text-align: left; }
+            .shell { padding: 20px 10px; }
+            .offer-sheet { padding: 16px; }
+            .sample-offer { padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+<main class="shell">
+    <header class="hero">
+        <div class="kicker">Schülerversion - Bau / MuKb</div>
+        <h1>Unterrichtseinheit: Beratung und Angebot</h1>
+        <p>Schwerpunkt: Auftragsgewinnung und Kundenanforderungen sowie ABC-Analyse und Angebotserstellung nach DIN 5008.</p>
+        <div class="meta">
+            <span class="chip">Dauer: 90 Minuten</span>
+            <span class="chip">Theorie + Interaktiv</span>
+            <span class="chip">Praxisbezug Bau</span>
+        </div>
+    </header>
+
+    <nav class="tabs">
+        <div class="tab-list" role="tablist">
+            <button class="tab-btn active" data-tab="tab-lernziele" type="button">Lernziele</button>
+            <button class="tab-btn" data-tab="tab-theorie" type="button">Theorie</button>
+            <button class="tab-btn" data-tab="tab-interaktiv" type="button">Interaktiv</button>
+            <button class="tab-btn" data-tab="tab-lerncheck" type="button">Lerncheck</button>
+        </div>
+    </nav>
+
+    <section id="tab-lernziele" class="topic-pane active" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Lernziele</h2></div>
+            <div class="panel-body grid grid-2">
+                <div class="card">
+                    <h3>Fachliche Ziele</h3>
+                    <ul class="bullet-list">
+                        <li>Kundenanforderungen systematisch aufnehmen und priorisieren</li>
+                        <li>Auftragsgewinnung als Prozess von Erstkontakt bis Angebotsabgabe erklären</li>
+                        <li>Aufbau eines Angebots nach DIN 5008 anwenden</li>
+                        <li>Die ABC-Analyse als Entscheidungshilfe bei Kunden und Leistungen nutzen</li>
+                        <li>ABC-, XYZ-, SWOT-, PESTLE-, RFM- und Portfolio-Analyse nach Einsatzgebiet unterscheiden</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Methodische Ziele</h3>
+                    <ul class="bullet-list">
+                        <li>Informationen aus einer Kundenanfrage in eine Angebotsstruktur überführen</li>
+                        <li>Kundenbedarf mit Muss-/Kann-Kriterien unterscheiden</li>
+                        <li>Präsentationen in Gruppen kurz und fachlich begründet vorstellen</li>
+                        <li>Für einen Fall die passende Analyse auswählen und die Wahl begründen</li>
+                    </ul>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section id="tab-theorie" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Auftragsgewinnung und Kundenanforderungen</h2></div>
+            <div class="panel-body grid grid-2">
+                <div class="card">
+                    <h3>Prozess der Auftragsgewinnung</h3>
+                        <div class="phase"><strong>1.</strong> Kundenkontakt und Bedarfsklärung</div>
+                    <div class="phase"><strong>2.</strong> Vorprüfung: Machbarkeit, Termin, Budget</div>
+                    <div class="phase"><strong>3.</strong> Angebotskalkulation und Leistungsbeschreibung</div>
+                    <div class="phase"><strong>4.</strong> Angebotsabgabe und Nachverhandlung</div>
+                    <div class="phase"><strong>5.</strong> Zuschlag oder Lernschleife für nächste Anfrage</div>
+                </div>
+                <div class="card">
+                    <h3>Kundenanforderungen strukturieren</h3>
+                    <table>
+                        <thead><tr><th>Art</th><th>Bedeutung</th><th>Beispiel Bau</th></tr></thead>
+                        <tbody>
+                            <tr><td>Muss</td><td>Pflichtkriterium</td><td>Baubeginn bis Datum X</td></tr>
+                            <tr><td>Soll</td><td>Wichtig, aber verhandelbar</td><td>Materialmarke bevorzugt</td></tr>
+                            <tr><td>Kann</td><td>Zusatznutzen</td><td>Erweiterte Wartungsoption</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head"><h2>Angebotserstellung nach DIN 5008</h2></div>
+            <div class="panel-body">
+                <div class="card">
+                    <h3>Pflichtbestandteile eines professionellen Angebots</h3>
+                    <ul class="bullet-list">
+                        <li>Absender, Empfänger, Datum, Betreff und Anrede im normgerechten Aufbau</li>
+                        <li>Klare Leistungsbeschreibung mit Mengen, Qualitäten und Ausführungsgrenzen</li>
+                        <li>Preisangaben mit Netto/Brutto, Zahlungsbedingungen, Bindefrist</li>
+                        <li>Liefer- und Ausführungsfristen, Gewährleistung, rechtliche Hinweise</li>
+                        <li>Freundlicher Abschluss mit Kontaktperson und Unterschriftsblock</li>
+                    </ul>
+                </div>
+                <div class="sample-offer" style="margin-top: 14px;">
+                    <h3>Visuelles Musterangebot</h3>
+                    <p>Das Beispiel zeigt, wie ein Angebot inhaltlich und visuell gegliedert sein kann. Es ersetzt keine echte Briefvorlage, macht aber die Bausteine eines professionellen Angebots sichtbar.</p>
+                    <div class="offer-sheet" style="margin-top: 12px;">
+                        <div class="offer-top">
+                            <div class="offer-box">
+                                <strong>Absender</strong>
+                                BauWerk Süd GmbH<br />
+                                Industriestraße 12<br />
+                                70188 Stuttgart<br />
+                                Tel.: 0711 555 23-0<br />
+                                E-Mail: angebote@bauwerk-sued.de
+                            </div>
+                            <div class="offer-box">
+                                <strong>Empfänger</strong>
+                                Raumlinie GmbH<br />
+                                Frau Elena Maurer<br />
+                                Rosenbergstraße 24<br />
+                                70176 Stuttgart
+                            </div>
+                        </div>
+
+                        <div class="offer-line"><strong>Datum:</strong> 02.07.2026</div>
+                        <div class="offer-line"><strong>Angebotsnummer:</strong> ANG-2026-071</div>
+                        <div class="offer-subject">Angebot: Innenausbau Bürofläche, 40 qm, staubarme Ausführung im laufenden Betrieb</div>
+
+                        <p><strong>Sehr geehrte Frau Maurer,</strong></p>
+                        <p>vielen Dank für Ihre Anfrage. Gern bieten wir Ihnen den Innenausbau der vorgesehenen Bürofläche in Ihrem Bestandsgebäude zu den nachstehenden Konditionen an.</p>
+
+                        <table style="margin-top: 12px;">
+                            <thead><tr><th>Position</th><th>Menge</th><th>Einzelpreis</th><th>Gesamt</th></tr></thead>
+                            <tbody>
+                                <tr><td>Leichtbauwand stellen</td><td>18 lfm</td><td>84,00 EUR</td><td>1.512,00 EUR</td></tr>
+                                <tr><td>Vinylboden verlegen</td><td>40 qm</td><td>46,00 EUR</td><td>1.840,00 EUR</td></tr>
+                                <tr><td>Akustikelemente montieren</td><td>2 Stück</td><td>290,00 EUR</td><td>580,00 EUR</td></tr>
+                                <tr><td>Anstrich weiß</td><td>110 qm</td><td>9,00 EUR</td><td>990,00 EUR</td></tr>
+                                <tr><td>Baustelleneinrichtung und Schutzmaßnahmen</td><td>pauschal</td><td>420,00 EUR</td><td>420,00 EUR</td></tr>
+                            </tbody>
+                        </table>
+
+                        <div class="offer-total">
+                            <div><span>Nettosumme</span><span>5.342,00 EUR</span></div>
+                            <div><span>zzgl. 19 % USt.</span><span>1.014,98 EUR</span></div>
+                            <div><span>Bruttosumme</span><span>6.356,98 EUR</span></div>
+                        </div>
+
+                        <div class="offer-line" style="margin-top: 14px;"><strong>Ausführungszeitraum:</strong> Beginn ab 12.08.2026, Fertigstellung innerhalb von 8 Arbeitstagen</div>
+                        <div class="offer-line"><strong>Zahlungsbedingungen:</strong> 14 Tage netto nach Rechnungserhalt</div>
+                        <div class="offer-line"><strong>Bindefrist:</strong> Dieses Angebot ist 21 Tage gültig.</div>
+                        <div class="offer-line"><strong>Besonderheiten:</strong> Staubarme Ausführung, tägliche Baustellenräumung, Arbeitszeitfenster 7:30 Uhr bis 17:00 Uhr</div>
+
+                        <p style="margin-top: 16px;">Für Rückfragen oder Anpassungswünsche stehen wir Ihnen gern zur Verfügung. Wir freuen uns auf Ihre Rückmeldung.</p>
+                        <p><strong>Mit freundlichen Grüßen</strong><br />BauWerk Süd GmbH<br />i. A. Lara König</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head"><h2>Kundenanalyse: Welche Analyse wofür?</h2></div>
+            <div class="panel-body grid grid-2">
+                <div class="card">
+                    <h3>ABC-Analyse: Priorisieren nach Wert</h3>
+                    <p>Die ABC-Analyse ordnet Kunden, Leistungen oder Produkte nach ihrer wirtschaftlichen Bedeutung. Sie basiert auf dem Pareto-Prinzip und hilft, Zeit und Ressourcen auf die wichtigsten Fälle zu konzentrieren.</p>
+                    <div class="phase"><strong>A:</strong> sehr wichtig, hoher Umsatz- oder Ergebnisbeitrag</div>
+                    <div class="phase"><strong>B:</strong> wichtig, mittlere Bedeutung</div>
+                    <div class="phase"><strong>C:</strong> weniger wichtig, geringer Beitrag</div>
+                    <p><strong>Typischer Einsatz:</strong> Wenn Vertriebs- oder Angebotskapazitäten knapp sind und Kunden oder Leistungen priorisiert werden müssen.</p>
+                    <p><strong>Schrittfolge:</strong></p>
+                    <ul class="bullet-list">
+                        <li>Objekte und Kennzahl erfassen, z. B. Jahresumsatz oder Deckungsbeitrag</li>
+                        <li>Liste absteigend sortieren</li>
+                        <li>Prozentanteil am Gesamtwert berechnen</li>
+                        <li>Kumulierte Prozentwerte bilden</li>
+                        <li>In A-, B- und C-Klassen einteilen</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Vergleich der Analysearten</h3>
+                    <table>
+                        <thead><tr><th>Analyse</th><th>Frage</th><th>Wann sinnvoll?</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>ABC</strong></td><td>Wer oder was ist wirtschaftlich am wichtigsten?</td><td>Bei Priorisierung von Kunden, Produkten oder Leistungen</td></tr>
+                            <tr><td><strong>XYZ</strong></td><td>Wie planbar ist Nachfrage oder Verbrauch?</td><td>Bei Materialdisposition, Lager und Terminplanung</td></tr>
+                            <tr><td><strong>Portfolio / BCG</strong></td><td>Welche Produkte lohnen strategische Investitionen?</td><td>Bei Sortiments- und Wachstumsentscheidungen</td></tr>
+                            <tr><td><strong>SWOT</strong></td><td>Welche Stärken, Schwächen, Chancen und Risiken gibt es?</td><td>Bei Strategie, Positionierung und Projekten</td></tr>
+                            <tr><td><strong>PESTLE</strong></td><td>Welche externen Trends beeinflussen uns?</td><td>Bei Umfeldanalyse, Risikoabschätzung und Marktbeobachtung</td></tr>
+                            <tr><td><strong>RFM</strong></td><td>Welche Kunden sind aktuell wertvoll und aktiv?</td><td>Bei Marketing, Kundenpflege und Angebotsaktionen</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head"><h2>Ergänzende Analyseverfahren im Überblick</h2></div>
+            <div class="panel-body grid grid-2">
+                <div class="card">
+                    <h3>XYZ-Analyse und ABC/XYZ-Kombination</h3>
+                    <p>Die XYZ-Analyse betrachtet nicht den Wert, sondern die Regelmäßigkeit der Nachfrage oder des Verbrauchs.</p>
+                    <ul class="bullet-list">
+                        <li><strong>X:</strong> konstanter Bedarf, hohe Prognosegenauigkeit</li>
+                        <li><strong>Y:</strong> schwankender Bedarf, z. B. saisonal</li>
+                        <li><strong>Z:</strong> unregelmäßiger Bedarf, schwer planbar</li>
+                    </ul>
+                    <p><strong>Schrittfolge:</strong></p>
+                    <ul class="bullet-list">
+                        <li>Monatsverbräuche oder Monatsanfragen erfassen</li>
+                        <li>Schwankungen vergleichen, ggf. mit Variationskoeffizient</li>
+                        <li>In X, Y oder Z einteilen</li>
+                        <li>Mit ABC kombinieren, z. B. A/X oder A/Z</li>
+                    </ul>
+                    <p><strong>Praxisnutzen:</strong> A/X-Kunden oder Artikel eng betreuen, A/Z-Fälle besonders absichern und früh abstimmen.</p>
+                </div>
+                <div class="card">
+                    <h3>RFM-Analyse für den Kundenstamm</h3>
+                    <p>Die RFM-Analyse bewertet Kunden nach Aktualität, Kaufhäufigkeit und Umsatzwert.</p>
+                    <ul class="bullet-list">
+                        <li><strong>R:</strong> Wie lange ist der letzte Kauf her?</li>
+                        <li><strong>F:</strong> Wie häufig kauft der Kunde?</li>
+                        <li><strong>M:</strong> Wie viel Umsatz bringt der Kunde?</li>
+                    </ul>
+                    <p><strong>Schrittfolge:</strong></p>
+                    <ul class="bullet-list">
+                        <li>Kundenliste mit Recency, Frequency und Monetary erstellen</li>
+                        <li>Für jede Spalte Punkte von 1 bis 5 vergeben</li>
+                        <li>Zu einem dreistelligen Code zusammenführen, z. B. 555</li>
+                        <li>Segmente für Ansprache, Nachfassaktion oder Sonderangebot ableiten</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Portfolio-Analyse / BCG-Matrix</h3>
+                    <p>Die BCG-Matrix bewertet Produkte oder Geschäftsfelder nach Marktwachstum und relativem Marktanteil.</p>
+                    <ul class="bullet-list">
+                        <li><strong>Question Marks:</strong> hohes Wachstum, geringer Marktanteil</li>
+                        <li><strong>Stars:</strong> hohes Wachstum, hoher Marktanteil</li>
+                        <li><strong>Cash Cows:</strong> geringes Wachstum, hoher Marktanteil</li>
+                        <li><strong>Poor Dogs:</strong> geringes Wachstum, geringer Marktanteil</li>
+                    </ul>
+                    <p><strong>Wann sinnvoll?</strong> Wenn entschieden werden soll, welche Leistungen weiter ausgebaut, stabil gehalten oder zurückgefahren werden.</p>
+                </div>
+                <div class="card">
+                    <h3>SWOT- und PESTLE-Analyse</h3>
+                    <p><strong>SWOT</strong> verbindet interne und externe Sicht:</p>
+                    <ul class="bullet-list">
+                        <li>Strengths und Weaknesses: intern beeinflussbar</li>
+                        <li>Opportunities und Threats: extern vorgegeben</li>
+                    </ul>
+                    <p><strong>PESTLE</strong> untersucht das Umfeld:</p>
+                    <ul class="bullet-list">
+                        <li>Political, Economic, Social, Technological</li>
+                        <li>Legal und Environmental</li>
+                    </ul>
+                    <p><strong>Zusammenspiel:</strong> PESTLE liefert äußere Trends, SWOT überführt diese in konkrete Chancen und Risiken für Angebot, Vertrieb und Positionierung.</p>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section id="tab-interaktiv" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Interaktive Aufgaben</h2></div>
+            <div class="panel-body grid grid-2 task-grid">
+                <div class="card">
+                    <h3>ABC-Analyse (Kunden oder Leistungen)</h3>
+                    <p>Die BauWerk Süd GmbH möchte ihre Vertriebszeit gezielter einsetzen. Dafür soll der Kundenstamm mit einer ABC-Analyse ausgewertet werden. Nutzt die Daten aus der Tabelle und teilt die Kunden in A-, B- und C-Kunden ein.</p>
+                    <div class="table-wrap" style="margin-top: 10px;">
+                        <table>
+                            <thead><tr><th>Kunde</th><th>Jahresumsatz</th><th>Anzahl Aufträge</th><th>Betreuungsaufwand</th><th>Besonderheit</th></tr></thead>
+                            <tbody>
+                                <tr><td>Nordbau Projekt GmbH</td><td>285.000 EUR</td><td>9</td><td>gering</td><td>zahlt pünktlich, wenige Rückfragen</td></tr>
+                                <tr><td>City Ausbau AG</td><td>142.000 EUR</td><td>14</td><td>mittel</td><td>regelmäßige Nachträge</td></tr>
+                                <tr><td>Wohnkonzept Huber</td><td>61.000 EUR</td><td>6</td><td>hoch</td><td>viele Abstimmungen mit Privatkunden</td></tr>
+                                <tr><td>Green Office Planungsbüro</td><td>37.000 EUR</td><td>3</td><td>mittel</td><td>gutes Zukunftspotenzial durch Nachhaltigkeit</td></tr>
+                                <tr><td>Schneider Immobilienservice</td><td>18.000 EUR</td><td>7</td><td>hoch</td><td>kleine Einzelaufträge, viele Telefonate</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="margin-top: 10px;"><strong>Arbeitsauftrag:</strong></p>
+                    <ul class="bullet-list">
+                        <li>Sortiert die Kunden nach Jahresumsatz absteigend.</li>
+                        <li>Berechnet den prozentualen Umsatzanteil jedes Kunden am Gesamtumsatz.</li>
+                        <li>Bildet den kumulierten Umsatzanteil.</li>
+                        <li>Legt sinnvolle Grenzen für A-, B- und C-Kunden fest, zum Beispiel 80 / 15 / 5.</li>
+                        <li>Prüft danach zusätzlich, ob Betreuungsaufwand oder Zukunftspotenzial eure Einteilung verändern würden.</li>
+                    </ul>
+                    <p><strong>Auswertungshinweis:</strong> Diskutiert, warum eine reine Umsatzsicht nicht immer ausreicht und welche Zusatzanalyse, zum Beispiel RFM, XYZ oder SWOT, die Entscheidung verbessern würde.</p>
+                </div>
+                <div class="card">
+                    <h3>Mini-Angebot schreiben</h3>
+                    <p>Erstellt für den folgenden Kundenfall ein vollständiges schriftliches Angebot im Stil eines Geschäftsbriefs nach DIN 5008.</p>
+                    <p><strong>Fallbeispiel:</strong> Die Sonnenberg Immobilien GmbH aus Ludwigsburg modernisiert in einem Verwaltungsgebäude einen 55 qm großen Besprechungsraum. Die HandwerkPlus Ausbau GmbH wurde angefragt, den Innenausbau zu übernehmen. Gewünscht sind eine neue Trockenbau-Vorsatzschale an zwei Wandseiten, das Verlegen eines strapazierfähigen Designbodens, drei Akustikpaneele, der Austausch von Sockelleisten sowie ein deckender Farbanstrich in hellem Sandton. Der Raum befindet sich im 1. Obergeschoss und grenzt direkt an besetzte Büroräume. Deshalb erwartet der Kunde lärmarme Arbeitsphasen, eine tägliche Reinigung des Zugangsbereichs und eine enge Abstimmung mit der Haustechnik. Die Arbeiten sollen frühestens ab 26.08.2026 beginnen und spätestens nach zehn Arbeitstagen abgeschlossen sein.</p>
+                    <div class="table-wrap" style="margin-top: 10px;">
+                        <table>
+                            <thead><tr><th>Leistungsbestandteil</th><th>Menge</th><th>Einzelpreis</th><th>Hinweis</th></tr></thead>
+                            <tbody>
+                                <tr><td>Trockenbau-Vorsatzschale montieren</td><td>22 lfm</td><td>79 EUR / lfm</td><td>inkl. Unterkonstruktion und Dämmung</td></tr>
+                                <tr><td>Designboden verlegen</td><td>55 qm</td><td>43 EUR / qm</td><td>inkl. Ausgleich kleiner Unebenheiten</td></tr>
+                                <tr><td>Akustikpaneele montieren</td><td>3 Stück</td><td>245 EUR / Stück</td><td>wandgebundene Elemente</td></tr>
+                                <tr><td>Sockelleisten austauschen</td><td>30 lfm</td><td>11 EUR / lfm</td><td>weiß lackiert</td></tr>
+                                <tr><td>Farbanstrich Sandton</td><td>135 qm</td><td>8 EUR / qm</td><td>Wände vollständig, Teilflächen nacharbeiten</td></tr>
+                                <tr><td>Schutz- und Reinigungsmaßnahmen</td><td>pauschal</td><td>360 EUR</td><td>lärmarme und saubere Ausführung</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="margin-top: 10px;"><strong>Zusatzangaben für das Angebot:</strong></p>
+                    <ul class="bullet-list">
+                        <li>Zahlungsziel: 10 Tage mit 2 % Skonto, 30 Tage netto</li>
+                        <li>Angebotsbindefrist: 14 Tage</li>
+                        <li>Ausführungsbeginn: ab 26.08.2026</li>
+                        <li>Umsatzsteuer: 19 %</li>
+                        <li>Ansprechpartner beim Kunden: Herr Tobias Wenger</li>
+                    </ul>
+                    <p><strong>Arbeitsauftrag:</strong></p>
+                    <ul class="bullet-list">
+                        <li>Formuliert Betreff, Anrede, Einleitung und Leistungsbeschreibung kundenorientiert.</li>
+                        <li>Berechnet Netto-, Umsatzsteuer- und Bruttobetrag korrekt.</li>
+                        <li>Nehmt Zahlungsbedingungen, Ausführungszeitraum und Besonderheiten ausdrücklich auf.</li>
+                        <li>Schließt mit einer professionellen Angebotsformel und einer klaren Rückfragemöglichkeit ab.</li>
+                    </ul>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head"><h2>Analyseverfahren anwenden und vergleichen</h2></div>
+            <div class="panel-body grid grid-2">
+                <div class="card">
+                    <h3>Analyse-Matching</h3>
+                    <p>Ordnet jeder Situation die passende Analyse zu und begründet eure Wahl in einem Satz. Nutzt dabei ausdrücklich die Frage: Geht es um Wert, Planbarkeit, Strategie, Umfeld oder Kundenaktivität?</p>
+                    <ul class="bullet-list">
+                        <li>Ein Baustoff wird jeden Monat fast in gleicher Menge benötigt.</li>
+                        <li>Ein Stammkunde kauft selten, aber dann mit sehr hohem Auftragswert.</li>
+                        <li>Ein Unternehmen möchte wissen, welche Markttrends sein Angebotsportfolio gefährden.</li>
+                        <li>Eine Leistung hat hohen Marktanteil, aber kaum noch Wachstum.</li>
+                    </ul>
+                    <p><strong>Hilfestellung:</strong> Prüft bei jeder Situation, ob eher ABC, XYZ, RFM, PESTLE oder BCG-Matrix passt und ob eine Kombination sinnvoller ist als nur eine einzige Methode.</p>
+                </div>
+                <div class="card">
+                    <h3>Mini-Fall Kundenanalyse</h3>
+                    <p>Vergleicht für drei Kunden, welche Analyse welche Zusatzinformation liefert:</p>
+                    <table>
+                        <thead><tr><th>Kunde</th><th>Beobachtung</th><th>Sinnvolle Analyse</th></tr></thead>
+                        <tbody>
+                            <tr><td>Kunde Nordbau</td><td>Hoher Umsatz, aber letzte Bestellung vor 10 Monaten</td><td>ABC + RFM</td></tr>
+                            <tr><td>Kunde City Ausbau</td><td>Mittlerer Umsatz, aber sehr regelmäßige Abrufe</td><td>ABC + XYZ</td></tr>
+                            <tr><td>Kunde Green Office</td><td>Neue Nachfrage durch nachhaltige Bauvorgaben</td><td>PESTLE + SWOT</td></tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 10px;"><strong>Arbeitsauftrag:</strong> Leitet jeweils ab, wie Vertrieb oder Angebot angepasst werden sollten. Formuliert pro Kunde mindestens eine konkrete Maßnahme, zum Beispiel Nachfassaktion, Sicherheitszuschlag, Terminpuffer, individuelle Angebotsvariante oder Schwerpunkt auf Zukunftsmärkte.</p>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section id="tab-lerncheck" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Lerncheck</h2></div>
+            <div class="panel-body">
+                <div class="quiz-item">
+                    <p>1) Wozu dient die ABC-Analyse in der Angebotsphase?</p>
+                    <label><input type="radio" name="q1" value="1" /> Zur Priorisierung von Kunden oder Leistungen nach Bedeutung</label>
+                    <label><input type="radio" name="q1" value="0" /> Zur Berechnung der Umsatzsteuer</label>
+                    <label><input type="radio" name="q1" value="0" /> Zur Festlegung der Schriftgröße im Angebot</label>
+                    <label><input type="radio" name="q1" value="0" /> Zur Ermittlung der gesetzlichen Gewährleistungsfrist</label>
+                </div>
+                <div class="quiz-item">
+                    <p>2) Welcher Punkt gehört zwingend in ein Angebot?</p>
+                    <label><input type="radio" name="q2" value="1" /> Klare Leistungsbeschreibung und Preisangaben</label>
+                    <label><input type="radio" name="q2" value="0" /> Interne Einkaufskonditionen des Unternehmens</label>
+                    <label><input type="radio" name="q2" value="0" /> Die private Einschätzung des Projektleiters zur Zahlungsmoral des Kunden</label>
+                    <label><input type="radio" name="q2" value="0" /> Eine vollständige Liste aller Lieferantenrabatte des Vorjahres</label>
+                </div>
+                <div class="quiz-item">
+                    <p>3) DIN 5008 regelt vor allem ...</p>
+                    <label><input type="radio" name="q3" value="1" /> die formale und lesbare Gestaltung von Geschäftsschreiben</label>
+                    <label><input type="radio" name="q3" value="0" /> die Produktqualität im Rohbau</label>
+                    <label><input type="radio" name="q3" value="0" /> die Höhe der Umsatzsteuer für Bauleistungen</label>
+                    <label><input type="radio" name="q3" value="0" /> die technische Abnahme von Innenausbauarbeiten</label>
+                </div>
+                <div class="quiz-item">
+                    <p>4) Welche Analyse ergänzt die ABC-Analyse, wenn zusätzlich die Regelmäßigkeit des Bedarfs betrachtet werden soll?</p>
+                    <label><input type="radio" name="q4" value="1" /> XYZ-Analyse</label>
+                    <label><input type="radio" name="q4" value="0" /> DIN-5008-Prüfung</label>
+                    <label><input type="radio" name="q4" value="0" /> Deckungsbeitragsrechnung ohne Zeitbezug</label>
+                    <label><input type="radio" name="q4" value="0" /> Organigramm-Analyse des Unternehmens</label>
+                </div>
+                <div class="quiz-item">
+                    <p>5) Wofür steht das "R" in der RFM-Analyse?</p>
+                    <label><input type="radio" name="q5" value="1" /> Recency, also wie lange der letzte Kauf her ist</label>
+                    <label><input type="radio" name="q5" value="0" /> Revenue Class, also die Preisgruppe des Produkts</label>
+                    <label><input type="radio" name="q5" value="0" /> Retention, also die Dauer der Gewährleistung</label>
+                    <label><input type="radio" name="q5" value="0" /> Reach, also die Reichweite einer Werbeanzeige</label>
+                </div>
+                <div class="quiz-item">
+                    <p>6) Welche Methode eignet sich besonders für externe Trends wie neue Gesetze oder technologische Entwicklungen?</p>
+                    <label><input type="radio" name="q6" value="1" /> PESTLE-Analyse</label>
+                    <label><input type="radio" name="q6" value="0" /> ABC-Analyse</label>
+                    <label><input type="radio" name="q6" value="0" /> DIN-5008-Schema</label>
+                    <label><input type="radio" name="q6" value="0" /> Offene-Posten-Liste</label>
+                </div>
+                <div class="actions">
+                    <button class="btn" id="checkQuiz" type="button">Auswerten</button>
+                    <button class="btn btn-secondary" id="resetQuiz" type="button">Zurücksetzen</button>
+                </div>
+                <div class="status" id="quizStatus"></div>
+            </div>
+        </article>
+    </section>
+
+    <p class="footer-note">Unterrichtseinheit Beratung und Angebot - Schülerversion</p>
+</main>
+
+<script>
+(function () {
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const panes = document.querySelectorAll(".topic-pane");
+
+    tabButtons.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const id = btn.dataset.tab;
+            tabButtons.forEach(function (b) { b.classList.toggle("active", b === btn); });
+            panes.forEach(function (p) { p.classList.toggle("active", p.id === id); });
+        });
+    });
+
+    const checkBtn = document.getElementById("checkQuiz");
+    const resetBtn = document.getElementById("resetQuiz");
+    const status = document.getElementById("quizStatus");
+    const names = ["q1", "q2", "q3", "q4", "q5", "q6"];
+
+    checkBtn.addEventListener("click", function () {
+        let correct = 0;
+        let answered = 0;
+        names.forEach(function (name) {
+            const selected = document.querySelector('input[name="' + name + '"]:checked');
+            if (selected) {
+                answered++;
+                if (selected.value === "1") {
+                    correct++;
+                }
+            }
+        });
+
+        if (answered < names.length) {
+            status.textContent = "Bitte alle Fragen beantworten.";
+            status.className = "status warn";
+            return;
+        }
+
+        status.textContent = "Ergebnis: " + correct + " von " + names.length + " richtig.";
+        status.className = "status " + (correct >= 2 ? "ok" : "warn");
+        checkBtn.disabled = true;
+    });
+
+    resetBtn.addEventListener("click", function () {
+        names.forEach(function (name) {
+            document.querySelectorAll('input[name="' + name + '"]').forEach(function (radio) {
+                radio.checked = false;
+            });
+        });
+        status.textContent = "";
+        status.className = "status";
+        checkBtn.disabled = false;
+    });
+})();
+</script>
+</body>
+</html>
+

@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lernenden-Version: KVP, Kaizen, TQM und IT-QM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-main: #f4f7f6;
+            --bg-card: #ffffff;
+            --ink: #1a202c;
+            --ink-soft: #4a5568;
+            --accent: #0f6f78;
+            --accent-light: #e6fffa;
+            --accent-2: #bc4d2a;
+            --line: #e2e8f0;
+            --ok: #38a169;
+            --warn: #e53e3e;
+            --tab-bg: #eef4f3;
+            --radius: 12px;
+            --shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Source Sans 3", sans-serif;
+            color: var(--ink);
+            background: var(--bg-main);
+            line-height: 1.6;
+        }
+
+        .shell {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 36px 20px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #1a365d 0%, #0f6f78 100%);
+            color: #fff;
+            border-radius: var(--radius);
+            padding: 44px 30px;
+            margin-bottom: 22px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            top: -22%; right: -8%;
+            width: 280px; height: 280px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+        }
+
+        .kicker {
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 1.5px;
+            color: #81e6d9;
+            margin-bottom: 8px;
+        }
+
+        h1, h2, h3 {
+            font-family: "Barlow Condensed", sans-serif;
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        h1 { font-size: clamp(2rem, 4.7vw, 3.2rem); margin-bottom: 14px; }
+
+        .subtitle {
+            font-size: 1.1rem;
+            max-width: 920px;
+            opacity: 0.92;
+            margin-bottom: 18px;
+        }
+
+        .meta { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .chip {
+            background: rgba(255,255,255,0.14);
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.25);
+            font-size: 0.86rem;
+        }
+
+        .tabs {
+            background: var(--bg-card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 12px;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+        }
+
+        .tab-list { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .tab-btn {
+            border: 1px solid var(--line);
+            background: var(--tab-bg);
+            color: var(--ink);
+            padding: 9px 13px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .topic-pane { display: none; animation: fadeIn 0.28s ease; }
+        .topic-pane.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--line);
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .panel-head {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--line);
+            background: #fafcfc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .panel-head h2 {
+            font-size: 1.75rem;
+            color: var(--accent);
+        }
+
+        .panel-body { padding: 20px; }
+
+        .grid { display: grid; gap: 16px; }
+        .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+        .card {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 16px;
+            background: #fff;
+        }
+
+        .card h3 {
+            color: var(--accent-2);
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+
+        .card h4 {
+            color: var(--accent);
+            margin: 0 0 6px;
+            font-size: 1.1rem;
+        }
+
+        .small { font-size: 0.92rem; color: var(--ink-soft); }
+
+        .bullet-list { margin: 8px 0 0; padding-left: 20px; }
+        .bullet-list li { margin-bottom: 6px; }
+
+        .definition {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            padding: 14px;
+        }
+
+        .definition .term {
+            color: var(--accent);
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+            padding: 10px;
+        }
+
+        th {
+            background: var(--accent-light);
+            color: var(--accent);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        .pdca-wrap {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .wheel-box {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 0 auto;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -16px; left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 13px solid transparent;
+            border-right: 13px solid transparent;
+            border-top: 22px solid #111827;
+            z-index: 4;
+        }
+
+        .wheel {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                #0f6f78 0deg 90deg,
+                #38a169 90deg 180deg,
+                #bc4d2a 180deg 270deg,
+                #6b46c1 270deg 360deg
+            );
+            border: 8px solid #fff;
+            box-shadow: var(--shadow);
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .wheel-core {
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 74px; height: 74px;
+            border-radius: 50%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--accent);
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            background: var(--accent);
+            color: #fff;
+            font-weight: 700;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .btn:hover { background: #0a5961; transform: translateY(-1px); }
+
+        .quiz-item {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f8fafc;
+        }
+
+        .quiz-item p { margin: 0 0 8px; font-weight: 700; }
+        .quiz-item label { display: block; margin: 4px 0; cursor: pointer; }
+
+        .result-box {
+            margin-top: 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px;
+            min-height: 70px;
+        }
+
+        .result-box.good { border-color: var(--ok); background: #ecfdf5; }
+        .result-box.bad  { border-color: var(--warn); background: #fff5f5; }
+
+        .footer-note {
+            margin-top: 18px;
+            text-align: center;
+            color: var(--ink-soft);
+            font-size: 0.92rem;
+        }
+
+        @media (max-width: 960px) {
+            .grid-3 { grid-template-columns: 1fr 1fr; }
+            .pdca-wrap { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 760px) {
+            .shell { padding: 20px 12px; }
+            .hero { padding: 30px 16px; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .tab-btn { width: 100%; text-align: left; }
+        }
+    </style>
+</head>
+<body>
+<main class="shell">
+
+    <header class="hero">
+        <div class="kicker">Unterrichtseinheit &ndash; Fachinformatiker</div>
+        <h1>KVP, Kaizen, TQM, Fertigungsgroessen und IT-Prozessqualitaet</h1>
+        <p class="subtitle">
+            Lerneinheit zur betrieblichen Leistungserstellung mit Fokus auf Qualitätsmanagement und kontinuierlicher Verbesserung in IT-Umgebungen. 
+            Praxisnahe Inhalte, interaktive Elemente und konkrete Transferbeispiele für die tägliche Arbeit.
+        </p>
+        <div class="meta">
+            <span class="chip">Dauer: 90&ndash;120 Minuten</span>
+            <span class="chip">Format: Input + Interaktion + Transfer</span>
+            <span class="chip">Schwerpunkt: Qualit&auml;tsmanagement &amp; IT</span>
+        </div>
+    </header>
+
+    <nav class="tabs">
+        <div class="tab-list" role="tablist" aria-label="Themenreiter">
+            <button class="tab-btn active" data-tab="ziele"       role="tab" aria-selected="true">1. Lernziele</button>
+            <button class="tab-btn"         data-tab="grundlagen" role="tab" aria-selected="false">2. Grundlagen QM</button>
+            <button class="tab-btn"         data-tab="definitionen" role="tab" aria-selected="false">3. Definitionen</button>
+            <button class="tab-btn"         data-tab="fertigung"  role="tab" aria-selected="false">4. Fertigungsgroessen</button>
+            <button class="tab-btn"         data-tab="pdca"       role="tab" aria-selected="false">5. PDCA in Aktion</button>
+            <button class="tab-btn"         data-tab="fallstudie" role="tab" aria-selected="false">6. Fallstudie</button>
+            <button class="tab-btn"         data-tab="quiz"       role="tab" aria-selected="false">7. Wissenscheck</button>
+            <button class="tab-btn"         data-tab="itqm"       role="tab" aria-selected="false">8. IT-QM Prozesse</button>
+        </div>
+    </nav>
+
+    <!-- 1. LERNZIELE -->
+    <section id="ziele" class="topic-pane active" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Lernziele und Kompetenzen</h2></div>
+            <div class="panel-body grid grid-3">
+                <div class="card">
+                    <h3>Fachziel</h3>
+                    <ul class="bullet-list">
+                        <li>Kaizen, KVP und TQM inhaltlich trennen und logisch zusammenführen.</li>
+                        <li>Fertigungsarten sauber unterscheiden und betriebswirtschaftlich begründen.</li>
+                        <li>QM-Begriffe korrekt in IT- und Produktionskontexte übersetzen.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Methodenziel</h3>
+                    <ul class="bullet-list">
+                        <li>PDCA-Zyklus an realen Problemen anwenden.</li>
+                        <li>Kennzahlen (KPI, OEE, SLA) als Entscheidungsbasis nutzen.</li>
+                        <li>Verbesserungsmaßnahmen von Pilot bis Standardisierung planen.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Transferziel</h3>
+                    <ul class="bullet-list">
+                        <li>Prozess- und Softwarequalität gemeinsam denken.</li>
+                        <li>Schnittstellen zwischen ERP, MES, Ticketing und Monitoring bewerten.</li>
+                        <li>Verbesserungsarbeit als dauerhaften Bestandteil des Berufsbilds verstehen.</li>
+                    </ul>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <!-- 2. GRUNDLAGEN -->
+    <section id="grundlagen" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Grundlagen des Qualitätsmanagements</h2></div>
+            <div class="panel-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Konzept</th>
+                            <th>Zielsetzung</th>
+                            <th>Typische Werkzeuge</th>
+                            <th>Wirkung in IT-Teams</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Kaizen</strong></td>
+                            <td>Kontinuierliche Verbesserung durch kleine Schritte aller Mitarbeitenden.</td>
+                            <td>Ideenboard, Teamroutinen, kurze Feedbackzyklen.</td>
+                            <td>Retrospektiven, Refactoring, Wissensdatenbanken.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>KVP</strong></td>
+                            <td>Strukturierter Prozess mit messbaren Soll- und Ist-Werten.</td>
+                            <td>PDCA, 5 Why, KPI-Auswertung, Standardisierung.</td>
+                            <td>Incident-Optimierung, Ticketqualität, SLA-Steuerung.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TQM</strong></td>
+                            <td>Unternehmensweites Managementsystem für Qualität und Kundennutzen.</td>
+                            <td>Qualitätspolitik, Audits, Prozesslandkarten, Kennzahlensysteme.</td>
+                            <td>End-to-End-Datenqualität zwischen ERP, CRM, MES und Support.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="small" style="margin-top: 12px;">
+                    <em>Merksatz:</em> Kaizen ist das <strong>Wollen</strong>, KVP das <strong>Machen</strong>, TQM das <strong>System</strong>.
+                </p>
+            </div>
+        </article>
+    </section>
+
+    <!-- 3. DEFINITIONEN -->
+    <section id="definitionen" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Ausführliche Definitionen aller Kernbegriffe</h2></div>
+            <div class="panel-body grid grid-2">
+                <article class="definition">
+                    <div class="term">Kaizen</div>
+                    <p>Dauerhaft gelebte Verbesserungsphilosophie. Nicht auf den großen Sprung warten, sondern täglich kleine, realisierbare Optimierungen umsetzen. Alle Rollen sind einbezogen, vom Auszubildenden bis zur Führungsebene.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">KVP (Kontinuierlicher Verbesserungsprozess)</div>
+                    <p>Methodische Umsetzung der Kaizen-Idee in standardisierten Schritten: Problemidentifikation, Analyse, Umsetzung, Messung und Standardisierung erfolgreicher Lösungen.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">TQM (Total Quality Management)</div>
+                    <p>Ganzheitliches Führungs- und Organisationskonzept. Qualität ist nicht Aufgabe einzelner Abteilungen, sondern durchgängiges Ziel aller Prozesse, Schnittstellen und Verantwortungsbereiche.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">PDCA-Zyklus</div>
+                    <p>Iterativer Regelkreis (Plan, Do, Check, Act) zur systematischen Verbesserung. Veränderungen werden geplant, kontrolliert getestet, bewertet und nur bei Wirksamkeit als neuer Standard eingeführt.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">KPI (Key Performance Indicator)</div>
+                    <p>Messbare Leistungskennzahlen, die Prozessfortschritt gegen Zielwerte sichtbar machen. Unverzichtbar als objektive Entscheidungsgrundlage im QM.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">OEE (Overall Equipment Effectiveness)</div>
+                    <p>Gesamtanlageneffektivität aus den Faktoren Verfügbarkeit, Leistung und Qualität. IT-Analogie: Uptime, Durchsatz und Fehlerfreiheit digitaler Services.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">SLA (Service Level Agreement)</div>
+                    <p>Verbindliche Servicevereinbarung mit messbaren Standards zu Antwortzeit, Verfügbarkeit und Fehlerbehebungsdauer. Dient im KVP als Ziel- und Prüfgroesse.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">Audit</div>
+                    <p>Strukturierte Prüfung von Prozessen und Ergebnissen zur Identifikation von Abweichungen, Risiken und Verbesserungspotenzialen.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">Standardisierung</div>
+                    <p>Erfolgreiche Prozessvarianten verbindlich dokumentieren und reproduzierbar machen. Dadurch wird Qualität stabilisiert und die Basis für den nächsten Zyklus gelegt.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">Einzelfertigung</div>
+                    <p>Herstellung eines individuellen Einzelprodukts mit hoher Anpassungstiefe, projektartigem Ablauf und hohem Dokumentationsbedarf.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">Serienfertigung</div>
+                    <p>Begrenzte Anzahl gleichartiger Produkte in Losen. Rüstzeiten, Variantensteuerung und Stücklisten sind zentral.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">Sortenfertigung</div>
+                    <p>Gleiche Grundprodukte mit begrenzten Parametervarianten. Prozesskern bleibt gleich, Parameter werden angepasst.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">Massenfertigung</div>
+                    <p>Kontinuierliche Herstellung sehr großer Mengen standardisierter Produkte. Hoher Automatisierungsgrad, geringe Ausfalltoleranz, starkes Monitoring.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">ERP, MES, CRM</div>
+                    <p>ERP steuert betriebswirtschaftliche Ressourcen, MES koordiniert den Produktionsablauf, CRM verwaltet Kundenbeziehungen. QM wirkt nur nachhaltig, wenn diese Systeme abgestimmt sind.</p>
+                </article>
+                <article class="definition">
+                    <div class="term">OT/IT-Integration</div>
+                    <p>OT umfasst produktionsnahe Steuerungstechnik, IT die klassische Informationsverarbeitung. Ihre Kopplung erfordert besondere Anforderungen an Security, Verfügbarkeit und Verantwortungsgrenzen.</p>
+                </article>
+            </div>
+        </article>
+    </section>
+
+    <!-- 4. FERTIGUNG -->
+    <section id="fertigung" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Fertigungsgroessen und IT-Auswirkungen</h2></div>
+            <div class="panel-body grid grid-2">
+                <article class="card">
+                    <h3>Vergleichsmatrix</h3>
+                    <table>
+                        <thead>
+                            <tr><th>Fertigungsform</th><th>Praxisbeispiel</th><th>IT-Schwerpunkt</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Einzelfertigung</td>
+                                <td>Sonderbau, Einzelprojekt</td>
+                                <td>Projektsteuerung, Aenderungsmanagement, Dokumentation</td>
+                            </tr>
+                            <tr>
+                                <td>Serienfertigung</td>
+                                <td>Losproduktion in Varianten</td>
+                                <td>Versionierung, Stücklistenpflege, Rüstzeiterfassung</td>
+                            </tr>
+                            <tr>
+                                <td>Sortenfertigung</td>
+                                <td>Gleiches Produkt, Parametervarianten</td>
+                                <td>Rezeptur-/Parameterverwaltung, Chargenrückverfolgung</td>
+                            </tr>
+                            <tr>
+                                <td>Massenfertigung</td>
+                                <td>Dauerhafte Großserie</td>
+                                <td>Monitoring, automatische Alarmierung, stabile Schnittstellen</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </article>
+                <article class="card">
+                    <h3>Wichtige Zusammenhänge für FI</h3>
+                    <ul class="bullet-list">
+                        <li><strong>Datenqualität:</strong> Fehler in Stammdaten verursachen systemische Prozessfehler.</li>
+                        <li><strong>Integrationslogik:</strong> API-Design beeinflusst direkt die Prozessstabilität.</li>
+                        <li><strong>Verfügbarkeit:</strong> Systemausfall in Massenfertigung hat unmittelbare Kostenwirkung.</li>
+                        <li><strong>Security:</strong> OT und IT müssen gemeinsam abgesichert werden.</li>
+                        <li><strong>Skalierung:</strong> Große Menge erfordert Lasttests, Monitoring und klare Alarmierungslogik.</li>
+                    </ul>
+                    <p class="small">Merksatz: Fertigungslogik bestimmt Datenlogik &ndash; Datenlogik bestimmt Softwarearchitektur.</p>
+                </article>
+            </div>
+        </article>
+    </section>
+
+    <!-- 5. PDCA -->
+    <section id="pdca" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head">
+                <h2>PDCA-Zyklus interaktiv</h2>
+                <button id="nextPhaseBtn" class="btn" type="button">N&auml;chste Phase</button>
+            </div>
+            <div class="panel-body pdca-wrap">
+                <div class="wheel-box">
+                    <div class="pointer"></div>
+                    <div id="pdcaWheel" class="wheel" aria-hidden="true"></div>
+                    <div class="wheel-core" id="wheelCore">PLAN</div>
+                </div>
+                <div class="card">
+                    <h3 id="pdcaTitle">PLAN</h3>
+                    <p id="pdcaText">
+                        Problem exakt beschreiben, Zielkennzahlen setzen und Ursachen datengestützt analysieren.
+                        Beispiel: Fehlerquote bei digitalen Bautagesberichten von 8&nbsp;% auf 2&nbsp;% senken.
+                    </p>
+                    <p class="small" id="pdcaTools">Werkzeuge: 5 Why, Prozessaufnahme, Kennzahlenbaseline.</p>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <!-- 6. FALLSTUDIE -->
+    <section id="fallstudie" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Fallstudie: Medienbruch im Bauunternehmen</h2></div>
+            <div class="panel-body grid grid-2">
+                <article class="card">
+                    <h3>Ausgangssituation</h3>
+                    <p>
+                        Leistungsdaten werden auf Papier notiert und später manuell ins ERP übertragen.
+                        Die Folge sind Übertragungsfehler, doppelte Erfassung und zeitverzögerte Rechnungsstellung.
+                    </p>
+                    <h4>Aufgabe</h4>
+                    <ul class="bullet-list">
+                        <li>Entwickelt für jede PDCA-Phase zwei konkrete IT-Maßnahmen.</li>
+                        <li>Definiert mindestens drei KPIs zur Erfolgsmessung.</li>
+                        <li>Beschreibt, wie die Lösung standardisiert ausgerollt wird.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>Musterlösung</h3>
+                    <ul class="bullet-list">
+                        <li><strong>PLAN:</strong> Fehlerarten analysieren, Pflichtfelder definieren, API-Ziele festlegen.</li>
+                        <li><strong>DO:</strong> Pilot auf zwei Baustellen mit Logging und Support-Kanal.</li>
+                        <li><strong>CHECK:</strong> KPI-Vergleich nach 4 Wochen (Fehlerquote, Durchlaufzeit, Nacharbeit).</li>
+                        <li><strong>ACT:</strong> Rollout, Schulung, SOP-Dokumentation, regelmäßige Review-Termine.</li>
+                    </ul>
+                    <p class="small">
+                        KPI-Vorschlag: Fehlerquote, First-Time-Right-Rate, Zeit bis Freigabe.
+                    </p>
+                </article>
+            </div>
+        </article>
+    </section>
+
+    <!-- 7. QUIZ -->
+    <section id="quiz" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head">
+                <h2>Wissenscheck</h2>
+                <button id="quizBtn" class="btn" type="button">Auswerten</button>
+            </div>
+            <div class="panel-body">
+                <form id="quizForm">
+                    <div class="quiz-item">
+                        <p>1. Welche Aussage beschreibt den Unterschied von Kaizen und KVP korrekt?</p>
+                        <label><input type="radio" name="q1" value="a" /> Kaizen ist die Methode, KVP ist nur ein japanisches Wort.</label>
+                        <label><input type="radio" name="q1" value="b" /> Kaizen ist die Haltung, KVP ist die methodische Umsetzung.</label>
+                        <label><input type="radio" name="q1" value="c" /> Beide Begriffe beschreiben ausschliesslich Endkontrolle.</label>
+                    </div>
+                    <div class="quiz-item">
+                        <p>2. Welche PDCA-Phase prüft systematisch, ob Ziele erreicht wurden?</p>
+                        <label><input type="radio" name="q2" value="a" /> CHECK</label>
+                        <label><input type="radio" name="q2" value="b" /> DO</label>
+                        <label><input type="radio" name="q2" value="c" /> PLAN</label>
+                    </div>
+                    <div class="quiz-item">
+                        <p>3. Welche IT-Anforderung ist für Massenfertigung besonders kritisch?</p>
+                        <label><input type="radio" name="q3" value="a" /> Hohe Echtzeitverfügbarkeit und Monitoring</label>
+                        <label><input type="radio" name="q3" value="b" /> Rein manuelle Datenerfassung</label>
+                        <label><input type="radio" name="q3" value="c" /> Keine Systemschnittstellen</label>
+                    </div>
+                    <div class="quiz-item">
+                        <p>4. Was ist im TQM-Verständnis richtig?</p>
+                        <label><input type="radio" name="q4" value="a" /> Qualität ist Aufgabe der Endprüfung.</label>
+                        <label><input type="radio" name="q4" value="b" /> Qualität ist eine querschnittliche Managementaufgabe.</label>
+                        <label><input type="radio" name="q4" value="c" /> Qualität wird nur subjektiv bewertet.</label>
+                    </div>
+                </form>
+                <div id="quizResult" class="result-box" aria-live="polite"></div>
+            </div>
+        </article>
+    </section>
+
+    <!-- 8. IT-QM -->
+    <section id="itqm" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>IT-spezifische QM-Prozesse nach KVP-Logik</h2></div>
+            <div class="panel-body grid grid-2">
+                <article class="card">
+                    <h3>1. Incident Management verbessern</h3>
+                    <ul class="bullet-list">
+                        <li><strong>PLAN:</strong> Häufigste Störungsursachen und Bearbeitungszeiten analysieren.</li>
+                        <li><strong>DO:</strong> Neue Ticketkategorien und Eskalationsregeln pilotieren.</li>
+                        <li><strong>CHECK:</strong> MTTR und Wiederholfehlerquote vergleichen.</li>
+                        <li><strong>ACT:</strong> Erfolgreiche Regeln als Incident-Standard übernehmen.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>2. Deployment-Prozess stabilisieren</h3>
+                    <ul class="bullet-list">
+                        <li><strong>PLAN:</strong> Fehlerhafte Releases und Rollback-Gründe analysieren.</li>
+                        <li><strong>DO:</strong> Testautomatisierung und Stage-Gates testen.</li>
+                        <li><strong>CHECK:</strong> Change Failure Rate und Lead Time auswerten.</li>
+                        <li><strong>ACT:</strong> Neuen Deployment-Flow als Teamstandard dokumentieren.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>3. Service Desk Qualität erhöhen</h3>
+                    <ul class="bullet-list">
+                        <li><strong>PLAN:</strong> Erstlösungsquote und Kundenzufriedenheit als Zielwerte setzen.</li>
+                        <li><strong>DO:</strong> Wissensartikel und Antwortvorlagen pilotieren.</li>
+                        <li><strong>CHECK:</strong> FCR-Quote und CSAT-Werte auswerten.</li>
+                        <li><strong>ACT:</strong> Erfolgreiche Vorlagen in den Regelbetrieb übernehmen.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>4. Security-Response verbessern</h3>
+                    <ul class="bullet-list">
+                        <li><strong>PLAN:</strong> Erkennungs- und Reaktionszeiten für Security Events messen.</li>
+                        <li><strong>DO:</strong> Neue Alarmierungsregeln und Playbooks in Teilbereichen testen.</li>
+                        <li><strong>CHECK:</strong> False Positives, Reaktionszeit und Schadensausmaß vergleichen.</li>
+                        <li><strong>ACT:</strong> Wirksame Regeln standardisieren und regelmäßig nachschärfen.</li>
+                    </ul>
+                </article>
+            </div>
+        </article>
+    </section>
+
+    <p class="footer-note">
+        Betriebliche Leistungserstellung &ndash; Unterrichtseinheit für Fachinformatiker.
+    </p>
+
+</main>
+<script>
+    // Tabs
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const target = btn.getAttribute("data-tab");
+            document.querySelectorAll(".tab-btn").forEach((b) => {
+                b.classList.remove("active");
+                b.setAttribute("aria-selected", "false");
+            });
+            document.querySelectorAll(".topic-pane").forEach((p) => p.classList.remove("active"));
+            btn.classList.add("active");
+            btn.setAttribute("aria-selected", "true");
+            document.getElementById(target).classList.add("active");
+        });
+    });
+
+    // PDCA
+    const pdcaPhases = [
+        { short: "PLAN",  title: "PLAN",  text: "Problem exakt beschreiben, Zielkennzahlen setzen und Ursachen datengestützt analysieren. Beispiel: Fehlerquote bei digitalen Bautagesberichten von 8 % auf 2 % senken.", tools: "Werkzeuge: 5 Why, Prozessaufnahme, Kennzahlenbaseline." },
+        { short: "DO",    title: "DO",    text: "Maßnahmen im kleinen Rahmen testen, z. B. in einem Pilotbereich mit klar definierten Rollen und aktivem Logging.", tools: "Werkzeuge: Pilotbetrieb, Testplan, Feature-Flags, Monitoring." },
+        { short: "CHECK", title: "CHECK", text: "Ist-Ergebnisse gegen Zielwerte prüfen. Neben Kennzahlen auch qualitative ückmeldungen einbeziehen.", tools: "Werkzeuge: KPI-Review, Fehlerklassifikation, Anwenderfeedback." },
+        { short: "ACT",   title: "ACT",   text: "Wirksame ösung standardisieren, schulen und dokumentieren. Danach startet der nächste Verbesserungszyklus.", tools: "Werkzeuge: SOP, Rollout-Plan, Lessons Learned." }
+    ];
+
+    let pdcaIndex = 0;
+    document.getElementById("nextPhaseBtn").addEventListener("click", () => {
+        pdcaIndex = (pdcaIndex + 1) % pdcaPhases.length;
+        const p = pdcaPhases[pdcaIndex];
+        document.getElementById("pdcaWheel").style.transform = `rotate(${pdcaIndex * 90}deg)`;
+        document.getElementById("wheelCore").textContent  = p.short;
+        document.getElementById("pdcaTitle").textContent  = p.title;
+        document.getElementById("pdcaText").textContent   = p.text;
+        document.getElementById("pdcaTools").textContent  = p.tools;
+    });
+
+    // Quiz
+    const answers = { q1: "b", q2: "a", q3: "a", q4: "b" };
+    document.getElementById("quizBtn").addEventListener("click", () => {
+        const data = new FormData(document.getElementById("quizForm"));
+        let score = 0;
+        Object.keys(answers).forEach((k) => { if (data.get(k) === answers[k]) score++; });
+        const box = document.getElementById("quizResult");
+        box.classList.remove("good", "bad");
+        if (score >= 3) {
+            box.classList.add("good");
+            box.innerHTML = `<strong>${score}/4 richtig.</strong> Sehr gutes Verstaendnis der QM- und IT-Transferlogik.`;
+        } else {
+            box.classList.add("bad");
+            box.innerHTML = `<strong>${score}/4 richtig.</strong> Bitte die Abschnitte zu TQM, PDCA und Fertigungsarten wiederholen.`;
+        }
+    });
+</script>
+</body>
+</html>

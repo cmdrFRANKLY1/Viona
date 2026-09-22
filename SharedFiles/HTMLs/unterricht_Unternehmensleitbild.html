@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Das Unternehmensleitbild</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 20px; color: #2c3e50; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        
+        h1 { text-align: center; color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; }
+        
+        .tab-menu { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 25px; justify-content: center; }
+        .tab-link { padding: 12px 25px; cursor: pointer; border: none; background: none; font-weight: bold; transition: 0.3s; font-size: 1em; }
+        .tab-link.active { border-bottom: 4px solid #3498db; color: #3498db; }
+        
+        .tab-content { display: none; animation: fadeIn 0.5s; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .info-box { background: #e8f4fd; padding: 20px; border-left: 6px solid #3498db; margin: 20px 0; border-radius: 4px; }
+        .quest-card { background: #fff; border: 1px solid #d1d5db; padding: 20px; border-radius: 10px; margin-bottom: 15px; transition: transform 0.2s; }
+        .quest-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 15px; text-align: left; }
+        th { background-color: #3498db; color: white; }
+
+        .smart-container { background: #2c3e50; color: white; padding: 25px; border-radius: 12px; margin-top: 20px; }
+        .slider-box { margin: 30px 0; text-align: center; }
+        input[type=range] { width: 80%; cursor: pointer; accent-color: #3498db; }
+
+        .btn { background: #27ae60; color: white; padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: block; margin: 20px auto; }
+        .btn:hover { background: #219150; }
+
+        .highlight { color: #e67e22; font-weight: bold; }
+
+        .drop-zone {
+            min-height: 180px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .target-item {
+            padding: 10px 15px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: grab;
+            font-size: 0.9em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .smart-panel {
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .targets-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 900px) {
+            .tab-menu { flex-wrap: wrap; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .targets-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Unternehmensleitbild und Unternehmensziele</h1>
+    <p style="text-align: center; font-style: italic;">Wenn aus einem Satz eine Vision entsteht. – Eine Entdeckungsreise zum Kern des Unternehmens.</p>
+
+    <div class="tab-menu">
+        <button class="tab-link active" onclick="openTab(event, 'definition')">1. Die Entdeckung</button>
+        <button class="tab-link" onclick="openTab(event, 'entstehung')">2. Die Umsetzung</button>
+        <button class="tab-link" onclick="openTab(event, 'smart')">3. Der Präzisions-Check</button>
+        <button class="tab-link" onclick="openTab(event, 'transfer')">4. Eigene Gründung</button>
+    </div>
+
+    <div id="definition" class="tab-content active">
+        <h2>Was ist ein Unternehmensleitbild?</h2>
+        <p>Ein Leitbild ist das <span class="highlight">Root-Verzeichnis eurer Kommunikation</span>. Es definiert, wer ihr seid, was ihr wollt und nach welchen Regeln ihr spielt.</p>
+        
+        <div class="info-box">
+            <strong>Einfach erklärt:</strong> Es ist ein schriftliches Konzept über das Selbstverständnis und die Grundprinzipien. Es dient als Leitfaden für alle (auch IT-ler!) und ist meist auf 5-10 Jahre ausgelegt.
+        </div>
+
+        <table>
+            <tr>
+                <th>Element</th>
+                <th>Fokus</th>
+                <th>Beantwortet die Fragen...</th>
+                <th></th>
+            </tr>
+            <tr>
+                <td><strong>Vision</strong></td>
+                <td>Zukunft (Fernziel)</td>
+                <td>Wo wollen wir in 10 Jahren sein?</td>
+                <td>Welche Ziele verfolgen wir?</td>
+            </tr>
+            <tr>
+                <td><strong>Mission</strong></td>
+                <td>Gegenwart (Zweck)</td>
+                <td>Wem nützen wir heute womit?</td>
+                <td>Welchen Zweck erfüllen wir heute?</td>
+            </tr>
+            <tr>
+                <td><strong>Werte</strong></td>
+                <td>Ethik & Kultur</td>
+                <td>Wie arbeiten wir zusammen?</td>
+                <td>Welche Prinzipien vertreten wir zusammen?</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="entstehung" class="tab-content">
+        <h2>Die Umsetzung: Wie entsteht ein Leitbild?</h2>
+        <p>Ein Leitbild wird nicht einfach nur durch einen Satz gestaltet. Es ist der Kompass, der den Weg zeigt, den ein Unternehmen gehen will:</p>
+        
+        <div class="quest-card">
+            <strong>Schritt 1: Die Selbstfindung (Status Quo)</strong><br>
+            <small>Man bindet alle Akteure ein (nicht nur Chefs!). Was ist unsere Identität? Was sagen Kunden über unseren IT-Support? Wer sind wir für unsere Kunden?</small>
+        </div>
+        <div class="quest-card">
+            <strong>Schritt 2: Die Analyse (SWOT)</strong><br>
+            <small>Stärken (Strenghts), Schwächen (Weakness), Chancen (Opportunities) und Risiken (Threads) unserer Technik und unseres Teams prüfen.</small>
+        </div>
+        <div class="quest-card">
+            <strong>Schritt 3: Das Schmieden (Formulierung)</strong><br>
+            <small>Authentisch, Klar und Umsetzbar. Keine Worthülsen!</small>
+        </div>
+
+        <div class="info-box" style="background: #fff3cd; border-color: #f1c40f;">
+            <strong>Ändern sich Leitbilder?</strong> Ja! Wenn ein IT-Systemhaus vom Hardware-Verkäufer zum Cloud-Anbieter wächst, muss das Leitbild angepasst werden, um nicht "aus der Zeit gefallen" zu wirken.
+        </div>
+
+        <h2>Die Ziel-Kategorien</h2>
+        <p style="text-align: center; color: #64748b; margin-bottom: 25px;">Ordne die IT-Ziele den richtigen Kategorien zu:</p>
+
+        <div id="pool" ondrop="drop(event)" ondragover="allowDrop(event)" style="min-height: 100px; background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px;">
+            <div class="target-item" id="z1" draggable="true" ondragstart="drag(event)" data-cat="fin">Gewinnsteigerung um 5%</div>
+            <div class="target-item" id="z2" draggable="true" ondragstart="drag(event)" data-cat="eco">Serverbetrieb mit 100% Ökostrom</div>
+            <div class="target-item" id="z3" draggable="true" ondragstart="drag(event)" data-cat="soc">Homeoffice Garantie</div>
+            <div class="target-item" id="z4" draggable="true" ondragstart="drag(event)" data-cat="fin">Marktführerschaft bei Cloud-Security</div>
+            <div class="target-item" id="z5" draggable="true" ondragstart="drag(event)" data-cat="eco">Hardware-Refurbishment Quote +20%</div>
+            <div class="target-item" id="z6" draggable="true" ondragstart="drag(event)" data-cat="soc">Work-Life-Balance durch 4-Tage-Woche</div>
+            <div class="target-item" id="z7" draggable="true" ondragstart="drag(event)" data-cat="fin">Kundenzufriedenheit auf 90% steigern</div>
+            <div class="target-item" id="z8" draggable="true" ondragstart="drag(event)" data-cat="eco">Reduktion des CO2-Fußabdrucks um 15%</div>
+            <div class="target-item" id="z9" draggable="true" ondragstart="drag(event)" data-cat="soc">Azubi-Mentoring Programm</div>
+        </div>
+
+        <div class="targets-grid">
+            <div id="fin" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"><h4 style="color: #92400e; text-align: center;">Ökonomisch</h4></div>
+            <div id="eco" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"><h4 style="color: #166534; text-align: center;">Ökologisch</h4></div>
+            <div id="soc" class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)"><h4 style="color: #3730a3; text-align: center;">Sozial</h4></div>
+        </div>
+
+        <div id="success-msg" style="display:none; margin-top: 20px; padding: 15px; background: #dcfce7; color: #166534; border-radius: 8px; text-align: center;">
+            <strong>System stabil!</strong> Die Ziele sind korrekt klassifiziert. Weiter mit dem SMART-Check in Tab 3.
+        </div>
+    </div>
+
+    <div id="smart" class="tab-content">
+        <h2>03 // Der Präzisions-Check</h2>
+        <p>Ein Ziel ohne Metrik ist nur ein Platzhalter. Teste das Ziel-Tuning:</p>
+        <p>
+                Viele Leitbilder klingen toll, scheitern aber im Alltag. Warum? Weil sie den <strong>SMART-Filter</strong> nicht bestehen. 
+                Bevor wir Ziele setzen, müssen wir das Werkzeug verstehen, das Qualität von "heißer Luft" trennt:
+            </p>
+
+            <div class="smart-grid">
+                <div class="smart-box"><strong>S</strong>pezifisch</div>
+                <div class="smart-box"><strong>M</strong>essbar</div>
+                <div class="smart-box"><strong>A</strong>ttraktiv</div>
+                <div class="smart-box"><strong>R</strong>ealistisch</div>
+                <div class="smart-box"><strong>T</strong>erminiert</div>
+            </div>
+
+            <p style="font-style: italic; color: #7f8c8d;">
+                "Wir wollen exzellenten Support bieten" ist kein Ziel. Es ist ein Wunsch. <br>
+                Erst durch SMART wird daraus ein <strong>ausführbarer Befehl</strong>.
+            </p>
+
+        <div class="smart-panel">
+            <p id="smart-demo-text" style="font-size: 1.2em; font-weight: bold; color: #2c3e50;">"Wir wollen besser werden."</p>
+            <input type="range" id="smart-slider" min="0" max="2" value="0" oninput="updateSmart()" style="width: 100%; margin: 20px 0;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #64748b;">
+                <span>Vage Formulierung</span>
+                <span>SMART-optimiert</span>
+            </div>
+        </div>
+
+        <div id="smart-explanation" style="margin-top: 25px; line-height: 1.6;">
+            <ul id="smart-list" style="list-style: none; padding: 0;"></ul>
+        </div>
+    </div>
+
+    <div id="transfer" class="tab-content">
+        <h2>4. Eigene Gründung</h2>
+        <div class="info-box" style="background:#eef6ff; border-color:#2563eb;">
+            <strong>Transfer-Aufgabe:</strong> Formuliere eine Vision, eine Mission und ein SMARTes Ziel für dein eigenes IT-Unternehmen.
+        </div>
+        <table>
+            <tr>
+                <th>Baustein</th>
+                <th>Dein Entwurf</th>
+            </tr>
+            <tr>
+                <td><strong>Vision</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><strong>Mission</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><strong>SMART-Ziel</strong></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script>
+    function openTab(evt, tabName) {
+        const tabcontent = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+            tabcontent[i].classList.remove("active");
+        }
+
+        const tablinks = document.getElementsByClassName("tab-link");
+        for (let i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("active");
+        }
+
+        const targetTab = document.getElementById(tabName);
+        if (targetTab) {
+            targetTab.style.display = "block";
+            targetTab.classList.add("active");
+        }
+
+        if (evt && evt.currentTarget) {
+            evt.currentTarget.classList.add("active");
+        }
+    }
+
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+    function drop(ev) {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData("text");
+        const el = document.getElementById(id);
+        const dropzone = ev.target.closest('.drop-zone, #pool');
+        if (dropzone && el) {
+            dropzone.appendChild(el);
+            validate();
+        }
+    }
+
+    function validate() {
+        const items = document.querySelectorAll('.target-item');
+        let correctCount = 0;
+
+        items.forEach(item => {
+            const correctCat = item.getAttribute('data-cat');
+            const currentCat = item.parentElement.id;
+
+            if (currentCat === correctCat) {
+                item.style.borderColor = "#27ae60";
+                item.style.background = "#f0fff4";
+                correctCount++;
+            } else if (currentCat === 'pool') {
+                item.style.borderColor = "#e2e8f0";
+                item.style.background = "white";
+            } else {
+                item.style.borderColor = "#e74c3c";
+                item.style.background = "#fff5f5";
+            }
+        });
+
+        document.getElementById('success-msg').style.display =
+            correctCount === items.length ? 'block' : 'none';
+    }
+
+    function updateSmart() {
+        const val = document.getElementById('smart-slider').value;
+        const text = document.getElementById('smart-demo-text');
+        const list = document.getElementById('smart-list');
+
+        if (val == 0) {
+            text.innerText = '"Wir wollen besser werden."';
+            list.innerHTML = "❌ Nicht messbar, kein Zeitraum, völlig vage.";
+        } else if (val == 1) {
+            text.innerText = '"Wir wollen den Umsatz durch Support-Tickets steigern."';
+            list.innerHTML = "⚠️ Spezifisch, aber immer noch nicht messbar oder terminiert.";
+        } else {
+            text.innerText = '"Wir steigern den Umsatz durch Managed Services bis Q4/2026 um 12%."';
+            list.innerHTML = "✅ <b>S</b>pezifisch, <b>M</b>essbar, <b>A</b>ttraktiv, <b>R</b>ealistisch, <b>T</b>erminiert.";
+        }
+    }
+
+    updateSmart();
+</script>
+
+</body>
+</html>
