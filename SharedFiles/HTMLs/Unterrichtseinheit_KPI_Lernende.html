@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lerneinheit KPIs - Key Performance Indicators verstehen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-main: #f2f6f5;
+            --bg-card: #ffffff;
+            --ink: #1b2430;
+            --ink-soft: #4e5d6c;
+            --line: #d9e3ea;
+            --accent: #0c6b58;
+            --accent-strong: #094f41;
+            --accent-light: #e8f8f2;
+            --signal: #c24f2a;
+            --good: #1f8f4a;
+            --bad: #be2f2f;
+            --info: #2b6cb0;
+            --radius: 12px;
+            --shadow: 0 10px 22px -8px rgba(8, 31, 38, 0.2);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Source Sans 3", sans-serif;
+            color: var(--ink);
+            background: radial-gradient(circle at top right, #e9f4ef 0%, #f2f6f5 35%, #f2f6f5 100%);
+            line-height: 1.6;
+        }
+
+        .shell {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 34px 18px 48px;
+        }
+
+        h1, h2, h3 {
+            margin: 0;
+            font-family: "Barlow Condensed", sans-serif;
+            line-height: 1.1;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #103b52 0%, #0c6b58 58%, #1f8f4a 100%);
+            color: #ffffff;
+            padding: 42px 28px 32px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+
+        .hero::before,
+        .hero::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            pointer-events: none;
+        }
+
+        .hero::before {
+            width: 250px;
+            height: 250px;
+            right: -60px;
+            top: -70px;
+        }
+
+        .hero::after {
+            width: 190px;
+            height: 190px;
+            left: -40px;
+            bottom: -80px;
+        }
+
+        .kicker {
+            text-transform: uppercase;
+            letter-spacing: 1.3px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #b8f3dd;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 4.8vw, 3.3rem);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            max-width: 900px;
+            font-size: 1.08rem;
+            margin: 0 0 16px;
+            opacity: 0.94;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .chip {
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 0.86rem;
+            font-weight: 600;
+        }
+
+        .progress-card {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px 14px;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            box-shadow: 0 2px 8px rgba(10, 48, 40, 0.08);
+            margin-bottom: 16px;
+        }
+
+        .progress-label {
+            font-weight: 700;
+            color: var(--accent-strong);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 12px;
+            background: #d8e5e2;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #0c6b58 0%, #1f8f4a 100%);
+            transition: width 0.45s ease;
+            border-radius: 999px;
+        }
+
+        .progress-value {
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .tabs {
+            background: var(--bg-card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 10px;
+            margin-bottom: 16px;
+        }
+
+        .tab-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            border: 1px solid var(--line);
+            background: #eef6f4;
+            color: var(--ink);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-1px);
+            border-color: var(--accent);
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #ffffff;
+        }
+
+        .topic-pane {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .topic-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(10, 48, 40, 0.06);
+        }
+
+        .panel-head {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--line);
+            background: #f9fcfb;
+        }
+
+        .panel-head h2 {
+            color: var(--accent-strong);
+            font-size: 1.75rem;
+        }
+
+        .panel-body {
+            padding: 18px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+        .card {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px;
+            background: #ffffff;
+        }
+
+        .card h3 {
+            color: var(--signal);
+            font-size: 1.28rem;
+            margin-bottom: 6px;
+        }
+
+        .card h4 {
+            color: var(--accent-strong);
+            margin: 0 0 5px;
+            font-size: 1.03rem;
+        }
+
+        .small {
+            color: var(--ink-soft);
+            font-size: 0.94rem;
+        }
+
+        .bullet-list {
+            margin: 8px 0 0;
+            padding-left: 19px;
+        }
+
+        .bullet-list li { margin-bottom: 5px; }
+
+        .info-box,
+        .tip-box,
+        .warn-box {
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin: 10px 0 14px;
+        }
+
+        .info-box {
+            background: #ebf4ff;
+            border-left: 5px solid var(--info);
+        }
+
+        .tip-box {
+            background: #f3fff7;
+            border-left: 5px solid var(--good);
+        }
+
+        .warn-box {
+            background: #fff4f1;
+            border-left: 5px solid var(--signal);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--line);
+            padding: 10px 11px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #e7f5f0;
+            color: var(--accent-strong);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 0.82rem;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        .formula {
+            background: #f3f8f7;
+            border: 1px dashed #b7cbc4;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-weight: 700;
+            display: inline-block;
+            margin-top: 6px;
+        }
+
+        .exercise {
+            border: 1px solid var(--line);
+            background: #f8fcfb;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .exercise h4 {
+            margin: 0 0 6px;
+            color: var(--accent-strong);
+            font-size: 1.05rem;
+        }
+
+        .exercise label {
+            display: block;
+            font-weight: 700;
+            margin: 8px 0 4px;
+        }
+
+        .exercise input[type="number"] {
+            width: 120px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 7px 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            background: var(--accent);
+            color: #ffffff;
+            font-weight: 700;
+            font-family: inherit;
+            padding: 9px 14px;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+
+        .btn:hover {
+            background: var(--accent-strong);
+            transform: translateY(-1px);
+        }
+
+        .btn-sec {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .result-box {
+            margin-top: 9px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            min-height: 44px;
+            padding: 10px;
+            background: #ffffff;
+        }
+
+        .result-box.good {
+            border-color: var(--good);
+            background: #f0fff4;
+            color: #20613a;
+        }
+
+        .result-box.bad {
+            border-color: var(--bad);
+            background: #fff5f5;
+            color: #8c2525;
+        }
+
+        .quiz-item {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #f9fcfb;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .quiz-item p {
+            margin: 0 0 8px;
+            font-weight: 700;
+        }
+
+        .quiz-item label {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+        }
+
+        .quiz-item label:hover {
+            background: #eef6f4;
+        }
+
+        .summary-card {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px;
+            background: linear-gradient(120deg, #f3fbf8 0%, #ffffff 100%);
+        }
+
+        .footer-note {
+            text-align: center;
+            color: var(--ink-soft);
+            margin-top: 16px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 920px) {
+            .grid-3 { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 700px) {
+            .shell { padding: 18px 10px 28px; }
+            .hero { padding: 28px 14px 24px; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .tab-btn { width: 100%; text-align: left; }
+            .progress-card { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<main class="shell">
+
+    <header class="hero">
+        <div class="kicker">Unterrichtseinheit - Lernende</div>
+        <h1>Key Performance Indicators (KPIs) verstehen</h1>
+        <p class="subtitle">
+            In dieser Lerneinheit lernst du, was ein guter KPI ist, wie man ihn berechnet und wie man aus Zahlen
+            sinnvolle Entscheidungen ableitet. Mit praxisnahen Beispielen aus IT, Support und Projektarbeit.
+        </p>
+        <div class="meta">
+            <span class="chip">Dauer: 60-90 Minuten</span>
+            <span class="chip">Format: Input + Uebungen + Quiz</span>
+            <span class="chip">Niveau: Einsteiger bis Mittelstufe</span>
+            <span class="chip">Ziel: KPI-Kompetenz fuer den Berufsalltag</span>
+        </div>
+    </header>
+
+    <section class="progress-card" aria-live="polite">
+        <div class="progress-label">Lernfortschritt</div>
+        <div class="progress-value" id="progressText">0 / 6 Themen erledigt</div>
+        <div class="progress-track" style="grid-column: 1 / -1;">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </section>
+
+    <nav class="tabs" aria-label="Lernnavigation">
+        <div class="tab-list" role="tablist">
+            <button class="tab-btn active" data-tab="ziele" role="tab">1. Lernziele</button>
+            <button class="tab-btn" data-tab="grundlagen" role="tab">2. KPI-Grundlagen</button>
+            <button class="tab-btn" data-tab="qualitaet" role="tab">3. Gute KPIs</button>
+            <button class="tab-btn" data-tab="beispiele" role="tab">4. Rechenbeispiele</button>
+            <button class="tab-btn" data-tab="praxis" role="tab">5. Praxisfall</button>
+            <button class="tab-btn" data-tab="quiz" role="tab">6. Wissenscheck</button>
+        </div>
+    </nav>
+
+    <section id="ziele" class="topic-pane active" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Lernziele</h2></div>
+            <div class="panel-body grid grid-3">
+                <div class="card">
+                    <h3>Verstehen</h3>
+                    <ul class="bullet-list">
+                        <li>Du kannst KPI, Kennzahl und Ziel unterscheiden.</li>
+                        <li>Du kennst den Unterschied zwischen Ergebnis- und Treiber-KPIs.</li>
+                        <li>Du erkennst typische KPI-Fehler in Teams.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Anwenden</h3>
+                    <ul class="bullet-list">
+                        <li>Du berechnest zentrale KPIs korrekt mit einfachen Formeln.</li>
+                        <li>Du kannst Soll-Ist-Abweichungen nachvollziehen.</li>
+                        <li>Du interpretierst KPI-Werte fachlich sinnvoll.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Transfer</h3>
+                    <ul class="bullet-list">
+                        <li>Du waehlst fuer einen Prozess passende KPIs aus.</li>
+                        <li>Du bewertest, ob ein KPI fuer Entscheidungen taugt.</li>
+                        <li>Du formulierst Verbesserungsmassnahmen auf Basis von KPIs.</li>
+                    </ul>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head"><h2>Warum KPIs wichtig sind</h2></div>
+            <div class="panel-body">
+                <div class="info-box">
+                    <strong>Merksatz:</strong> Ein KPI ist nur dann wertvoll, wenn er eine konkrete Entscheidung
+                    unterstuetzt. Zahlen ohne Handlung sind nur Deko.
+                </div>
+                <div class="grid grid-3">
+                    <div class="card">
+                        <h4>IT-Support</h4>
+                        <p class="small">Mit KPIs wie Erstloesungsquote oder durchschnittlicher Loesungszeit erkennst du, wo Supportprozesse stocken.</p>
+                    </div>
+                    <div class="card">
+                        <h4>Projektmanagement</h4>
+                        <p class="small">Termintreue und Budgetabweichung helfen dir zu sehen, ob ein Projekt stabil auf Kurs ist.</p>
+                    </div>
+                    <div class="card">
+                        <h4>Qualitaetsmanagement</h4>
+                        <p class="small">Fehlerquote und Nacharbeitsquote zeigen, wo Prozessqualitaet verbessert werden muss.</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section id="grundlagen" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>KPI-Grundlagen einfach erklaert</h2></div>
+            <div class="panel-body grid grid-2">
+                <div class="card">
+                    <h3>Definition KPI</h3>
+                    <p>
+                        Ein <strong>Key Performance Indicator</strong> ist eine Schluesselkennzahl, mit der man
+                        den Erfolg eines Ziels oder Prozesses misst.
+                    </p>
+                    <div class="tip-box">
+                        <strong>Praxischeck:</strong> Wenn eine Zahl keine Prioritaet und keine Entscheidung beeinflusst,
+                        ist sie meist keine KPI, sondern nur eine allgemeine Kennzahl.
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Abgrenzung</h3>
+                    <table>
+                        <thead>
+                            <tr><th>Begriff</th><th>Bedeutung</th><th>Beispiel</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Kennzahl</td>
+                                <td>Messwert ohne zwingende Prioritaet</td>
+                                <td>Anzahl Tickets pro Woche</td>
+                            </tr>
+                            <tr>
+                                <td>KPI</td>
+                                <td>Wichtige Kennzahl mit Steuerungswirkung</td>
+                                <td>Erstloesungsquote im Support</td>
+                            </tr>
+                            <tr>
+                                <td>Ziel</td>
+                                <td>Gewuenschter Zustand</td>
+                                <td>Erstloesungsquote auf 75 Prozent steigern</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head"><h2>Arten von KPIs</h2></div>
+            <div class="panel-body grid grid-3">
+                <div class="card">
+                    <h4>Ergebnis-KPIs (Lagging)</h4>
+                    <p class="small">Zeigen das Resultat im Nachhinein, zum Beispiel Umsatz, Termintreue oder Fehlerquote.</p>
+                </div>
+                <div class="card">
+                    <h4>Treiber-KPIs (Leading)</h4>
+                    <p class="small">Zeigen fruehzeitig, ob sich ein Ergebnis wahrscheinlich verbessert oder verschlechtert.</p>
+                </div>
+                <div class="card">
+                    <h4>Effizienz vs. Effektivitaet</h4>
+                    <p class="small">Effizienz: mit wenig Aufwand arbeiten. Effektivitaet: die richtigen Dinge tun. Beide brauchen passende KPIs.</p>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section id="qualitaet" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Was macht einen KPI gut?</h2></div>
+            <div class="panel-body">
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3>SMART-orientiert</h3>
+                        <ul class="bullet-list">
+                            <li><strong>Spezifisch:</strong> klarer Bezug zu Prozess und Ziel.</li>
+                            <li><strong>Messbar:</strong> Daten sind verfuegbar und nachvollziehbar.</li>
+                            <li><strong>Attraktiv:</strong> fuer Team und Steuerung relevant.</li>
+                            <li><strong>Realistisch:</strong> erreichbar, aber anspruchsvoll.</li>
+                            <li><strong>Terminiert:</strong> klare Messperiode.</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3>Warnsignale fuer schlechte KPIs</h3>
+                        <ul class="bullet-list">
+                            <li>Keine klare Entscheidung wird damit getroffen.</li>
+                            <li>Daten lassen sich leicht manipulieren.</li>
+                            <li>Messung kostet mehr als der Erkenntnisgewinn.</li>
+                            <li>Der KPI motiviert unerwuenschtes Verhalten.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="warn-box">
+                    <strong>Typischer Fehler:</strong> Teams messen nur, was leicht verfuegbar ist, statt das,
+                    was wirklich fuer Qualitaet und Kundennutzen entscheidend ist.
+                </div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head"><h2>KPI-Steckbrief (Vorlage)</h2></div>
+            <div class="panel-body">
+                <table>
+                    <thead>
+                        <tr><th>Feld</th><th>Beschreibung</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Name</td><td>Wie heisst der KPI eindeutig?</td></tr>
+                        <tr><td>Zielbezug</td><td>Welches Ziel wird gesteuert?</td></tr>
+                        <tr><td>Formel</td><td>Wie wird der KPI berechnet?</td></tr>
+                        <tr><td>Datenquelle</td><td>Woher kommen die Daten?</td></tr>
+                        <tr><td>Messintervall</td><td>Taeglich, woechentlich, monatlich?</td></tr>
+                        <tr><td>Zielwert</td><td>Welcher Soll-Wert gilt?</td></tr>
+                        <tr><td>Verantwortung</td><td>Wer pflegt und bewertet den KPI?</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+
+    <section id="beispiele" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Saubere Rechenbeispiele</h2></div>
+            <div class="panel-body">
+                <div class="exercise">
+                    <h4>Beispiel 1: Erstloesungsquote im IT-Support</h4>
+                    <p>Von 240 Tickets wurden 168 beim ersten Kontakt geloest. Wie hoch ist die Erstloesungsquote?</p>
+                    <div class="formula">Erstloesungsquote = (Beim ersten Kontakt geloest / Alle Tickets) x 100</div>
+                    <label for="calc1">Dein Ergebnis in Prozent:</label>
+                    <input id="calc1" type="number" min="0" max="100" step="0.1" />
+                    <button class="btn" id="btnCalc1" type="button">Pruefen</button>
+                    <div class="result-box" id="resultCalc1"></div>
+                </div>
+
+                <div class="exercise">
+                    <h4>Beispiel 2: Termintreue im Projekt</h4>
+                    <p>Von 35 geplanten Arbeitspaketen wurden 28 fristgerecht abgeschlossen. Berechne die Termintreue.</p>
+                    <div class="formula">Termintreue = (Fristgerecht erledigte Pakete / Geplante Pakete) x 100</div>
+                    <label for="calc2">Dein Ergebnis in Prozent:</label>
+                    <input id="calc2" type="number" min="0" max="100" step="0.1" />
+                    <button class="btn" id="btnCalc2" type="button">Pruefen</button>
+                    <div class="result-box" id="resultCalc2"></div>
+                </div>
+
+                <div class="exercise">
+                    <h4>Beispiel 3: Fehlerquote nach Release</h4>
+                    <p>Nach einem Release wurden 12 kritische Fehler bei 1.200 aktiven Nutzern gemeldet. Berechne die Fehlerquote in Prozent.</p>
+                    <div class="formula">Fehlerquote = (Kritische Fehler / Aktive Nutzer) x 100</div>
+                    <label for="calc3">Dein Ergebnis in Prozent:</label>
+                    <input id="calc3" type="number" min="0" max="100" step="0.01" />
+                    <button class="btn" id="btnCalc3" type="button">Pruefen</button>
+                    <div class="result-box" id="resultCalc3"></div>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section id="praxis" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Praxisfall: Helpdesk verbessern</h2></div>
+            <div class="panel-body">
+                <div class="info-box">
+                    <strong>Ausgangslage:</strong> Das Team bekommt Beschwerden wegen langer Wartezeiten. Die Leitung will
+                    den Prozess verbessern und braucht aussagekraeftige KPIs.
+                </div>
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3>Vorliegende Werte (Monat)</h3>
+                        <ul class="bullet-list">
+                            <li>Tickets gesamt: 420</li>
+                            <li>Beim ersten Kontakt geloest: 250</li>
+                            <li>Durchschnittliche Wartezeit: 18 Minuten</li>
+                            <li>Kundenzufriedenheit (CSAT): 3,7 von 5</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3>Moegliche Ziele fuer naechsten Monat</h3>
+                        <ul class="bullet-list">
+                            <li>Erstloesungsquote auf 65 Prozent anheben.</li>
+                            <li>Wartezeit auf unter 12 Minuten senken.</li>
+                            <li>CSAT auf mindestens 4,2 verbessern.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="summary-card" style="margin-top: 10px;">
+                    <h3 style="color: var(--accent-strong); margin-bottom: 8px;">Reflexionsfragen</h3>
+                    <ul class="bullet-list">
+                        <li>Welche zwei KPIs haben den staerksten Einfluss auf die Kundenzufriedenheit?</li>
+                        <li>Welche KPI ist eher Ergebnis-KPI, welche eher Treiber-KPI?</li>
+                        <li>Welche Massnahme waere kurzfristig wirksam, welche langfristig?</li>
+                    </ul>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section id="quiz" class="topic-pane" role="tabpanel">
+        <article class="panel">
+            <div class="panel-head"><h2>Wissenscheck</h2></div>
+            <div class="panel-body">
+                <div class="quiz-item">
+                    <p>1) Welche Aussage beschreibt einen KPI am besten?</p>
+                    <label><input type="radio" name="q1" value="a" /> Jede Zahl, die in einem Bericht steht</label>
+                    <label><input type="radio" name="q1" value="b" /> Eine Schluesselkennzahl zur Steuerung von Zielen</label>
+                    <label><input type="radio" name="q1" value="c" /> Eine zufaellig ausgewaehlte Statistik</label>
+                </div>
+
+                <div class="quiz-item">
+                    <p>2) Was ist ein typischer Treiber-KPI?</p>
+                    <label><input type="radio" name="q2" value="a" /> Jahresumsatz des Vorjahres</label>
+                    <label><input type="radio" name="q2" value="b" /> Anzahl durchgefuehrter Code-Reviews pro Woche</label>
+                    <label><input type="radio" name="q2" value="c" /> Endgueltige Projektmarge nach Abschluss</label>
+                </div>
+
+                <div class="quiz-item">
+                    <p>3) Warum kann ein KPI problematisch sein?</p>
+                    <label><input type="radio" name="q3" value="a" /> Wenn er kein Verhalten und keine Entscheidung beeinflusst</label>
+                    <label><input type="radio" name="q3" value="b" /> Wenn er regelmaessig gemessen wird</label>
+                    <label><input type="radio" name="q3" value="c" /> Wenn er eindeutig definiert ist</label>
+                </div>
+
+                <button class="btn" id="btnQuiz" type="button">Quiz auswerten</button>
+                <button class="btn btn-sec" id="btnResetQuiz" type="button" style="margin-left: 6px;">Zuruecksetzen</button>
+                <div class="result-box" id="quizResult"></div>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head"><h2>Abschluss: 5-Punkte-Check fuer echte KPI-Kompetenz</h2></div>
+            <div class="panel-body">
+                <ol>
+                    <li>Ist klar, welches Ziel der KPI steuert?</li>
+                    <li>Ist die Formel eindeutig und nachvollziehbar?</li>
+                    <li>Ist der Zielwert realistisch und terminiert?</li>
+                    <li>Fuehrt ein schlechter Wert zu einer konkreten Massnahme?</li>
+                    <li>Verhindert der KPI Fehlanreize?</li>
+                </ol>
+            </div>
+        </article>
+    </section>
+
+    <p class="footer-note">Lerneinheit KPI - erstellt fuer den direkten Einsatz im Unterricht.</p>
+
+</main>
+
+<script>
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const panes = document.querySelectorAll('.topic-pane');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+
+    const visitedTabs = new Set(['ziele']);
+
+    function updateProgress() {
+        const done = visitedTabs.size;
+        const total = 6;
+        const percent = Math.round((done / total) * 100);
+        progressFill.style.width = percent + '%';
+        progressText.textContent = done + ' / ' + total + ' Themen erledigt';
+    }
+
+    function activateTab(tabId) {
+        tabButtons.forEach((btn) => {
+            btn.classList.toggle('active', btn.dataset.tab === tabId);
+        });
+        panes.forEach((pane) => {
+            pane.classList.toggle('active', pane.id === tabId);
+        });
+        visitedTabs.add(tabId);
+        updateProgress();
+    }
+
+    tabButtons.forEach((btn) => {
+        btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+    });
+
+    function checkCalc(inputId, resultId, expected, tolerance, successText) {
+        const val = parseFloat(document.getElementById(inputId).value);
+        const box = document.getElementById(resultId);
+
+        if (Number.isNaN(val)) {
+            box.className = 'result-box bad';
+            box.textContent = 'Bitte zuerst einen Wert eingeben.';
+            return;
+        }
+
+        if (Math.abs(val - expected) <= tolerance) {
+            box.className = 'result-box good';
+            box.textContent = successText + ' Richtig sind ' + expected.toFixed(2).replace('.', ',') + ' %.';
+        } else {
+            box.className = 'result-box bad';
+            box.textContent = 'Noch nicht korrekt. Denke an die Formel und rechne erneut. Richtwert: ' + expected.toFixed(2).replace('.', ',') + ' %.';
+        }
+    }
+
+    document.getElementById('btnCalc1').addEventListener('click', () => {
+        checkCalc('calc1', 'resultCalc1', 70.0, 0.2, 'Sehr gut.');
+    });
+
+    document.getElementById('btnCalc2').addEventListener('click', () => {
+        checkCalc('calc2', 'resultCalc2', 80.0, 0.2, 'Korrekt gerechnet.');
+    });
+
+    document.getElementById('btnCalc3').addEventListener('click', () => {
+        checkCalc('calc3', 'resultCalc3', 1.0, 0.05, 'Perfekt.');
+    });
+
+    const quizResult = document.getElementById('quizResult');
+
+    document.getElementById('btnQuiz').addEventListener('click', () => {
+        const answers = {
+            q1: 'b',
+            q2: 'b',
+            q3: 'a'
+        };
+
+        let score = 0;
+        let answered = 0;
+
+        Object.keys(answers).forEach((key) => {
+            const selected = document.querySelector('input[name="' + key + '"]:checked');
+            if (selected) {
+                answered += 1;
+                if (selected.value === answers[key]) {
+                    score += 1;
+                }
+            }
+        });
+
+        if (answered < 3) {
+            quizResult.className = 'result-box bad';
+            quizResult.textContent = 'Bitte beantworte erst alle drei Fragen.';
+            return;
+        }
+
+        const percent = Math.round((score / 3) * 100);
+        if (score === 3) {
+            quizResult.className = 'result-box good';
+            quizResult.textContent = 'Stark. ' + score + '/3 richtig (' + percent + ' %). Du hast die KPI-Basics sicher verstanden.';
+        } else if (score === 2) {
+            quizResult.className = 'result-box';
+            quizResult.textContent = 'Gut. ' + score + '/3 richtig (' + percent + ' %). Wiederhole kurz die Unterschiede zwischen KPI, Kennzahl und Ziel.';
+        } else {
+            quizResult.className = 'result-box bad';
+            quizResult.textContent = score + '/3 richtig (' + percent + ' %). Lies die Kapitel 2 und 3 erneut und versuche es noch einmal.';
+        }
+    });
+
+    document.getElementById('btnResetQuiz').addEventListener('click', () => {
+        document.querySelectorAll('input[type="radio"]').forEach((radio) => {
+            radio.checked = false;
+        });
+        quizResult.className = 'result-box';
+        quizResult.textContent = '';
+    });
+
+    updateProgress();
+</script>
+</body>
+</html>

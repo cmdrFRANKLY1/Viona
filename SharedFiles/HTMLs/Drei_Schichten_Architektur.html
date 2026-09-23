@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Die 3-Schichten-Architektur</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400..700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0b2545;
+    --blue: #2563eb;
+    --blue-light: #eef4fc;
+    --blue-tint: #dbe8fb;
+    --slate: #57657c;
+    --text: #16233a;
+    --border: #dbe6f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Public Sans', Arial, sans-serif;
+    color: var(--text);
+    background: #f6f9fd;
+    line-height: 1.6;
+  }
+  .hero {
+    background: var(--navy);
+    color: #eef4fc;
+    padding: 56px 24px 64px;
+    text-align: center;
+  }
+  .hero .eyebrow {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #4f8ff7;
+    margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: clamp(28px, 5vw, 46px);
+    font-weight: 600;
+    margin: 0 0 16px;
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: 17px;
+    color: #c3d3ea;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .wrap { max-width: 880px; margin: -32px auto 60px; padding: 0 20px; }
+  .toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 16px; }
+  .toolbar button {
+    background: #ffffff; border: 1px solid var(--border); color: var(--navy);
+    font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 16px;
+    border-radius: 8px; cursor: pointer;
+  }
+  .toolbar button:hover { background: var(--blue-light); }
+
+  .toc {
+    background: #ffffff; border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px 28px; margin-bottom: 28px; box-shadow: 0 2px 10px rgba(11,37,69,0.05);
+  }
+  .toc h2 { font-family: 'EB Garamond', Georgia, serif; font-size: 20px; color: var(--navy); margin: 0 0 12px; }
+  .toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 24px; }
+  .toc li { margin-bottom: 6px; break-inside: avoid; }
+  .toc a { color: var(--blue); text-decoration: none; font-size: 14.5px; }
+  .toc a:hover { text-decoration: underline; }
+
+  section.card {
+    background: #ffffff; border: 1px solid var(--border); border-radius: 14px;
+    margin-bottom: 18px; box-shadow: 0 2px 10px rgba(11,37,69,0.05); overflow: hidden;
+    scroll-margin-top: 20px;
+  }
+  summary {
+    list-style: none; cursor: pointer; padding: 22px 28px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary .stitle { display: flex; flex-direction: column; gap: 4px; }
+  summary .kicker {
+    font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blue);
+  }
+  summary h2 {
+    font-family: 'EB Garamond', Georgia, serif; font-size: 24px; font-weight: 600; color: var(--navy); margin: 0;
+  }
+  summary .chevron {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--blue-light);
+    display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease;
+    color: var(--blue); font-size: 16px; font-weight: 700;
+  }
+  details[open] summary .chevron { transform: rotate(45deg); }
+  .content { padding: 0 28px 30px; border-top: 1px solid var(--border); padding-top: 22px; }
+  .content p { margin: 0 0 14px; font-size: 15.5px; color: var(--text); }
+  .content ul { margin: 0 0 14px; padding-left: 20px; }
+  .content li { margin-bottom: 8px; font-size: 15.5px; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 18px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
+  @media (max-width: 700px) { .grid2, .grid3 { grid-template-columns: 1fr; } .toc ol { columns: 1; } }
+
+  .tile { background: var(--blue-light); border-radius: 12px; padding: 18px 20px; }
+  .tile.dark { background: var(--navy); color: #eef4fc; }
+  .tile.dark .tile-title { color: #4f8ff7; }
+  .tile-title { font-weight: 700; color: var(--navy); margin-bottom: 6px; font-size: 15px; }
+  .tile p { margin: 0; font-size: 14px; color: var(--slate); }
+  .tile.dark p { color: #c3d3ea; }
+
+  .diagram-label {
+    text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--slate); margin: 4px 0 14px;
+  }
+
+  /* Layer stack diagram */
+  .layer-stack { max-width: 560px; margin: 10px auto 22px; position: relative; }
+  .layer-row { display: flex; align-items: center; gap: 20px; margin-bottom: 4px; }
+  .layer-box {
+    flex: 1; border-radius: 14px; padding: 20px 24px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .layer-box.ext { background: #ffffff; border: 2px solid var(--blue); }
+  .layer-box.konz { background: var(--blue-tint); border: 2px solid #8fb3ec; }
+  .layer-box.int { background: var(--navy); color: #eef4fc; }
+  .layer-name { font-weight: 700; font-size: 17px; color: var(--navy); }
+  .layer-box.int .layer-name { color: #4f8ff7; }
+  .layer-desc { font-size: 13.5px; color: var(--slate); }
+  .layer-box.int .layer-desc { color: #c3d3ea; }
+  .layer-arrows { display: flex; justify-content: center; gap: 40px; padding: 2px 0 2px; }
+  .layer-arrows span { font-size: 20px; color: var(--blue); }
+  .layer-caption { text-align: center; font-size: 12.5px; color: var(--slate); margin-top: 4px; }
+
+  /* horizontal flow (query example) */
+  .flow-row { display: flex; align-items: stretch; gap: 14px; margin: 10px 0 6px; flex-wrap: wrap; }
+  .flow-step { flex: 1; min-width: 160px; border-radius: 14px; padding: 18px 20px; }
+  .flow-step.s1 { background: #ffffff; border: 2px solid var(--blue); }
+  .flow-step.s2 { background: var(--blue-tint); border: 2px solid #8fb3ec; }
+  .flow-step.s3 { background: var(--navy); color: #eef4fc; }
+  .flow-step .fs-num { font-weight: 700; color: var(--blue); font-size: 13px; margin-bottom: 6px; }
+  .flow-step.s3 .fs-num { color: #4f8ff7; }
+  .flow-step p { margin: 0; font-size: 13.5px; color: var(--text); }
+  .flow-step.s3 p { color: #d7e4f7; }
+  .flow-arrow-h { display: flex; align-items: center; font-size: 22px; color: var(--blue); }
+  @media (max-width: 700px) { .flow-row { flex-direction: column; } .flow-arrow-h { transform: rotate(90deg); justify-content: center; } }
+  .flow-result {
+    display: flex; align-items: center; gap: 14px; background: #123a67; color: #eef4fc;
+    border-radius: 12px; padding: 16px 20px; margin-top: 10px; font-size: 14.5px;
+  }
+
+  table.compact { width: 100%; border-collapse: collapse; font-size: 14px; margin: 10px 0 18px; }
+  table.compact th { background: var(--navy); color: #fff; text-align: left; padding: 10px 14px; }
+  table.compact td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.compact tr:nth-child(even) td { background: #f5f9fe; }
+
+  .indep-box {
+    border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; border-left: 5px solid var(--blue); background: var(--blue-light);
+  }
+  .indep-box.log { border-left-color: #16a34a; background: #eafaf0; }
+  .indep-box .i-title { font-weight: 700; color: var(--navy); margin-bottom: 4px; font-size: 15px; }
+  .indep-box p { margin: 0; font-size: 14.5px; color: var(--text); }
+
+  .note {
+    background: #fffbea; border: 1px solid #f2e2a8; border-radius: 10px;
+    padding: 14px 18px; font-size: 14px; color: #6b5a12; margin-top: 10px;
+  }
+  .warn {
+    background: #fdeceb; border: 1px solid #f3b9b3; border-radius: 10px;
+    padding: 14px 18px; font-size: 14px; color: #7a1f1f; margin-top: 10px;
+  }
+
+  .recap-list { list-style: none; padding: 0; margin: 0; }
+  .recap-list li {
+    display: flex; gap: 12px; align-items: flex-start; background: var(--blue-light);
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 10px; font-size: 15px;
+  }
+  .recap-list li::before { content: "✓"; color: var(--blue); font-weight: 700; flex-shrink: 0; }
+
+  .quiz-list { list-style: none; padding: 0; margin: 0; counter-reset: q; }
+  .quiz-list li {
+    counter-increment: q; background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px 14px 46px; margin-bottom: 10px; font-size: 15px; position: relative;
+  }
+  .quiz-list li::before {
+    content: counter(q); position: absolute; left: 14px; top: 12px; width: 22px; height: 22px;
+    border-radius: 50%; background: var(--blue); color: #fff; font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  footer { text-align: center; font-size: 12.5px; color: #93a1b8; padding: 20px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <p class="eyebrow">AnwP-DBSQL &middot; Theorieteil</p>
+  <h1>Die 3-Schichten-Architektur</h1>
+  <p>Wie eine Datenbank intern aufgebaut ist: die ANSI/SPARC-Architektur, komplett erklärt, mit Beispiel und Selbsttest.</p>
+</div>
+
+<div class="wrap">
+
+  <div class="toolbar">
+    <button onclick="toggleAll(true)">Alle aufklappen</button>
+    <button onclick="toggleAll(false)">Alle zuklappen</button>
+  </div>
+
+  <div class="toc">
+    <h2>Inhalt</h2>
+    <ol>
+      <li><a href="#einordnung">Wo kommt das her? Die Brücke von den Dateisystem-Problemen</a></li>
+      <li><a href="#drei-ebenen">Die drei Ebenen im Überblick</a></li>
+      <li><a href="#extern">Die externe Ebene</a></li>
+      <li><a href="#konzeptionell">Die konzeptionelle Ebene</a></li>
+      <li><a href="#intern">Die interne Ebene</a></li>
+      <li><a href="#unabhaengigkeit">Datenunabhängigkeit: der entscheidende Vorteil</a></li>
+      <li><a href="#beispiel">Beispiel: eine Abfrage durch alle drei Ebenen</a></li>
+      <li><a href="#hintergrund">Hintergrundwissen</a></li>
+      <li><a href="#check">Check: teste dich selbst</a></li>
+      <li><a href="#zusammenfassung">Zusammenfassung</a></li>
+    </ol>
+  </div>
+
+  <section class="card" id="einordnung">
+    <details open>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Einordnung</span>
+          <h2>Wo kommt das her?</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Ihr kennt bereits die sieben klassischen Probleme dateibasierter Datenhaltung: Redundanz, schwieriger Zugriff, isolierte Daten, Integritätsprobleme, Nebenläufigkeit, Sicherheit, kein Absturzschutz. Diese Probleme entstehen vor allem dann, wenn Anwendung und Datenspeicherung eng miteinander verdrahtet sind.</p>
+        <p>Genau diese Trennung, wer sieht was und wo die Daten wirklich liegen, wurde in den 1970er Jahren als offizielles Modell festgehalten: die <b>ANSI/SPARC 3-Schichten-Architektur</b> (auch 3-Ebenen-Modell genannt). Sie beschreibt eine Datenbank aus drei Blickwinkeln, die übereinander liegen.</p>
+        <p>Wenn Datenverwaltung zentral und in drei sauber getrennte Ebenen organisiert ist, verschwinden viele der Dateisystem-Probleme automatisch, oder werden zumindest zur Aufgabe der Datenbank statt jedes einzelnen Programms.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="drei-ebenen">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Das Modell</span>
+          <h2>Die drei Ebenen im Überblick</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Die drei Ebenen liegen gedanklich übereinander, von außen/oben (Nutzer-Sicht) nach innen/unten (physische Speicherung):</p>
+
+        <div class="diagram-label">Die 3 Ebenen als Stapel</div>
+        <div class="layer-stack">
+          <div class="layer-row">
+            <div class="layer-box ext">
+              <span class="layer-name">Externe Ebene</span>
+              <span class="layer-desc">Sicht des einzelnen Nutzers oder der Anwendung</span>
+            </div>
+          </div>
+          <div class="layer-arrows"><span>&darr; Anfrage</span><span>Ergebnis &uarr;</span></div>
+          <div class="layer-row">
+            <div class="layer-box konz">
+              <span class="layer-name" style="color:#16305c">Konzeptionelle Ebene</span>
+              <span class="layer-desc" style="color:#35507a">Gesamtstruktur: alle Tabellen, Beziehungen, Regeln</span>
+            </div>
+          </div>
+          <div class="layer-arrows"><span>&darr; Anfrage</span><span>Ergebnis &uarr;</span></div>
+          <div class="layer-row">
+            <div class="layer-box int">
+              <span class="layer-name">Interne Ebene</span>
+              <span class="layer-desc">Physische Speicherung: Dateiformate, Indexe, Speicherorte</span>
+            </div>
+          </div>
+        </div>
+        <p class="layer-caption" style="margin-top:-6px; margin-bottom:16px;">Eine Anfrage wandert von oben nach unten, das Ergebnis läuft denselben Weg zurück nach oben.</p>
+
+        <table class="compact">
+          <tr><th>Ebene</th><th>Frage, die sie beantwortet</th><th>Beispiel</th></tr>
+          <tr><td>Extern (oben)</td><td>Was sieht dieser Nutzer?</td><td>Kundin sieht: Datum, Artikel, Preis</td></tr>
+          <tr><td>Konzeptionell (Mitte)</td><td>Wie ist die Datenbank insgesamt strukturiert?</td><td>Tabellen KUNDEN, BESTELLUNGEN, ARTIKEL + Beziehungen</td></tr>
+          <tr><td>Intern (unten)</td><td>Wie liegen die Daten physisch?</td><td>Indexe, Dateiblöcke, Speicherort auf der SSD</td></tr>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="extern">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Ebene 1 von 3</span>
+          <h2>Die externe Ebene</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Das ist das, was der einzelne Nutzer oder eine Anwendung sieht. Ein Vertriebsmitarbeiter sieht zum Beispiel nur Kundendaten und Bestellungen, aber keine internen Lagerbestandsdaten. Verschiedene Nutzer können ganz unterschiedliche „Sichten" auf dieselbe Datenbank haben, je nachdem, was sie für ihre Arbeit brauchen.</p>
+        <p>Der Fachbegriff für eine solche externe Sicht ist <b>View</b>. In SQL erstellt man später mit <code>CREATE VIEW</code> genau so eine eingeschränkte Sicht auf Daten.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="konzeptionell">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Ebene 2 von 3</span>
+          <h2>Die konzeptionelle Ebene</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Das ist die Gesamtstruktur der Datenbank: alle Tabellen, alle Beziehungen, alle Regeln, unabhängig davon, wie einzelne Nutzer sie später sehen. Man kann sie sich als die „eine Wahrheit" über die Struktur der Daten vorstellen, auf der alle externen Sichten aufbauen.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="intern">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Ebene 3 von 3</span>
+          <h2>Die interne Ebene</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Das beschreibt, wie die Daten tatsächlich auf der Festplatte oder SSD gespeichert sind: Dateiformate, Indexe, Speicherorte. Das interessiert normalerweise nur die Datenbank-Software selbst, nicht den Endnutzer.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="unabhaengigkeit">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Der entscheidende Vorteil</span>
+          <h2>Datenunabhängigkeit</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Weil die drei Ebenen sauber getrennt sind, kann man eine Ebene ändern, ohne die anderen anzufassen:</p>
+
+        <div class="indep-box">
+          <div class="i-title">Physische Datenunabhängigkeit</div>
+          <p>Die Datenbank-Administratorin kann die interne Speicherung optimieren, zum Beispiel einen neuen Index anlegen oder Daten auf eine schnellere Festplatte verschieben, ohne dass sich für die Anwendung oder den Nutzer irgendetwas ändert.</p>
+        </div>
+        <div class="indep-box log">
+          <div class="i-title">Logische Datenunabhängigkeit</div>
+          <p>Man kann die konzeptionelle Struktur erweitern, zum Beispiel eine neue Spalte hinzufügen, ohne dass alle bestehenden Anwendungen kaputtgehen, solange ihre Sicht unverändert bleibt.</p>
+        </div>
+
+        <p>Der Umwandlungsschritt zwischen zwei Ebenen heißt <b>Mapping</b> (externes/logisches Mapping, konzeptionelles/internes Mapping). Für den Anfang reicht es, das Prinzip zu verstehen, ohne den Fachbegriff auswendig zu können.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="beispiel">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Beispiel</span>
+          <h2>Eine Abfrage durch alle drei Ebenen</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Stellt euch ein Online-Bestellsystem vor. Eine Kundin klickt auf „Meine letzten Bestellungen".</p>
+
+        <div class="diagram-label">Der Weg der Abfrage</div>
+        <div class="flow-row">
+          <div class="flow-step s1">
+            <div class="fs-num">1 &middot; EXTERN</div>
+            <p>Die App zeigt der Kundin eine einfache Liste: Datum, Artikel, Preis. Das ist ihre Sicht, sie sieht keine internen Felder wie Lagerort oder Lieferanten-ID.</p>
+          </div>
+          <div class="flow-arrow-h">&rarr;</div>
+          <div class="flow-step s2">
+            <div class="fs-num">2 &middot; KONZEPTIONELL</div>
+            <p>Die Anfrage wird übersetzt: „Bestellungen" besteht eigentlich aus mehreren verknüpften Tabellen, KUNDEN, BESTELLUNGEN und ARTIKEL, verbunden über Schlüssel (das kennt ihr bald als JOIN).</p>
+          </div>
+          <div class="flow-arrow-h">&rarr;</div>
+          <div class="flow-step s3">
+            <div class="fs-num">3 &middot; INTERN</div>
+            <p>Das DBMS entscheidet, wie es die Daten physisch findet, zum Beispiel über einen Index auf die Kunden-ID, statt die komplette Tabelle zu durchsuchen. Es liest die passenden Datenblöcke von der Festplatte.</p>
+          </div>
+        </div>
+
+        <div class="flow-result">
+          <span>&#8635;</span>
+          <p>Das Ergebnis läuft denselben Weg zurück: intern &rarr; konzeptionell &rarr; extern, wo es wieder in die einfache Listenform gebracht wird, die die Kundin am Ende sieht.</p>
+        </div>
+
+        <p style="margin-top:16px"><b>Der Clou:</b> Die Kundin merkt von alledem nichts. Tauscht die Firma morgen die Festplatten aus oder baut einen neuen Index ein, ändert sich an ihrer App-Ansicht gar nichts, genau das ist Datenunabhängigkeit in der Praxis.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="hintergrund">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Gut zu wissen</span>
+          <h2>Hintergrundwissen</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <ul>
+          <li>Das Modell heißt offiziell <b>ANSI/SPARC-Architektur</b>, veröffentlicht 1975 von einer ANSI-Arbeitsgruppe (Study Group on Data Base Management Systems, kurz SPARC). Es ist bis heute die Standard-Erklärung für DBMS-Architektur in fast jedem Lehrbuch.</li>
+          <li>Der Fachbegriff für die externe Sicht ist <b>View</b>, in SQL später erzeugt mit <code>CREATE VIEW</code>.</li>
+          <li>Die Umwandlung zwischen den Ebenen heißt <b>Mapping</b> (externes/logisches Mapping, konzeptionelles/internes Mapping).</li>
+        </ul>
+        <div class="warn">
+          <b>Nicht verwechseln:</b> Die 3-Schichten-Architektur (ANSI/SPARC, über Daten-Sichten) ist etwas anderes als die „3-Tier-Architektur" aus der Softwareentwicklung (Präsentationsschicht / Anwendungslogik / Datenbank als Server). Das sind zwei verschiedene, ähnlich benannte Konzepte.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="check">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Selbsttest</span>
+          <h2>Check: teste dich selbst</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <ol class="quiz-list">
+          <li>Nenne 3 Probleme, die klassische Dateisysteme haben.</li>
+          <li>Was bedeutet „physische Datenunabhängigkeit" in eigenen Worten?</li>
+          <li>Zeichne aus dem Kopf die drei Ebenen, was steht wo?</li>
+          <li>Wie heißt der Fachbegriff für die externe Sicht, und mit welchem SQL-Befehl erzeugt man sie später?</li>
+          <li>Worin unterscheidet sich die 3-Schichten-Architektur von der 3-Tier-Architektur der Softwareentwicklung?</li>
+        </ol>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="zusammenfassung">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Zusammenfassung</span>
+          <h2>Was ihr mitnehmen solltet</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <ul class="recap-list">
+          <li>Die ANSI/SPARC 3-Schichten-Architektur beschreibt eine Datenbank aus drei Ebenen: extern, konzeptionell, intern.</li>
+          <li>Extern zeigt die Sicht des Nutzers, konzeptionell die Gesamtstruktur, intern die physische Speicherung.</li>
+          <li>Diese Trennung ermöglicht Datenunabhängigkeit, physisch und logisch, den zentralen Vorteil des Modells.</li>
+          <li>Eine Abfrage durchläuft alle drei Ebenen hin und wieder zurück, ohne dass der Nutzer davon etwas merkt.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+</div>
+
+<footer>IBB &middot; AnwP-DBSQL, Theorieteil &middot; Die 3-Schichten-Architektur</footer>
+
+<script>
+  function toggleAll(open) {
+    document.querySelectorAll('details').forEach(function(d) { d.open = open; });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Datenbanken – Warum sie entstanden sind</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400..700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0b2545;
+    --blue: #2563eb;
+    --blue-light: #eef4fc;
+    --blue-tint: #dbe8fb;
+    --slate: #57657c;
+    --text: #16233a;
+    --border: #dbe6f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Public Sans', Arial, sans-serif;
+    color: var(--text);
+    background: #f6f9fd;
+    line-height: 1.6;
+  }
+  .hero {
+    background: var(--navy);
+    color: #eef4fc;
+    padding: 56px 24px 64px;
+    text-align: center;
+  }
+  .hero .eyebrow {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #4f8ff7;
+    margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: clamp(30px, 5vw, 48px);
+    font-weight: 600;
+    margin: 0 0 16px;
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: 17px;
+    color: #c3d3ea;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .wrap {
+    max-width: 880px;
+    margin: -32px auto 60px;
+    padding: 0 20px;
+  }
+  .toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .toolbar button {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    color: var(--navy);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .toolbar button:hover { background: var(--blue-light); }
+
+  .toc {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 10px rgba(11,37,69,0.05);
+  }
+  .toc h2 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 20px;
+    color: var(--navy);
+    margin: 0 0 12px;
+  }
+  .toc ol {
+    margin: 0;
+    padding-left: 20px;
+    columns: 2;
+    column-gap: 24px;
+  }
+  .toc li { margin-bottom: 6px; break-inside: avoid; }
+  .toc a { color: var(--blue); text-decoration: none; font-size: 14.5px; }
+  .toc a:hover { text-decoration: underline; }
+
+  section.card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 10px rgba(11,37,69,0.05);
+    overflow: hidden;
+    scroll-margin-top: 20px;
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 22px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary .stitle {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  summary .kicker {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+  summary h2 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--navy);
+    margin: 0;
+  }
+  summary .chevron {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--blue-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+    color: var(--blue);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  details[open] summary .chevron { transform: rotate(45deg); }
+  .content {
+    padding: 0 28px 30px;
+    border-top: 1px solid var(--border);
+    padding-top: 22px;
+  }
+  .content p { margin: 0 0 14px; font-size: 15.5px; color: var(--text); }
+  .content ul { margin: 0 0 14px; padding-left: 20px; }
+  .content li { margin-bottom: 8px; font-size: 15.5px; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 18px; }
+  @media (max-width: 700px) { .grid3, .grid2 { grid-template-columns: 1fr; } .toc ol { columns: 1; } }
+
+  .tile {
+    background: var(--blue-light);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .tile.dark { background: var(--navy); color: #eef4fc; }
+  .tile.dark .tile-title { color: #4f8ff7; }
+  .tile-title { font-weight: 700; color: var(--navy); margin-bottom: 6px; font-size: 15px; }
+  .tile p { margin: 0; font-size: 14px; color: var(--slate); }
+  .tile.dark p { color: #c3d3ea; }
+
+  .timeline {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    margin: 6px 0 18px;
+  }
+  .timeline .step {
+    flex: 1;
+    background: var(--blue-light);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .timeline .step.final { background: var(--navy); color: #eef4fc; }
+  .timeline .step .yr { font-weight: 700; color: var(--blue); font-size: 14px; margin-bottom: 6px; }
+  .timeline .step.final .yr { color: #4f8ff7; }
+  .timeline .arrow { display: flex; align-items: center; color: var(--blue); font-size: 20px; }
+  @media (max-width: 700px) { .timeline { flex-direction: column; } .timeline .arrow { transform: rotate(90deg); justify-content: center; } }
+
+  table.problems { width: 100%; border-collapse: collapse; margin: 10px 0 18px; font-size: 14.5px; }
+  table.problems th { background: var(--navy); color: #fff; text-align: left; padding: 10px 14px; }
+  table.problems td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.problems tr:nth-child(even) td { background: #f5f9fe; }
+  table.problems td.num { font-weight: 700; color: var(--blue); width: 32px; }
+
+  table.flat { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13.5px; }
+  table.flat th { background: var(--navy); color: #fff; padding: 8px 10px; text-align: left; }
+  table.flat td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  table.flat tr.hl td { background: #fde8e8; }
+
+  .anomaly-box {
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    border-left: 5px solid var(--blue);
+    background: var(--blue-light);
+  }
+  .anomaly-box.insert { border-left-color: #16a34a; background: #eafaf0; }
+  .anomaly-box.update { border-left-color: #d97706; background: #fef6e8; }
+  .anomaly-box.delete { border-left-color: #dc2626; background: #fdeceb; }
+  .anomaly-box .a-title { font-weight: 700; color: var(--navy); margin-bottom: 4px; font-size: 15px; }
+  .anomaly-box p { margin: 0; font-size: 14.5px; color: var(--text); }
+
+  .note {
+    background: #fffbea;
+    border: 1px solid #f2e2a8;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: #6b5a12;
+    margin-top: 10px;
+  }
+
+  .recap-list { list-style: none; padding: 0; margin: 0; }
+  .recap-list li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: var(--blue-light);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+  .recap-list li::before { content: "✓"; color: var(--blue); font-weight: 700; flex-shrink: 0; }
+
+  /* --- Mindmap / diagram styles --- */
+  .diagram-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 4px 0 14px;
+  }
+  .mindmap {
+    position: relative;
+    width: 100%;
+    max-width: 620px;
+    aspect-ratio: 1 / 1;
+    margin: 10px auto 22px;
+  }
+  .mindmap svg.lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .mindmap .center-node {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 34%; aspect-ratio: 1/1; border-radius: 50%;
+    background: var(--navy); color: #eef4fc;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-weight: 700; font-size: clamp(11px, 2.2vw, 15px);
+    padding: 6%;
+    box-shadow: 0 6px 18px rgba(11,37,69,0.25);
+    z-index: 2;
+  }
+  .mindmap .node {
+    position: absolute; transform: translate(-50%, -50%);
+    width: 27%; min-width: 92px;
+    background: #ffffff; border: 2px solid var(--blue);
+    border-radius: 12px; padding: 8px 10px;
+    text-align: center; font-size: clamp(10px, 1.9vw, 12.5px);
+    color: var(--navy); font-weight: 600;
+    box-shadow: 0 3px 10px rgba(11,37,69,0.10);
+    z-index: 2;
+  }
+  .mindmap .node .n-num {
+    display: inline-block; width: 18px; height: 18px; line-height: 18px;
+    border-radius: 50%; background: var(--blue); color: #fff; font-size: 10px; margin-bottom: 3px;
+  }
+  .mindmap .node .n-sub {
+    display: block; font-weight: 400; color: var(--slate); font-size: 0.85em; margin-top: 2px;
+  }
+
+  .flowbox-row { display: flex; align-items: center; gap: 10px; justify-content: center; margin: 10px 0 20px; flex-wrap: wrap; }
+  .flowbox {
+    background: var(--blue-light); border-radius: 12px; padding: 16px 18px;
+    text-align: center; min-width: 150px; flex: 1;
+  }
+  .flowbox.mid { background: var(--navy); color: #eef4fc; }
+  .flowbox .fb-title { font-weight: 700; font-size: 14.5px; margin-bottom: 4px; color: var(--navy); }
+  .flowbox.mid .fb-title { color: #4f8ff7; }
+  .flowbox .fb-sub { font-size: 12.5px; color: var(--slate); }
+  .flowbox.mid .fb-sub { color: #c3d3ea; }
+  .flow-arrow { font-size: 22px; color: var(--blue); flex-shrink: 0; }
+  @media (max-width: 640px) { .flowbox-row { flex-direction: column; } .flow-arrow { transform: rotate(90deg); } }
+
+  .split-diagram { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 14px 0 22px; }
+  .split-diagram .single { background: #fdeceb; border: 2px solid #dc2626; border-radius: 10px; padding: 10px 20px; font-size: 13.5px; font-weight: 600; color: #7a1f1f; }
+  .split-diagram .arrow-down { font-size: 22px; color: var(--blue); }
+  .split-diagram .pair { display: flex; gap: 18px; }
+  .split-diagram .pair .box { background: var(--blue-light); border: 2px solid var(--blue); border-radius: 10px; padding: 10px 18px; font-size: 13.5px; font-weight: 700; color: var(--navy); text-align: center; }
+  .split-diagram .pair .box span { display: block; font-weight: 400; color: var(--slate); font-size: 11.5px; margin-top: 2px; }
+  .split-diagram .key { font-size: 12px; color: var(--slate); }
+
+  .example-tag { display: inline-block; background: var(--blue-tint); color: var(--navy); font-size: 12.5px; font-weight: 600; padding: 5px 12px; border-radius: 20px; margin: 3px 4px 3px 0; }
+
+  footer {
+    text-align: center;
+    font-size: 12.5px;
+    color: #93a1b8;
+    padding: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <p class="eyebrow">AnwP-DBSQL &middot; Theorieteil</p>
+  <h1>Warum sind Datenbanken überhaupt entstanden?</h1>
+  <p>Geschichte, Probleme und Anomalien: alles zum Nachlesen und Aufklappen, aus Doppelstunde 1 &amp; 2.</p>
+</div>
+
+<div class="wrap">
+
+  <div class="toolbar">
+    <button onclick="toggleAll(true)">Alle aufklappen</button>
+    <button onclick="toggleAll(false)">Alle zuklappen</button>
+  </div>
+
+  <div class="toc">
+    <h2>Inhalt</h2>
+    <ol>
+      <li><a href="#warum">Warum entstanden Datenbanken überhaupt?</a></li>
+      <li><a href="#geschichte">Von der Idee zum Standard (kurze Geschichte)</a></li>
+      <li><a href="#datei-db">Was unterscheidet eine Datei von einer Datenbank?</a></li>
+      <li><a href="#dbms">Was ist ein DBMS genau?</a></li>
+      <li><a href="#probleme">Die 7 Probleme dateibasierter Datenhaltung</a></li>
+      <li><a href="#anomalien">Anomalien: was ohne Datenbank konkret schiefgeht</a></li>
+      <li><a href="#zusammenfassung">Zusammenfassung</a></li>
+    </ol>
+  </div>
+
+  <section class="card" id="warum">
+    <details open>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Geschichte der Datenbanken</span>
+          <h2>Warum entstanden Datenbanken überhaupt?</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <div class="grid3">
+          <div class="tile">
+            <div class="tile-title">Vorher: Lochkarten &amp; Einzeldateien</div>
+            <p>Jedes Programm speichert Daten in seinem eigenen Format. Es gibt kein gemeinsames System, keine Regeln, keinen Überblick.</p>
+          </div>
+          <div class="tile">
+            <div class="tile-title">Dann: explodierende Datenmengen</div>
+            <p>Die Apollo-Mission muss Millionen Einzelteile verwalten. Banken und Fluggesellschaften wachsen. Einzeldateien reichen nicht mehr aus.</p>
+          </div>
+          <div class="tile dark">
+            <div class="tile-title">Die Lösung: zentrale Datenbanksysteme</div>
+            <p>Ab den 1960ern übernimmt eine eigene Software die Verwaltung der Daten, getrennt von den Anwendungsprogrammen.</p>
+          </div>
+        </div>
+        <p><b>Kernbotschaft:</b> Datenbanken sind keine akademische Erfindung, sondern eine direkte Antwort auf ein wachsendes Praxisproblem. Wie dieses Problem konkret aussah, seht ihr weiter unten bei den Anomalien.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="geschichte">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Geschichte in Kürze</span>
+          <h2>Von der Idee zum Standard</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <div class="timeline">
+          <div class="step">
+            <div class="yr">1960er</div>
+            <p>Erste Systeme wie <b>IBM IMS</b>: zentrale, aber noch starre Verwaltung großer Datenmengen (Baumstruktur, ein Vorgänger pro Datensatz).</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="step">
+            <div class="yr">1970</div>
+            <p><b>Edgar F. Codd</b> erfindet das relationale Modell: Tabellen statt fester Zeiger, Verknüpfung über gemeinsame Werte per <b>JOIN</b>.</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="step final">
+            <div class="yr">Heute</div>
+            <p><b>SQL</b> ist seit den 1980ern Standard und bis heute der gemeinsame Nenner fast aller Datenbanksysteme.</p>
+          </div>
+        </div>
+        <p>Codds zentrale Idee: die logische Sicht auf die Daten (was der Nutzer sieht) von der physischen Speicherung (wie es auf der Festplatte liegt) zu trennen. Der Nutzer sagt WAS er will, nicht WIE der Computer es holen soll.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="datei-db">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Begriffsklärung</span>
+          <h2>Was unterscheidet eine Datei von einer Datenbank?</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <div class="grid2">
+          <div class="tile">
+            <div class="tile-title">Nur eine Datei (z. B. Excel)</div>
+            <ul>
+              <li>Manuell durchsuchen und pflegen</li>
+              <li>Keine allgemeine Abfragesprache</li>
+              <li>Regeln muss jedes Programm selbst prüfen</li>
+              <li>Gleichzeitiger Zugriff ist riskant</li>
+            </ul>
+          </div>
+          <div class="tile dark">
+            <div class="tile-title">Datenbank / DBMS</div>
+            <ul style="color:#d7e4f7">
+              <li>Zentrale, strukturierte Verwaltung</li>
+              <li>Eine gemeinsame Abfragesprache (SQL)</li>
+              <li>Regeln zentral durch die Datenbank durchgesetzt</li>
+              <li>Sicherer Zugriff für viele Nutzer gleichzeitig</li>
+            </ul>
+          </div>
+        </div>
+        <p>Ein <b>DBMS</b> (Datenbankmanagementsystem) ist die Software, die diese Verwaltung übernimmt. Die eigentliche <b>Datenbank</b> sind die gespeicherten Daten selbst. Was genau ein DBMS macht, schauen wir uns im nächsten Abschnitt im Detail an.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="dbms">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Begriffsklärung, vertieft</span>
+          <h2>Was ist ein DBMS genau?</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p><b>DBMS</b> steht für <b>Datenbankmanagementsystem</b> (englisch: Database Management System). Es ist die Software, die sich zwischen eure Anwendung und die tatsächlich gespeicherten Daten schaltet. Ihr selbst greift nie direkt auf die rohen Dateien auf der Festplatte zu, sondern immer über das DBMS.</p>
+
+        <div class="diagram-label">So sitzt das DBMS dazwischen</div>
+        <div class="flowbox-row">
+          <div class="flowbox">
+            <div class="fb-title">Anwendung / Nutzer</div>
+            <div class="fb-sub">z. B. die Banking-App, ein SQL-Befehl</div>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flowbox mid">
+            <div class="fb-title">DBMS</div>
+            <div class="fb-sub">nimmt Anfragen an, prüft Regeln, holt die Daten</div>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flowbox">
+            <div class="fb-title">Datenbank</div>
+            <div class="fb-sub">die eigentlichen, gespeicherten Daten</div>
+          </div>
+        </div>
+
+        <p>Ein DBMS übernimmt dabei sechs zentrale Aufgaben, die vorher jedes einzelne Programm selbst hätte lösen müssen:</p>
+
+        <div class="diagram-label">Die 6 Aufgaben eines DBMS</div>
+        <div class="mindmap" id="mm-dbms">
+          <svg class="lines" viewBox="0 0 640 640" preserveAspectRatio="xMidYMid meet">
+            <line x1="320" y1="320" x2="320" y2="90"  stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="320" y1="320" x2="519" y2="205" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="320" y1="320" x2="519" y2="435" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="320" y1="320" x2="320" y2="550" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="320" y1="320" x2="121" y2="435" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="320" y1="320" x2="121" y2="205" stroke="#bcd3f2" stroke-width="3"/>
+          </svg>
+          <div class="center-node">DBMS</div>
+          <div class="node" style="left:50%; top:14.06%;">Datenspeicherung &amp; Organisation<span class="n-sub">Tabellen, Indexe anlegen</span></div>
+          <div class="node" style="left:81.09%; top:32.03%;">Abfragesprache (SQL)<span class="n-sub">WAS statt WIE</span></div>
+          <div class="node" style="left:81.09%; top:67.97%;">Zugriffskontrolle &amp; Sicherheit<span class="n-sub">wer darf was sehen</span></div>
+          <div class="node" style="left:50%; top:85.94%;">Datenintegrität<span class="n-sub">Regeln zentral prüfen</span></div>
+          <div class="node" style="left:18.91%; top:67.97%;">Mehrbenutzerbetrieb<span class="n-sub">gleichzeitiger Zugriff</span></div>
+          <div class="node" style="left:18.91%; top:32.03%;">Backup &amp; Wiederherstellung<span class="n-sub">Absturzschutz</span></div>
+        </div>
+
+        <p>Bekannte DBMS, denen ihr im Kurs oder im Berufsalltag begegnen werdet:</p>
+        <p>
+          <span class="example-tag">MySQL</span>
+          <span class="example-tag">PostgreSQL</span>
+          <span class="example-tag">Oracle Database</span>
+          <span class="example-tag">Microsoft SQL Server</span>
+          <span class="example-tag">SQLite</span>
+          <span class="example-tag">MongoDB (NoSQL)</span>
+        </p>
+        <p><b>Merksatz:</b> Die Datenbank sind die Daten. Das DBMS ist die Software, die diese Daten verwaltet. Im Alltag werden beide Begriffe oft locker vermischt, wenn Leute „die Datenbank" sagen, meinen sie meist beides zusammen.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="probleme">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Das Problem</span>
+          <h2>Die 7 Probleme dateibasierter Datenhaltung</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Genau diese sieben Probleme haben in den 60ern und 70ern zur Entwicklung von Datenbankmanagementsystemen (DBMS) geführt:</p>
+
+        <div class="diagram-label">Die 7 Probleme auf einen Blick</div>
+        <div class="mindmap" id="mm-probleme">
+          <svg class="lines" viewBox="0 0 700 700" preserveAspectRatio="xMidYMid meet">
+            <line x1="350" y1="350" x2="350" y2="90"  stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="553" y2="188" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="603" y2="408" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="463" y2="584" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="237" y2="584" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="97"  y2="408" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="147" y2="188" stroke="#bcd3f2" stroke-width="3"/>
+          </svg>
+          <div class="center-node">Dateibasierte Datenhaltung</div>
+          <div class="node" style="left:50%; top:12.86%;"><span class="n-num">1</span><br>Redundanz &amp; Inkonsistenz</div>
+          <div class="node" style="left:79%; top:26.86%;"><span class="n-num">2</span><br>Schwieriger Zugriff</div>
+          <div class="node" style="left:86.14%; top:58.29%;"><span class="n-num">3</span><br>Isolierte Daten</div>
+          <div class="node" style="left:66.14%; top:83.43%;"><span class="n-num">4</span><br>Integritätsprobleme</div>
+          <div class="node" style="left:33.86%; top:83.43%;"><span class="n-num">5</span><br>Nebenläufigkeit</div>
+          <div class="node" style="left:13.86%; top:58.29%;"><span class="n-num">6</span><br>Sicherheit</div>
+          <div class="node" style="left:21%; top:26.86%;"><span class="n-num">7</span><br>Kein Absturzschutz</div>
+        </div>
+
+        <table class="problems">
+          <tr><th></th><th>Problem</th><th>Beispiel</th></tr>
+          <tr><td class="num">1</td><td>Datenredundanz &amp; Inkonsistenz</td><td>Derselbe Kundenname steht in mehreren Dateien. Ändert sich die Adresse, widersprechen sich die Daten.</td></tr>
+          <tr><td class="num">2</td><td>Schwieriger Datenzugriff</td><td>Keine allgemeine Abfragesprache, für jede neue Frage muss ein neues Programm geschrieben werden.</td></tr>
+          <tr><td class="num">3</td><td>Isolierte Daten</td><td>Daten liegen über verschiedene Dateien und Formate verstreut und lassen sich schwer verknüpfen.</td></tr>
+          <tr><td class="num">4</td><td>Integritätsprobleme</td><td>Regeln wie „Kontostand nie negativ" müssen in jedem Programm einzeln eingebaut werden.</td></tr>
+          <tr><td class="num">5</td><td>Nebenläufigkeit</td><td>Zwei Mitarbeiter bearbeiten gleichzeitig dieselbe Datei. Wessen Änderung gewinnt?</td></tr>
+          <tr><td class="num">6</td><td>Sicherheit</td><td>Nicht jeder soll alle Daten sehen dürfen, Dateien lassen sich nur grob absichern.</td></tr>
+          <tr><td class="num">7</td><td>Kein Absturzschutz</td><td>Stürzt ein Programm beim Schreiben ab, ist die Datei im schlimmsten Fall kaputt.</td></tr>
+        </table>
+        <p>Eine zentrale, vom Anwendungsprogramm getrennte Datenverwaltung (also ein DBMS) löst diese Probleme automatisch, statt dass jedes Programm sie selbst lösen muss.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="anomalien">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Ganz konkret</span>
+          <h2>Anomalien: was ohne saubere Datenhaltung schiefgeht</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Problem 1 von oben, die <b>Datenredundanz</b>, lässt sich an einem Beispiel greifbar machen. Stellt euch eine einzige, flache Tabelle vor, die Bestellungen UND Kundendaten in einer Zeile mischt, so wie es in vielen alten, dateibasierten Systemen üblich war:</p>
+        <table class="flat">
+          <tr><th>Bestell-Nr</th><th>Kunde</th><th>Kunden-Adresse</th><th>Artikel</th></tr>
+          <tr class="hl"><td>1001</td><td>Meier GmbH</td><td>Musterstr. 1, München</td><td>Laptop</td></tr>
+          <tr class="hl"><td>1002</td><td>Meier GmbH</td><td>Musterstr. 1, München</td><td>Monitor</td></tr>
+          <tr><td>1003</td><td>Schmidt AG</td><td>Bahnhofstr. 5, Berlin</td><td>Tastatur</td></tr>
+        </table>
+        <p>Der Name und die Adresse von „Meier GmbH" stehen doppelt (rot markiert). Genau daraus entstehen drei klassische <b>Anomalien</b>, also unerwünschte Nebeneffekte einer solchen redundanten Struktur:</p>
+
+        <div class="anomaly-box insert">
+          <div class="a-title">Einfüge-Anomalie (Insert-Anomalie)</div>
+          <p>Ein neuer Kunde, der noch keine Bestellung aufgegeben hat, kann gar nicht erfasst werden, weil die Tabelle nur über Bestellungen funktioniert. Es gibt keine Zeile ohne Artikel, in die man den Kunden allein eintragen könnte.</p>
+        </div>
+        <div class="anomaly-box update">
+          <div class="a-title">Update-Anomalie (Änderungs-Anomalie)</div>
+          <p>Zieht „Meier GmbH" um, muss die Adresse in JEDER Zeile geändert werden, in denen der Kunde vorkommt. Wird nur eine Zeile aktualisiert, widersprechen sich die Daten sofort, wie in Zeile 1001 und 1002.</p>
+        </div>
+        <div class="anomaly-box delete">
+          <div class="a-title">Lösch-Anomalie (Delete-Anomalie)</div>
+          <p>Storniert „Schmidt AG" ihre einzige Bestellung 1003 und die Zeile wird gelöscht, verschwinden damit ungewollt auch alle Informationen über die Kundin selbst, obwohl sie ja weiterhin Kundin bleiben könnte.</p>
+        </div>
+
+        <p>Die Lösung: Kunden- und Bestelldaten werden in <b>getrennte Tabellen</b> aufgeteilt, verknüpft über einen Schlüssel, und bei Bedarf per <b>JOIN</b> wieder zusammengeführt:</p>
+
+        <div class="split-diagram">
+          <div class="single">1 Tabelle mit Redundanz &amp; Anomalien</div>
+          <div class="arrow-down">&darr;</div>
+          <div class="pair">
+            <div class="box">KUNDEN<span>Kunde, Adresse (1x pro Kunde)</span></div>
+            <div class="box">BESTELLUNGEN<span>Bestell-Nr, Artikel, Kunden-Schlüssel</span></div>
+          </div>
+          <div class="key">verknüpft über einen gemeinsamen Schlüssel (Kunden-ID)</div>
+        </div>
+
+        <div class="note">Vertiefung folgt später im Kurs unter dem Stichwort <b>Normalisierung</b>, dort wird systematisch gezeigt, wie man Tabellen so aufteilt, dass diese Anomalien gar nicht erst entstehen.</div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="zusammenfassung">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Zusammenfassung</span>
+          <h2>Was ihr mitnehmen solltet</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <ul class="recap-list">
+          <li>Datenbanken sind eine Antwort auf ein reales Praxisproblem: wachsende, unstrukturierte Datenmengen ohne gemeinsames System.</li>
+          <li>Codds relationales Modell (1970) trennt logische Sicht und physische Speicherung, SQL ist bis heute der gemeinsame Nenner.</li>
+          <li>Ein DBMS sitzt zwischen Anwendung und Daten und übernimmt Speicherung, Abfragesprache, Zugriffskontrolle, Integrität, Mehrbenutzerbetrieb und Backup.</li>
+          <li>Sieben klassische Probleme dateibasierter Datenhaltung führten zur Entwicklung von DBMS.</li>
+          <li>Redundanz erzeugt konkret drei Anomalien: Einfüge-, Update- und Lösch-Anomalie. Getrennte, verknüpfte Tabellen lösen das.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+</div>
+
+<footer>IBB &middot; AnwP-DBSQL, Theorieteil &middot; Doppelstunde 1 &amp; 2</footer>
+
+<script>
+  function toggleAll(open) {
+    document.querySelectorAll('details').forEach(function(d) { d.open = open; });
+  }
+</script>
+
+</body>
+</html>
