@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Datenbanken – Grundlagen &amp; Modelle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400..700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0b2545;
+    --blue: #2563eb;
+    --blue-light: #eef4fc;
+    --blue-tint: #dbe8fb;
+    --slate: #57657c;
+    --text: #16233a;
+    --border: #dbe6f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Public Sans', Arial, sans-serif;
+    color: var(--text);
+    background: #f6f9fd;
+    line-height: 1.6;
+  }
+  .hero {
+    background: var(--navy);
+    color: #eef4fc;
+    padding: 56px 24px 64px;
+    text-align: center;
+  }
+  .hero .eyebrow {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #4f8ff7;
+    margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: clamp(30px, 5vw, 48px);
+    font-weight: 600;
+    margin: 0 0 16px;
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: 17px;
+    color: #c3d3ea;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .wrap {
+    max-width: 880px;
+    margin: -32px auto 60px;
+    padding: 0 20px;
+  }
+  .toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .toolbar button {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    color: var(--navy);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .toolbar button:hover { background: var(--blue-light); }
+
+  .toc {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 10px rgba(11,37,69,0.05);
+  }
+  .toc h2 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 20px;
+    color: var(--navy);
+    margin: 0 0 12px;
+  }
+  .toc ol {
+    margin: 0;
+    padding-left: 20px;
+    columns: 2;
+    column-gap: 24px;
+  }
+  .toc li { margin-bottom: 6px; break-inside: avoid; }
+  .toc a { color: var(--blue); text-decoration: none; font-size: 14.5px; }
+  .toc a:hover { text-decoration: underline; }
+
+  section.card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 10px rgba(11,37,69,0.05);
+    overflow: hidden;
+    scroll-margin-top: 20px;
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 22px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary .stitle {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  summary .kicker {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+  summary h2 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--navy);
+    margin: 0;
+  }
+  summary .chevron {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--blue-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+    color: var(--blue);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  details[open] summary .chevron { transform: rotate(45deg); }
+  .content {
+    padding: 0 28px 30px;
+    border-top: 1px solid var(--border);
+    padding-top: 22px;
+  }
+  .content p { margin: 0 0 14px; font-size: 15.5px; color: var(--text); }
+  .content ul { margin: 0 0 14px; padding-left: 20px; }
+  .content li { margin-bottom: 8px; font-size: 15.5px; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 18px; }
+  @media (max-width: 700px) { .grid3, .grid2 { grid-template-columns: 1fr; } .toc ol { columns: 1; } }
+
+  .tile {
+    background: var(--blue-light);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .tile.dark { background: var(--navy); color: #eef4fc; }
+  .tile.dark .tile-title { color: #4f8ff7; }
+  .tile-title { font-weight: 700; color: var(--navy); margin-bottom: 6px; font-size: 15px; }
+  .tile p { margin: 0; font-size: 14px; color: var(--slate); }
+  .tile.dark p { color: #c3d3ea; }
+
+  .timeline {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    margin: 6px 0 18px;
+  }
+  .timeline .step {
+    flex: 1;
+    background: var(--blue-light);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .timeline .step.final { background: var(--navy); color: #eef4fc; }
+  .timeline .step .yr { font-weight: 700; color: var(--blue); font-size: 14px; margin-bottom: 6px; }
+  .timeline .step.final .yr { color: #4f8ff7; }
+  .timeline .arrow { display: flex; align-items: center; color: var(--blue); font-size: 20px; }
+  @media (max-width: 700px) { .timeline { flex-direction: column; } .timeline .arrow { transform: rotate(90deg); justify-content: center; } }
+
+  table.problems { width: 100%; border-collapse: collapse; margin: 10px 0 18px; font-size: 14.5px; }
+  table.problems th { background: var(--navy); color: #fff; text-align: left; padding: 10px 14px; }
+  table.problems td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.problems tr:nth-child(even) td { background: #f5f9fe; }
+  table.problems td.num { font-weight: 700; color: var(--blue); width: 32px; }
+
+  table.flat { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13.5px; }
+  table.flat th { background: var(--navy); color: #fff; padding: 8px 10px; text-align: left; }
+  table.flat td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  table.flat tr.hl td { background: #fde8e8; }
+
+  .anomaly-box {
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    border-left: 5px solid var(--blue);
+    background: var(--blue-light);
+  }
+  .anomaly-box.insert { border-left-color: #16a34a; background: #eafaf0; }
+  .anomaly-box.update { border-left-color: #d97706; background: #fef6e8; }
+  .anomaly-box.delete { border-left-color: #dc2626; background: #fdeceb; }
+  .anomaly-box .a-title { font-weight: 700; color: var(--navy); margin-bottom: 4px; font-size: 15px; }
+  .anomaly-box p { margin: 0; font-size: 14.5px; color: var(--text); }
+
+  .note {
+    background: #fffbea;
+    border: 1px solid #f2e2a8;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: #6b5a12;
+    margin-top: 10px;
+  }
+
+  .recap-list { list-style: none; padding: 0; margin: 0; }
+  .recap-list li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: var(--blue-light);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+  .recap-list li::before { content: "✓"; color: var(--blue); font-weight: 700; flex-shrink: 0; }
+
+  /* --- Mindmap / diagram styles --- */
+  .diagram-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--slate);
+    margin: 4px 0 14px;
+  }
+  .mindmap {
+    position: relative;
+    width: 100%;
+    max-width: 620px;
+    aspect-ratio: 1 / 1;
+    margin: 10px auto 22px;
+  }
+  .mindmap svg.lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .mindmap .center-node {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 34%; aspect-ratio: 1/1; border-radius: 50%;
+    background: var(--navy); color: #eef4fc;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-weight: 700; font-size: clamp(11px, 2.2vw, 15px);
+    padding: 6%;
+    box-shadow: 0 6px 18px rgba(11,37,69,0.25);
+    z-index: 2;
+  }
+  .mindmap .node {
+    position: absolute; transform: translate(-50%, -50%);
+    width: 27%; min-width: 92px;
+    background: #ffffff; border: 2px solid var(--blue);
+    border-radius: 12px; padding: 8px 10px;
+    text-align: center; font-size: clamp(10px, 1.9vw, 12.5px);
+    color: var(--navy); font-weight: 600;
+    box-shadow: 0 3px 10px rgba(11,37,69,0.10);
+    z-index: 2;
+  }
+  .mindmap .node .n-num {
+    display: inline-block; width: 18px; height: 18px; line-height: 18px;
+    border-radius: 50%; background: var(--blue); color: #fff; font-size: 10px; margin-bottom: 3px;
+  }
+  .mindmap .node .n-sub {
+    display: block; font-weight: 400; color: var(--slate); font-size: 0.85em; margin-top: 2px;
+  }
+
+  .flowbox-row { display: flex; align-items: center; gap: 10px; justify-content: center; margin: 10px 0 20px; flex-wrap: wrap; }
+  .flowbox {
+    background: var(--blue-light); border-radius: 12px; padding: 16px 18px;
+    text-align: center; min-width: 150px; flex: 1;
+  }
+  .flowbox.mid { background: var(--navy); color: #eef4fc; }
+  .flowbox .fb-title { font-weight: 700; font-size: 14.5px; margin-bottom: 4px; color: var(--navy); }
+  .flowbox.mid .fb-title { color: #4f8ff7; }
+  .flowbox .fb-sub { font-size: 12.5px; color: var(--slate); }
+  .flowbox.mid .fb-sub { color: #c3d3ea; }
+  .flow-arrow { font-size: 22px; color: var(--blue); flex-shrink: 0; }
+  @media (max-width: 640px) { .flowbox-row { flex-direction: column; } .flow-arrow { transform: rotate(90deg); } }
+
+  .split-diagram { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 14px 0 22px; }
+  .split-diagram .single { background: #fdeceb; border: 2px solid #dc2626; border-radius: 10px; padding: 10px 20px; font-size: 13.5px; font-weight: 600; color: #7a1f1f; }
+  .split-diagram .arrow-down { font-size: 22px; color: var(--blue); }
+  .split-diagram .pair { display: flex; gap: 18px; }
+  .split-diagram .pair .box { background: var(--blue-light); border: 2px solid var(--blue); border-radius: 10px; padding: 10px 18px; font-size: 13.5px; font-weight: 700; color: var(--navy); text-align: center; }
+  .split-diagram .pair .box span { display: block; font-weight: 400; color: var(--slate); font-size: 11.5px; margin-top: 2px; }
+  .split-diagram .key { font-size: 12px; color: var(--slate); }
+
+  .example-tag { display: inline-block; background: var(--blue-tint); color: var(--navy); font-size: 12.5px; font-weight: 600; padding: 5px 12px; border-radius: 20px; margin: 3px 4px 3px 0; }
+
+  /* --- Layer example (3-Schichten-Architektur) --- */
+  .layer-demo { border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; margin: 16px 0 22px; background: #fbfdff; }
+  .layer-toggle { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .layer-toggle-btn { border: 1.5px solid var(--border); background: #fff; color: var(--slate); font-weight: 700; font-size: 12.8px; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-family: 'Public Sans', Arial, sans-serif; transition: all .15s ease; }
+  .layer-toggle-btn:hover { border-color: var(--blue); color: var(--navy); }
+  .layer-toggle-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .layer-view { display: none; }
+  .layer-view .lv-title { font-weight: 700; color: var(--navy); font-size: 14.5px; margin-bottom: 6px; }
+  .layer-view p { margin: 0; font-size: 14px; }
+
+  /* --- Reveal button / answer --- */
+  .reveal-btn {
+    background: var(--blue); color: #fff; border: none; font-family: inherit;
+    font-size: 13.5px; font-weight: 700; padding: 10px 20px; border-radius: 8px;
+    cursor: pointer; margin: 6px 0 14px;
+  }
+  .reveal-btn:hover { background: #1d4ed8; }
+  .reveal-answer { display: none; background: #eafaf0; border-left: 4px solid #16a34a; border-radius: 8px; padding: 16px 20px; }
+  .reveal-answer.shown { display: block; }
+  .reveal-answer p { margin: 0 0 8px; font-size: 14px; }
+  .reveal-answer p:last-child { margin-bottom: 0; }
+
+  /* --- Model comparison cards & diagrams --- */
+  .model-card { background: #ffffff; border: 2px solid var(--border); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .model-card h4 { margin: 0; font-family: 'EB Garamond', Georgia, serif; font-size: 19px; font-weight: 600; color: var(--navy); }
+  .model-diagram { min-height: 130px; display: flex; align-items: center; justify-content: center; padding: 10px 0; }
+  .node-box { background: var(--blue-tint); border: 1.5px solid var(--blue); border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 600; color: var(--navy); text-align: center; }
+  .node-box.small { font-size: 11px; padding: 4px 8px; }
+  .tree-diagram { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .tree-diagram .row2 { display: flex; gap: 10px; }
+  .tree-line { width: 2px; height: 16px; background: #8fb3ec; }
+  .net-diagram { position: relative; width: 220px; height: 150px; }
+  .net-diagram .node-box { position: absolute; }
+  .net-diagram svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .rel-diagram { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .rel-diagram .dash-arrow { font-size: 13px; color: var(--blue); font-weight: 700; }
+  .model-strength { font-size: 12.5px; color: #166534; margin: 0; }
+  .model-weakness { font-size: 12.5px; color: #991b1b; margin: 0; }
+
+  /* --- Advantage / disadvantage boxes --- */
+  .indep-box { border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; border-left: 5px solid var(--blue); background: var(--blue-light); }
+  .indep-box .i-title { font-weight: 700; color: var(--navy); margin-bottom: 4px; font-size: 14.5px; }
+  .indep-box p { margin: 0; font-size: 13.8px; }
+  .indep-box.adv { border-left-color: #16a34a; background: #eafaf0; }
+  .indep-box.dis { border-left-color: #dc2626; background: #fdeceb; }
+
+  /* --- Compact comparison table --- */
+  table.compact { width: 100%; border-collapse: collapse; font-size: 13.8px; margin: 10px 0 18px; }
+  table.compact th { background: var(--navy); color: #fff; text-align: left; padding: 9px 12px; }
+  table.compact td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.compact tr:nth-child(even) td { background: #f5f9fe; }
+
+  /* --- Model family grid (NoSQL etc.) --- */
+  .model-normalize-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 10px; }
+  .mn-row { display: flex; gap: 16px; background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; align-items: flex-start; }
+  .mn-row .mn-icon { flex-shrink: 0; width: 42px; height: 42px; border-radius: 10px; background: var(--blue-light); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--blue); font-size: 15px; }
+  .mn-row .mn-title { font-weight: 700; color: var(--navy); font-size: 14.5px; margin-bottom: 4px; }
+  .mn-row p { margin: 0; font-size: 13.8px; }
+  @media (max-width: 700px) { .mn-row { flex-direction: column; } }
+
+  /* --- Quiz --- */
+  .quiz-q { border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; }
+  .quiz-q .q-text { font-weight: 700; color: var(--navy); font-size: 14.5px; margin-bottom: 10px; }
+  .quiz-q label { display: block; font-size: 13.8px; margin-bottom: 8px; cursor: pointer; }
+  .quiz-q input[type=radio] { margin-right: 8px; }
+  .q-feedback { display: none; font-size: 13px; font-weight: 700; margin-top: 8px; padding: 8px 12px; border-radius: 8px; }
+  .q-feedback.correct { display: block; background: #eafaf0; color: #166534; }
+  .q-feedback.wrong { display: block; background: #fdeceb; color: #991b1b; }
+  .quiz-check-btn { background: var(--navy); color: #fff; border: none; font-family: inherit; font-size: 14px; font-weight: 700; padding: 12px 24px; border-radius: 8px; cursor: pointer; }
+  .quiz-check-btn:hover { background: #123363; }
+  .quiz-score { margin-top: 14px; font-weight: 700; color: var(--navy); font-size: 15px; }
+
+  h3.subhead { font-family: 'EB Garamond', Georgia, serif; font-size: 20px; color: var(--navy); margin: 22px 0 8px; font-weight: 600; }
+
+  footer {
+    text-align: center;
+    font-size: 12.5px;
+    color: #93a1b8;
+    padding: 20px;
+  }
+  /* --- Architektur-Diagramme Betriebskonzepte --- */
+  .arch { display:flex; flex-direction:column; align-items:center; gap:6px; margin:4px 0 16px; }
+  .arch-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .arch-frame { border:2px dashed #9dbbe8; border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; align-items:center; gap:6px; background:#fbfdff; min-width:180px; }
+  .arch-frame.small { min-width:0; padding:8px; }
+  .arch-caption { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--slate); }
+  .ab { background:var(--blue-tint); border:1.5px solid var(--blue); border-radius:8px; padding:6px 12px; font-size:12.5px; font-weight:600; color:var(--navy); text-align:center; }
+  .ab.engine { background:var(--navy); border-color:var(--navy); color:#eef4fc; }
+  .ab.file { background:#fff6dc; border-color:#d9a900; color:#6b5a12; font-family:Consolas, monospace; font-weight:600; }
+  .arch-link { font-size:11.5px; color:var(--blue); font-weight:600; text-align:center; }
+  code { font-family:Consolas, 'Courier New', monospace; background:#eef2f8; padding:1px 5px; border-radius:4px; font-size:0.9em; }
+  pre { background:var(--navy); color:#e6eefa; border-radius:10px; padding:14px 16px; overflow-x:auto; font-size:13px; line-height:1.5; margin:8px 0 14px; }
+  pre code { background:none; padding:0; color:inherit; font-size:inherit; }
+  details.tryit { border:1px solid var(--border); border-radius:12px; margin:0 0 18px; background:#fbfdff; }
+  details.tryit > summary.tryit-sum { padding:12px 16px; font-weight:700; font-size:14px; color:var(--blue); display:block; }
+  details.tryit > summary.tryit-sum::before { content:"▸ "; }
+  details.tryit[open] > summary.tryit-sum::before { content:"▾ "; }
+  details.tryit > *:not(summary) { margin-left:16px; margin-right:16px; }
+  details.tryit ol li { font-size:14.5px; }
+  .stmt-list li { font-size:15px; margin-bottom:6px; }
+  td.ok { color:#166534; font-weight:700; }
+  td.no { color:#991b1b; font-weight:700; }
+
+
+  /* ================= Sidebar shell layout ================= */
+  html, body { height: 100%; }
+  .shell { display: flex; align-items: flex-start; min-height: 100vh; }
+  .sidebar {
+    width: 290px; flex-shrink: 0; background: #ffffff; border-right: 1px solid var(--border);
+    position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 26px 0 40px;
+  }
+  .sidebar-brand { padding: 0 24px 18px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+  .sidebar-brand .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blue); margin: 0 0 6px; }
+  .sidebar-brand h1 { font-family: 'EB Garamond', Georgia, serif; font-size: 19px; font-weight: 600; color: var(--navy); margin: 0; line-height: 1.3; }
+  .nav-group { margin-bottom: 20px; padding: 0 12px; }
+  .nav-group-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--slate); padding: 0 12px; margin-bottom: 6px; }
+  .nav-link {
+    display: block; padding: 9px 12px; border-radius: 8px; color: var(--text);
+    text-decoration: none; font-size: 14px; line-height: 1.35; margin-bottom: 2px;
+  }
+  .nav-link:hover { background: var(--blue-light); }
+  .nav-link.active { background: var(--navy); color: #fff; font-weight: 600; }
+
+  .content-area { flex: 1; min-width: 0; padding: 48px 56px 90px; }
+  .page { display: none; max-width: 840px; margin: 0 auto; }
+  .page.active { display: block; }
+  .page-header { margin-bottom: 26px; }
+  .page-header .kicker {
+    display: block; font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--blue); margin-bottom: 8px;
+  }
+  .page-header h1 {
+    font-family: 'EB Garamond', Georgia, serif; font-size: 32px; font-weight: 600;
+    color: var(--navy); margin: 0; line-height: 1.2;
+  }
+  .page-nav-footer {
+    display: flex; justify-content: space-between; gap: 16px; margin-top: 40px;
+    padding-top: 20px; border-top: 1px solid var(--border);
+  }
+  .page-nav-footer a {
+    flex: 1; text-decoration: none; color: var(--navy); background: #ffffff;
+    border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px;
+    font-size: 13.5px; box-shadow: 0 2px 8px rgba(11,37,69,0.04);
+  }
+  .page-nav-footer a:hover { border-color: var(--blue); }
+  .page-nav-footer a.next { text-align: right; }
+  .page-nav-footer .pn-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--slate); margin-bottom: 4px; }
+  .page-nav-footer .pn-title { font-weight: 600; }
+
+  .mobile-menu-btn { display: none; }
+  .sidebar-overlay { display: none; }
+
+  @media (max-width: 900px) {
+    .shell { display: block; }
+    .sidebar {
+      position: fixed; top: 0; left: 0; height: 100vh; width: 290px; max-width: 84vw;
+      transform: translateX(-100%); transition: transform .25s ease; z-index: 60;
+      box-shadow: 2px 0 24px rgba(0,0,0,0.18);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(11,37,69,0.45); z-index: 50;
+    }
+    .sidebar-overlay.show { display: block; }
+    .mobile-menu-btn {
+      display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 40;
+      background: var(--navy); color: #fff; border: none; width: 100%; padding: 16px 20px;
+      font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+    }
+    .content-area { padding: 24px 20px 60px; }
+    .page-header h1 { font-size: 25px; }
+    .page-nav-footer { flex-direction: column; }
+  }
+
+  @media print {
+    .sidebar, .sidebar-overlay, .mobile-menu-btn, .page-nav-footer { display: none !important; }
+    .shell { display: block !important; }
+    .content-area { padding: 0 !important; }
+    .page { display: block !important; max-width: none !important; page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">&#9776; Menü &middot; Inhaltsverzeichnis</button>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <p class="eyebrow">AnwP-DBSQL &middot; Theorieteil</p>
+      <h1>Datenbanken: Grundlagen &amp; Modelle</h1>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-group-title">Einführung</div>
+        <a href="#warum" class="nav-link" data-target="warum">Warum Datenbanken?</a>
+        <a href="#geschichte" class="nav-link" data-target="geschichte">Kurze Geschichte</a>
+        <a href="#datei-db" class="nav-link" data-target="datei-db">Datei vs. Datenbank</a>
+        <a href="#dbms" class="nav-link" data-target="dbms">Was ist ein DBMS?</a>
+        <a href="#probleme" class="nav-link" data-target="probleme">7 Probleme dateibasiert</a>
+        <a href="#anomalien" class="nav-link" data-target="anomalien">Anomalien</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">Architektur &amp; Betrieb</div>
+        <a href="#dreischichten" class="nav-link" data-target="dreischichten">3-Schichten-Architektur</a>
+        <a href="#betriebskonzepte" class="nav-link" data-target="betriebskonzepte">Betriebskonzepte</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">Datenmodelle</div>
+        <a href="#datenmodelle" class="nav-link" data-target="datenmodelle">Datenmodelle im Vergleich</a>
+        <a href="#relational-vor-nachteil" class="nav-link" data-target="relational-vor-nachteil">Vor-/Nachteile relational</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-title">Prüfungsvorbereitung</div>
+        <a href="#aussagen" class="nav-link" data-target="aussagen">Aussagen: richtig/falsch</a>
+        <a href="#pruefungscheck" class="nav-link" data-target="pruefungscheck">Kurzquiz</a>
+        <a href="#zusammenfassung" class="nav-link" data-target="zusammenfassung">Zusammenfassung</a>
+      </div>
+    </nav>
+  </aside>
+  <main class="content-area" id="contentArea">
+    <div class="page" id="page-warum">
+      <div class="page-header">
+        <span class="kicker">Geschichte der Datenbanken</span>
+        <h1>Warum entstanden Datenbanken überhaupt?</h1>
+      </div>
+
+        <div class="grid3">
+          <div class="tile">
+            <div class="tile-title">Vorher: Lochkarten &amp; Einzeldateien</div>
+            <p>Jedes Programm speichert Daten in seinem eigenen Format. Es gibt kein gemeinsames System, keine Regeln, keinen Überblick.</p>
+          </div>
+          <div class="tile">
+            <div class="tile-title">Dann: explodierende Datenmengen</div>
+            <p>Die Apollo-Mission muss Millionen Einzelteile verwalten. Banken und Fluggesellschaften wachsen. Einzeldateien reichen nicht mehr aus.</p>
+          </div>
+          <div class="tile dark">
+            <div class="tile-title">Die Lösung: zentrale Datenbanksysteme</div>
+            <p>Ab den 1960ern übernimmt eine eigene Software die Verwaltung der Daten, getrennt von den Anwendungsprogrammen.</p>
+          </div>
+        </div>
+        <p><b>Kernbotschaft:</b> Datenbanken sind keine akademische Erfindung, sondern eine direkte Antwort auf ein wachsendes Praxisproblem. Wie dieses Problem konkret aussah, seht ihr weiter unten bei den Anomalien.</p>
+      <div class="page-nav-footer">
+        <span></span>
+        <a href="#geschichte" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">Kurze Geschichte</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-geschichte">
+      <div class="page-header">
+        <span class="kicker">Geschichte in Kürze</span>
+        <h1>Von der Idee zum Standard</h1>
+      </div>
+
+        <div class="timeline">
+          <div class="step">
+            <div class="yr">1960er</div>
+            <p>Erste Systeme wie <b>IBM IMS</b>: zentrale, aber noch starre Verwaltung großer Datenmengen (Baumstruktur, ein Vorgänger pro Datensatz).</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="step">
+            <div class="yr">1970</div>
+            <p><b>Edgar F. Codd</b> erfindet das relationale Modell: Tabellen statt fester Zeiger, Verknüpfung über gemeinsame Werte per <b>JOIN</b>.</p>
+          </div>
+          <div class="arrow">&rarr;</div>
+          <div class="step final">
+            <div class="yr">Heute</div>
+            <p><b>SQL</b> ist seit den 1980ern Standard und bis heute der gemeinsame Nenner fast aller Datenbanksysteme.</p>
+          </div>
+        </div>
+        <p>Codds zentrale Idee: die logische Sicht auf die Daten (was der Nutzer sieht) von der physischen Speicherung (wie es auf der Festplatte liegt) zu trennen. Der Nutzer sagt WAS er will, nicht WIE der Computer es holen soll.</p>
+      <div class="page-nav-footer">
+        <a href="#warum"><span class="pn-label">&larr; Zurück</span><span class="pn-title">Warum Datenbanken?</span></a>
+        <a href="#datei-db" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">Datei vs. Datenbank</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-datei-db">
+      <div class="page-header">
+        <span class="kicker">Begriffsklärung</span>
+        <h1>Was unterscheidet eine Datei von einer Datenbank?</h1>
+      </div>
+
+        <div class="grid2">
+          <div class="tile">
+            <div class="tile-title">Nur eine Datei (z. B. Excel)</div>
+            <ul>
+              <li>Manuell durchsuchen und pflegen</li>
+              <li>Keine allgemeine Abfragesprache</li>
+              <li>Regeln muss jedes Programm selbst prüfen</li>
+              <li>Gleichzeitiger Zugriff ist riskant</li>
+            </ul>
+          </div>
+          <div class="tile dark">
+            <div class="tile-title">Datenbank / DBMS</div>
+            <ul style="color:#d7e4f7">
+              <li>Zentrale, strukturierte Verwaltung</li>
+              <li>Eine gemeinsame Abfragesprache (SQL)</li>
+              <li>Regeln zentral durch die Datenbank durchgesetzt</li>
+              <li>Sicherer Zugriff für viele Nutzer gleichzeitig</li>
+            </ul>
+          </div>
+        </div>
+        <p>Ein <b>DBMS</b> (Datenbankmanagementsystem) ist die Software, die diese Verwaltung übernimmt. Die eigentliche <b>Datenbank</b> sind die gespeicherten Daten selbst. Was genau ein DBMS macht, schauen wir uns im nächsten Abschnitt im Detail an.</p>
+      <div class="page-nav-footer">
+        <a href="#geschichte"><span class="pn-label">&larr; Zurück</span><span class="pn-title">Kurze Geschichte</span></a>
+        <a href="#dbms" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">Was ist ein DBMS?</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-dbms">
+      <div class="page-header">
+        <span class="kicker">Begriffsklärung, vertieft</span>
+        <h1>Was ist ein DBMS genau?</h1>
+      </div>
+
+        <p><b>DBMS</b> steht für <b>Datenbankmanagementsystem</b> (englisch: Database Management System). Es ist die Software, die sich zwischen eure Anwendung und die tatsächlich gespeicherten Daten schaltet. Ihr selbst greift nie direkt auf die rohen Dateien auf der Festplatte zu, sondern immer über das DBMS.</p>
+
+        <div class="diagram-label">So sitzt das DBMS dazwischen</div>
+        <div class="flowbox-row">
+          <div class="flowbox">
+            <div class="fb-title">Anwendung / Nutzer</div>
+            <div class="fb-sub">z. B. die Banking-App, ein SQL-Befehl</div>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flowbox mid">
+            <div class="fb-title">DBMS</div>
+            <div class="fb-sub">nimmt Anfragen an, prüft Regeln, holt die Daten</div>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flowbox">
+            <div class="fb-title">Datenbank</div>
+            <div class="fb-sub">die eigentlichen, gespeicherten Daten</div>
+          </div>
+        </div>
+
+        <p>Ein DBMS übernimmt dabei sechs zentrale Aufgaben, die vorher jedes einzelne Programm selbst hätte lösen müssen:</p>
+
+        <div class="diagram-label">Die 6 Aufgaben eines DBMS</div>
+        <div class="mindmap" id="mm-dbms">
+          <svg class="lines" viewBox="0 0 640 640" preserveAspectRatio="xMidYMid meet">
+            <line x1="320" y1="320" x2="320" y2="90"  stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="320" y1="320" x2="519" y2="205" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="320" y1="320" x2="519" y2="435" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="320" y1="320" x2="320" y2="550" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="320" y1="320" x2="121" y2="435" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="320" y1="320" x2="121" y2="205" stroke="#bcd3f2" stroke-width="3"/>
+          </svg>
+          <div class="center-node">DBMS</div>
+          <div class="node" style="left:50%; top:14.06%;">Datenspeicherung &amp; Organisation<span class="n-sub">Tabellen, Indexe anlegen</span></div>
+          <div class="node" style="left:81.09%; top:32.03%;">Abfragesprache (SQL)<span class="n-sub">WAS statt WIE</span></div>
+          <div class="node" style="left:81.09%; top:67.97%;">Zugriffskontrolle &amp; Sicherheit<span class="n-sub">wer darf was sehen</span></div>
+          <div class="node" style="left:50%; top:85.94%;">Datenintegrität<span class="n-sub">Regeln zentral prüfen</span></div>
+          <div class="node" style="left:18.91%; top:67.97%;">Mehrbenutzerbetrieb<span class="n-sub">gleichzeitiger Zugriff</span></div>
+          <div class="node" style="left:18.91%; top:32.03%;">Backup &amp; Wiederherstellung<span class="n-sub">Absturzschutz</span></div>
+        </div>
+
+        <p>Bekannte DBMS, denen ihr im Kurs oder im Berufsalltag begegnen werdet:</p>
+        <p>
+          <span class="example-tag">MySQL</span>
+          <span class="example-tag">PostgreSQL</span>
+          <span class="example-tag">Oracle Database</span>
+          <span class="example-tag">Microsoft SQL Server</span>
+          <span class="example-tag">SQLite</span>
+          <span class="example-tag">MongoDB (NoSQL)</span>
+        </p>
+        <p><b>Merksatz:</b> Die Datenbank sind die Daten. Das DBMS ist die Software, die diese Daten verwaltet. Im Alltag werden beide Begriffe oft locker vermischt, wenn Leute „die Datenbank" sagen, meinen sie meist beides zusammen.</p>
+      <div class="page-nav-footer">
+        <a href="#datei-db"><span class="pn-label">&larr; Zurück</span><span class="pn-title">Datei vs. Datenbank</span></a>
+        <a href="#probleme" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">7 Probleme dateibasiert</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-probleme">
+      <div class="page-header">
+        <span class="kicker">Das Problem</span>
+        <h1>Die 7 Probleme dateibasierter Datenhaltung</h1>
+      </div>
+
+        <p>Genau diese sieben Probleme haben in den 60ern und 70ern zur Entwicklung von Datenbankmanagementsystemen (DBMS) geführt:</p>
+
+        <div class="diagram-label">Die 7 Probleme auf einen Blick</div>
+        <div class="mindmap" id="mm-probleme">
+          <svg class="lines" viewBox="0 0 700 700" preserveAspectRatio="xMidYMid meet">
+            <line x1="350" y1="350" x2="350" y2="90"  stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="553" y2="188" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="603" y2="408" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="463" y2="584" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="237" y2="584" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="97"  y2="408" stroke="#bcd3f2" stroke-width="3"/>
+            <line x1="350" y1="350" x2="147" y2="188" stroke="#bcd3f2" stroke-width="3"/>
+          </svg>
+          <div class="center-node">Dateibasierte Datenhaltung</div>
+          <div class="node" style="left:50%; top:12.86%;"><span class="n-num">1</span><br>Redundanz &amp; Inkonsistenz</div>
+          <div class="node" style="left:79%; top:26.86%;"><span class="n-num">2</span><br>Schwieriger Zugriff</div>
+          <div class="node" style="left:86.14%; top:58.29%;"><span class="n-num">3</span><br>Isolierte Daten</div>
+          <div class="node" style="left:66.14%; top:83.43%;"><span class="n-num">4</span><br>Integritätsprobleme</div>
+          <div class="node" style="left:33.86%; top:83.43%;"><span class="n-num">5</span><br>Nebenläufigkeit</div>
+          <div class="node" style="left:13.86%; top:58.29%;"><span class="n-num">6</span><br>Sicherheit</div>
+          <div class="node" style="left:21%; top:26.86%;"><span class="n-num">7</span><br>Kein Absturzschutz</div>
+        </div>
+
+        <table class="problems">
+          <tr><th></th><th>Problem</th><th>Beispiel</th></tr>
+          <tr><td class="num">1</td><td>Datenredundanz &amp; Inkonsistenz</td><td>Derselbe Kundenname steht in mehreren Dateien. Ändert sich die Adresse, widersprechen sich die Daten.</td></tr>
+          <tr><td class="num">2</td><td>Schwieriger Datenzugriff</td><td>Keine allgemeine Abfragesprache, für jede neue Frage muss ein neues Programm geschrieben werden.</td></tr>
+          <tr><td class="num">3</td><td>Isolierte Daten</td><td>Daten liegen über verschiedene Dateien und Formate verstreut und lassen sich schwer verknüpfen.</td></tr>
+          <tr><td class="num">4</td><td>Integritätsprobleme</td><td>Regeln wie „Lagerbestand darf nie negativ werden" müssen in jedem Programm einzeln eingebaut werden.</td></tr>
+          <tr><td class="num">5</td><td>Nebenläufigkeit</td><td>Zwei Mitarbeiter bearbeiten gleichzeitig dieselbe Datei. Wessen Änderung gewinnt?</td></tr>
+          <tr><td class="num">6</td><td>Sicherheit</td><td>Nicht jeder soll alle Daten sehen dürfen, Dateien lassen sich nur grob absichern.</td></tr>
+          <tr><td class="num">7</td><td>Kein Absturzschutz</td><td>Stürzt ein Programm beim Schreiben ab, ist die Datei im schlimmsten Fall kaputt.</td></tr>
+        </table>
+        <p>Eine zentrale, vom Anwendungsprogramm getrennte Datenverwaltung (also ein DBMS) löst diese Probleme automatisch, statt dass jedes Programm sie selbst lösen muss.</p>
+      <div class="page-nav-footer">
+        <a href="#dbms"><span class="pn-label">&larr; Zurück</span><span class="pn-title">Was ist ein DBMS?</span></a>
+        <a href="#anomalien" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">Anomalien</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-anomalien">
+      <div class="page-header">
+        <span class="kicker">Ganz konkret</span>
+        <h1>Anomalien: was ohne saubere Datenhaltung schiefgeht</h1>
+      </div>
+
+        <p>Problem 1 von oben, die <b>Datenredundanz</b>, lässt sich an einem Beispiel greifbar machen. Stellt euch eine einzige, flache Tabelle vor, die Bestellungen UND Kundendaten in einer Zeile mischt, so wie es in vielen alten, dateibasierten Systemen üblich war:</p>
+        <table class="flat">
+          <tr><th>Bestell-Nr</th><th>Kunde</th><th>Kunden-Adresse</th><th>Artikel</th></tr>
+          <tr class="hl"><td>1001</td><td>Meier GmbH</td><td>Musterstr. 1, München</td><td>Laptop</td></tr>
+          <tr class="hl"><td>1002</td><td>Meier GmbH</td><td>Musterstr. 1, München</td><td>Monitor</td></tr>
+          <tr><td>1003</td><td>Schmidt AG</td><td>Bahnhofstr. 5, Berlin</td><td>Tastatur</td></tr>
+        </table>
+        <p>Der Name und die Adresse von „Meier GmbH" stehen doppelt (rot markiert). Genau daraus entstehen drei klassische <b>Anomalien</b>, also unerwünschte Nebeneffekte einer solchen redundanten Struktur:</p>
+
+        <div class="anomaly-box insert">
+          <div class="a-title">Einfüge-Anomalie (Insert-Anomalie)</div>
+          <p>Ein neuer Kunde, der noch keine Bestellung aufgegeben hat, kann gar nicht erfasst werden, weil die Tabelle nur über Bestellungen funktioniert. Es gibt keine Zeile ohne Artikel, in die man den Kunden allein eintragen könnte.</p>
+        </div>
+        <div class="anomaly-box update">
+          <div class="a-title">Update-Anomalie (Änderungs-Anomalie)</div>
+          <p>Zieht „Meier GmbH" um, muss die Adresse in JEDER Zeile geändert werden, in denen der Kunde vorkommt. Wird nur eine Zeile aktualisiert, widersprechen sich die Daten sofort, wie in Zeile 1001 und 1002.</p>
+        </div>
+        <div class="anomaly-box delete">
+          <div class="a-title">Lösch-Anomalie (Delete-Anomalie)</div>
+          <p>Storniert „Schmidt AG" ihre einzige Bestellung 1003 und die Zeile wird gelöscht, verschwinden damit ungewollt auch alle Informationen über die Kundin selbst, obwohl sie ja weiterhin Kundin bleiben könnte.</p>
+        </div>
+
+        <p>Die Lösung: Kunden- und Bestelldaten werden in <b>getrennte Tabellen</b> aufgeteilt, verknüpft über einen Schlüssel, und bei Bedarf per <b>JOIN</b> wieder zusammengeführt:</p>
+
+        <div class="split-diagram">
+          <div class="single">1 Tabelle mit Redundanz &amp; Anomalien</div>
+          <div class="arrow-down">&darr;</div>
+          <div class="pair">
+            <div class="box">KUNDEN<span>Kunde, Adresse (1x pro Kunde)</span></div>
+            <div class="box">BESTELLUNGEN<span>Bestell-Nr, Artikel, Kunden-Schlüssel</span></div>
+          </div>
+          <div class="key">verknüpft über einen gemeinsamen Schlüssel (Kunden-ID)</div>
+        </div>
+
+        <div class="note">Vertiefung folgt später im Kurs unter dem Stichwort <b>Normalisierung</b>, dort wird systematisch gezeigt, wie man Tabellen so aufteilt, dass diese Anomalien gar nicht erst entstehen.</div>
+      <div class="page-nav-footer">
+        <a href="#probleme"><span class="pn-label">&larr; Zurück</span><span class="pn-title">7 Probleme dateibasiert</span></a>
+        <a href="#dreischichten" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">3-Schichten-Architektur</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-dreischichten">
+      <div class="page-header">
+        <span class="kicker">3-Schichten-Architektur</span>
+        <h1>Beispiel: eine Abfrage durch die drei Ebenen</h1>
+      </div>
+
+        <p>Ein DBMS trennt drei Ebenen (ANSI/SPARC-Architektur): die <b>externe Ebene</b> (was der einzelne Nutzer sieht), die <b>konzeptionelle Ebene</b> (die logische Gesamtstruktur aller Tabellen und Beziehungen) und die <b>interne Ebene</b> (wie die Daten physisch auf der Festplatte liegen). Jede Anfrage eines Nutzers wandert durch alle drei Ebenen, ohne dass er selbst etwas davon merkt.</p>
+
+        <div class="diagram-label">Die drei Ebenen im Überblick</div>
+        <div class="flowbox-row">
+          <div class="flowbox">
+            <div class="fb-title">1 &middot; Externe Ebene</div>
+            <div class="fb-sub">individuelle Sicht des Nutzers, z. B. ein Formularfeld in einer App</div>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flowbox mid">
+            <div class="fb-title">2 &middot; Konzeptionelle Ebene</div>
+            <div class="fb-sub">logisches Gesamtschema: alle Tabellen, Spalten, Beziehungen</div>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flowbox">
+            <div class="fb-title">3 &middot; Interne Ebene</div>
+            <div class="fb-sub">physische Speicherung: Dateien, Blöcke, Indexe</div>
+          </div>
+        </div>
+
+        <p><b>Beispiel:</b> Ein Kunde öffnet seine Banking-App und tippt auf „Kontostand anzeigen". Klickt euch durch, was auf jeder Ebene passiert:</p>
+
+        <div class="layer-demo" id="beispiel-demo">
+          <div class="layer-toggle">
+            <button class="layer-toggle-btn active" onclick="showLayer(this,'beispiel','extern')">1. Externe Ebene</button>
+            <button class="layer-toggle-btn" onclick="showLayer(this,'beispiel','konzept')">2. Konzeptionelle Ebene</button>
+            <button class="layer-toggle-btn" onclick="showLayer(this,'beispiel','intern')">3. Interne Ebene</button>
+          </div>
+          <div class="layer-view" data-state="extern" style="display:block">
+            <div class="lv-title">Was der Kunde sieht</div>
+            <p>Die App zeigt nur ein einziges Feld: „Aktueller Kontostand: 1.245,32 €". Das ist die externe Sicht, sie ist eigens für Privatkunden zugeschnitten. Ein Bankmitarbeiter hätte über eine andere externe Sicht Zugriff auf weitere Felder wie Kontohistorie oder Kreditrahmen, derselbe Datenbestand, aber unterschiedliche Ausschnitte je nach Nutzergruppe.</p>
+          </div>
+          <div class="layer-view" data-state="konzept">
+            <div class="lv-title">Was das DBMS daraus macht</div>
+            <p>Das DBMS übersetzt die Anfrage in die logische Gesamtstruktur: Es weiß, dass „Kontostand" ein Attribut der Tabelle <b>KONTEN</b> ist, verknüpft über die Kunden-ID mit der Tabelle <b>KUNDEN</b>. Hier gelten auch die zentralen Regeln, zum Beispiel dass jede Buchung eindeutig einem existierenden Konto zugeordnet sein muss (Fremdschlüssel-Pflicht).</p>
+          </div>
+          <div class="layer-view" data-state="intern">
+            <div class="lv-title">Wie die Daten tatsächlich geholt werden</div>
+            <p>Erst hier wird es physisch: Das DBMS bestimmt, in welcher Datei, auf welcher Festplattenseite und über welchen Index der passende Datensatz liegt, liest den Speicherblock ein und gibt den reinen Wert zurück.</p>
+          </div>
+        </div>
+
+        <button class="reveal-btn" onclick="toggleReveal('ergebnis-anzeigen')">Ergebnis anzeigen</button>
+        <div class="reveal-answer" id="ergebnis-anzeigen">
+          <p><b>Ergebnis:</b> Der Kunde sieht am Ende nur „1.245,32 €", ohne zu wissen, in welcher Tabelle, auf welcher Festplatte oder über welchen Index dieser Wert gefunden wurde. Genau das ist die <b>Datenunabhängigkeit</b>, die die 3-Schichten-Architektur ermöglicht: Ändert sich die interne Speicherung (z. B. ein neuer Index für schnellere Suche), merkt der Kunde in der App davon nichts.</p>
+        </div>
+      <div class="page-nav-footer">
+        <a href="#anomalien"><span class="pn-label">&larr; Zurück</span><span class="pn-title">Anomalien</span></a>
+        <a href="#betriebskonzepte" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">Betriebskonzepte</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-betriebskonzepte">
+      <div class="page-header">
+        <span class="kicker">Klassifikation, Teil 1</span>
+        <h1>Einteilung nach Betriebskonzept: Stand-Alone, File-Share, Client-Server</h1>
+      </div>
+
+        <p>Datenbanksysteme lassen sich nach zwei <b>unabhängigen</b> Kriterien einteilen:</p>
+        <div class="grid2">
+          <div class="tile dark">
+            <div class="tile-title">1 &middot; Betriebskonzept (dieser Abschnitt)</div>
+            <p><b>Wo</b> liegen die Daten, <b>wo</b> läuft das DBMS, und <b>wie</b> greifen die Nutzer technisch darauf zu?</p>
+          </div>
+          <div class="tile">
+            <div class="tile-title">2 &middot; Datenmodell (nächster Abschnitt)</div>
+            <p><b>Wie</b> sind die Daten intern organisiert und verknüpft? Hierarchisch, relational, NoSQL …</p>
+          </div>
+        </div>
+
+        <h3 class="subhead">Vorab: drei Begriffe sauber trennen</h3>
+        <p>Die Betriebskonzepte unterscheiden sich genau darin, <b>wo</b> diese Bausteine liegen. Deshalb müssen die Begriffe sitzen:</p>
+        <div class="flowbox-row">
+          <div class="flowbox">
+            <div class="fb-title">Datenbasis (DB)</div>
+            <div class="fb-sub">die gespeicherten Daten selbst, z. B. eine Datei</div>
+          </div>
+          <div class="flow-arrow">+</div>
+          <div class="flowbox mid">
+            <div class="fb-title">DBMS</div>
+            <div class="fb-sub">die Software, die die Daten verwaltet (Engine)</div>
+          </div>
+          <div class="flow-arrow">=</div>
+          <div class="flowbox">
+            <div class="fb-title">Datenbanksystem (DBS)</div>
+            <div class="fb-sub">beides zusammen</div>
+          </div>
+        </div>
+        <p>Dazu kommt die <b>Anwendung</b> (das Frontend), also das Programm, mit dem der Nutzer arbeitet. <b>MySQL, PostgreSQL oder SQLite sind DBMS, keine Datenbasis.</b></p>
+
+        <!-- ================= STAND-ALONE ================= -->
+        <h3 class="subhead">1 &middot; Stand-Alone-Datenbank</h3>
+        <div class="grid2">
+          <div>
+            <p><b>Definition:</b> Datenbasis, DBMS und Anwendung befinden sich <b>auf einem einzigen System</b>. Es gibt <b>keinen Datenbankserver</b> und <b>kein Netzwerk</b>. Die Daten liegen meist in <b>einer einzigen Datei</b> auf der lokalen Festplatte.</p>
+            <p>Beispiele: <span class="example-tag">SQLite</span><span class="example-tag">MS Access (lokal)</span><span class="example-tag">FileMaker</span><span class="example-tag">dBase</span><span class="example-tag">Paradox</span></p>
+          </div>
+          <div class="arch">
+            <div class="arch-frame">
+              <div class="arch-caption">ein Rechner</div>
+              <div class="ab">Anwendung</div>
+              <div class="arch-link">&darr; direkter Funktionsaufruf</div>
+              <div class="ab engine">DBMS (eingebaut)</div>
+              <div class="arch-link">&darr; liest/schreibt</div>
+              <div class="ab file">Datei, z. B. daten.db</div>
+            </div>
+          </div>
+        </div>
+
+        <p><b>So funktioniert es technisch</b> (am Beispiel SQLite, der meistgenutzten Datenbank der Welt):</p>
+        <ul>
+          <li><b>Eingebettete Bibliothek:</b> Das DBMS ist kein eigenes Programm, das man startet, sondern eine kleine Bibliothek, die direkt <b>in die Anwendung eingebaut</b> wird.</li>
+          <li><b>Eine Datei = eine komplette Datenbank:</b> Tabellen, Indizes und Views stecken alle in einer Datei. Man kann sie kopieren und verschicken wie ein Word-Dokument.</li>
+          <li><b>Trotzdem echtes SQL:</b> <code>CREATE TABLE</code>, <code>SELECT</code>, <code>JOIN</code> usw. funktionieren ganz normal.</li>
+          <li><b>Transaktionen sind abgesichert:</b> Stürzt die Anwendung mitten im Schreiben ab, bleibt die Datei über ein Journal konsistent.</li>
+          <li><b>Keine Benutzerverwaltung:</b> Kein Login, kein Passwort. Wer die Datei hat, hat die Daten.</li>
+        </ul>
+
+        <div class="anomaly-box insert">
+          <div class="a-title">Echtes Beispiel: euer Browserverlauf</div>
+          <p>Chrome und Edge speichern euren Verlauf in einer SQLite-Datei namens <code>History</code> (ohne Endung) unter <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default</code>. Firefox nutzt dafür <code>places.sqlite</code>. Der Browser liest und schreibt diese Datei direkt, ohne Server, ohne Netzwerk. Solange Chrome läuft, ist die Datei <b>gesperrt</b>: ein Nutzer (bzw. eine Anwendung) zur Zeit. Weitere Beispiele: Kontakte und SMS auf Android-Handys, der lokale WhatsApp-Nachrichtenspeicher, der Lightroom-Katalog.</p>
+        </div>
+
+        <details class="tryit">
+          <summary class="tryit-sum">Selbst ausprobieren: den eigenen Chrome-Verlauf per SQL abfragen</summary>
+          <ol>
+            <li><b>Windows + R</b> → <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default</code> → Datei <code>History</code> auf den Desktop <b>kopieren</b> (ggf. vorher Chrome schließen).</li>
+            <li>Kostenloses Tool <b>DB Browser for SQLite</b> öffnen → „Datenbank öffnen“ → Dateityp auf „Alle Dateien (*)“ stellen → <code>History</code> wählen.</li>
+            <li>Tab <b>„SQL ausführen“</b> → Abfrage einfügen → <b>Strg + Enter</b>.</li>
+          </ol>
+<pre><code>-- Die 10 meistbesuchten Seiten
+SELECT url, title, visit_count
+FROM urls
+ORDER BY visit_count DESC
+LIMIT 10;
+
+-- Die letzten 20 Besuche mit Datum
+-- (Chrome zählt Mikrosekunden seit 1.1.1601, daher die Umrechnung)
+SELECT u.title, u.url,
+       datetime(v.visit_time / 1000000 - 11644473600, 'unixepoch', 'localtime') AS besucht_am
+FROM visits v
+JOIN urls u ON u.id = v.url
+ORDER BY v.visit_time DESC
+LIMIT 20;</code></pre>
+          <p><b>Wichtig zum Verständnis:</b> <code>History</code> ist die <b>Datenbank</b>. <b>SQLite</b> ist das DBMS, das in Chrome und in DB Browser eingebaut ist. <b>DB Browser</b> ist nur ein Anzeigeprogramm, wie LibreOffice, das eine Word-Datei öffnen kann.</p>
+        </details>
+
+        <div class="grid2">
+          <div class="indep-box adv"><div class="i-title">Vorteile</div><p>Keine Installation, keine Administration · sehr schnell, da kein Netzwerk · funktioniert offline · Backup = Datei kopieren · klein und ressourcenschonend (ideal für Handys, Embedded-Geräte)</p></div>
+          <div class="indep-box dis"><div class="i-title">Nachteile</div><p>Kein echter Mehrbenutzerbetrieb · keine zentrale Datenhaltung (mehrere Geräte müssen selbst synchronisiert werden) · keine Benutzer- und Rechteverwaltung · Sicherheit hängt am Gerät</p></div>
+        </div>
+
+        <!-- ================= FILE-SHARE ================= -->
+        <h3 class="subhead">2 &middot; File-Share-Datenbank</h3>
+        <div class="grid2">
+          <div>
+            <p><b>Definition:</b> Die Datenbasis liegt als <b>gemeinsame Datei auf einem Netzlaufwerk</b> (Fileserver, NAS, freigegebener Ordner). <b>Mehrere Nutzer</b> greifen gleichzeitig über das Netzwerk darauf zu.</p>
+            <p><b>Der entscheidende Punkt:</b> Es gibt immer noch <b>keinen Datenbankserver</b>. Auf dem Server liegt nur die Datei. Das <b>DBMS läuft auf jedem einzelnen Client</b>.</p>
+            <p>Beispiele: <span class="example-tag">MS Access auf Netzlaufwerk</span><span class="example-tag">dBase / Paradox im Netz</span></p>
+          </div>
+          <div class="arch">
+            <div class="arch-row">
+              <div class="arch-frame small"><div class="arch-caption">PC 1</div><div class="ab">Anwendung</div><div class="ab engine">DBMS</div></div>
+              <div class="arch-frame small"><div class="arch-caption">PC 2</div><div class="ab">Anwendung</div><div class="ab engine">DBMS</div></div>
+              <div class="arch-frame small"><div class="arch-caption">PC 3</div><div class="ab">Anwendung</div><div class="ab engine">DBMS</div></div>
+            </div>
+            <div class="arch-link">&darr; Rohdaten über das Netzwerk (SMB) &darr;</div>
+            <div class="arch-frame">
+              <div class="arch-caption">Fileserver / NAS (rechnet nichts)</div>
+              <div class="ab file">\\server\daten\firma.accdb</div>
+            </div>
+          </div>
+        </div>
+
+        <p><b>So läuft eine Abfrage ab:</b></p>
+        <table class="problems">
+          <tr><th></th><th>Schritt</th><th>Was passiert</th></tr>
+          <tr><td class="num">1</td><td>Anfrage</td><td>PC 1 will alle Kunden aus München sehen.</td></tr>
+          <tr><td class="num">2</td><td>Rohdaten holen</td><td>Das DBMS auf PC 1 lädt die nötigen Teile der Datei über das Netzwerk, im schlimmsten Fall die ganze Tabelle.</td></tr>
+          <tr><td class="num">3</td><td>Lokal filtern</td><td>Gefiltert wird <b>auf PC 1</b>, nicht auf dem Server.</td></tr>
+          <tr><td class="num">4</td><td>Abstimmen über Sperren</td><td>Will PC 2 gleichzeitig schreiben, müssen sich die Clients über <b>Datei-Sperren (Locks)</b> abstimmen. Bei Access erscheint dafür eine Sperrdatei im Ordner, z. B. <code>firma.laccdb</code>, in der steht, wer gerade was bearbeitet.</td></tr>
+        </table>
+
+        <div class="anomaly-box update">
+          <div class="a-title">Echtes Beispiel: Handwerksbetrieb mit Access auf der NAS</div>
+          <p>Ein Betrieb mit sechs Büroarbeitsplätzen verwaltet Kunden, Aufträge und Material in MS Access. Die Datei liegt auf der NAS unter <code>\\NAS\Firma\Auftraege.accdb</code>. Morgens öffnen Sekretariat, Meister und Buchhaltung dieselbe Datei. Im Büro-LAN klappt das gut. Arbeitet jemand im Homeoffice per VPN, wird es extrem langsam, und bei einem Verbindungsabbruch mitten im Schreiben meldet Access irgendwann, dass die Datenbank repariert werden muss. Typische Abhilfe: <b>Frontend/Backend-Split</b> (Tabellen auf der NAS, Formulare lokal auf jedem PC). Wächst die Firma weiter, zieht das Backend auf einen echten SQL Server um, also Client-Server.</p>
+        </div>
+
+        <div class="grid2">
+          <div class="indep-box adv"><div class="i-title">Vorteile</div><p>Billig: nur ein freigegebener Ordner, kein Server-Admin · mehrere Mitarbeiter arbeiten mit <b>denselben</b> Daten (eine zentrale Datei, keine Kopien) · schnell aufgesetzt, typisch für kleine Firmen</p></div>
+          <div class="indep-box dis"><div class="i-title">Nachteile</div><p><b>Hohe Netzlast</b>, weil Rohdaten übertragen werden · <b>Korruptionsgefahr</b> bei Netzabbruch · skaliert nur bis ca. 5–20 gleichzeitige Nutzer · Sperrenprobleme · jeder braucht Schreibrechte auf die <b>ganze</b> Datei (könnte sie auch löschen oder kopieren)</p></div>
+        </div>
+        <div class="note">Die SQLite-Entwickler warnen ausdrücklich davor, eine SQLite-Datei gemeinsam über ein Netzlaufwerk zu nutzen, weil die Datei-Sperren über das Netzwerk nicht zuverlässig funktionieren. Genau das ist die Schwachstelle des ganzen File-Share-Konzepts.</div>
+
+        <details class="tryit">
+          <summary class="tryit-sum">Selbst ausprobieren: Datei-Sperre live erleben (DB Browser + Python)</summary>
+          <ol>
+            <li>In DB Browser: „Neue Datenbank“ → <code>C:\Temp\firma.db</code>. Unter „SQL ausführen“:<br><code>CREATE TABLE kunden (id INTEGER PRIMARY KEY, name TEXT);</code><br><code>INSERT INTO kunden (name) VALUES ('Müller');</code><br>→ „Änderungen schreiben“ klicken.</li>
+            <li>Jetzt <code>INSERT INTO kunden (name) VALUES ('Schmidt');</code> ausführen, aber <b>nicht</b> auf „Änderungen schreiben“ klicken. DB Browser hält jetzt eine offene Schreibtransaktion.</li>
+            <li>In VS Code dieses Skript starten (spielt den „zweiten Kollegen“):</li>
+          </ol>
+<pre><code>import sqlite3
+con = sqlite3.connect(r"C:\Temp\firma.db", timeout=3)
+print(con.execute("SELECT * FROM kunden").fetchall())   # Lesen klappt
+con.execute("INSERT INTO kunden (name) VALUES ('Yilmaz')")
+con.commit()                                              # Schreiben?
+print("geschrieben")</code></pre>
+          <p><b>Ergebnis:</b> Lesen klappt (man sieht aber nur „Müller“, „Schmidt“ ist noch nicht committet). Schreiben scheitert nach 3 Sekunden mit <code>database is locked</code>. Erst nach „Änderungen schreiben“ in DB Browser klappt es. Bei File-Share passiert genau das, nur zwischen verschiedenen PCs über das Netzwerk.</p>
+        </details>
+
+        <!-- ================= CLIENT-SERVER ================= -->
+        <h3 class="subhead">3 &middot; Client-Server-Datenbank</h3>
+        <div class="grid2">
+          <div>
+            <p><b>Definition:</b> Datenbasis <b>und</b> DBMS befinden sich zentral auf dem <b>Server</b>. Dort läuft ein <b>Server-Prozess</b> dauerhaft und wartet auf Anfragen. Die <b>Clients</b> greifen nie direkt auf die Dateien zu: Sie schicken <b>SQL-Befehle über das Netzwerk</b> und bekommen <b>nur das Ergebnis</b> zurück. Der Client ist nur die Oberfläche.</p>
+            <p>Beispiele: <span class="example-tag">MySQL / MariaDB</span><span class="example-tag">PostgreSQL</span><span class="example-tag">Microsoft SQL Server</span><span class="example-tag">Oracle</span><span class="example-tag">IBM DB2</span><span class="example-tag">SAP MaxDB</span></p>
+          </div>
+          <div class="arch">
+            <div class="arch-row">
+              <div class="ab">PC-Client</div>
+              <div class="ab">Web-App</div>
+              <div class="ab">Handy-App</div>
+            </div>
+            <div class="arch-link">&darr; SQL rein &nbsp;&middot;&nbsp; nur Ergebnis raus &uarr;<br>Netzwerk (TCP, Port)</div>
+            <div class="arch-frame">
+              <div class="arch-caption">Datenbankserver</div>
+              <div class="ab engine">DBMS-Server-Prozess<br><span style="font-weight:400;font-size:11px">Login · Rechte · SQL · Sperren</span></div>
+              <div class="arch-link">&darr; nur der Server fasst sie an</div>
+              <div class="ab file">Datendateien</div>
+            </div>
+          </div>
+        </div>
+
+        <p><b>So läuft eine Anfrage ab:</b></p>
+        <table class="problems">
+          <tr><th></th><th>Schritt</th><th>Was passiert</th></tr>
+          <tr><td class="num">1</td><td>Verbindung</td><td>Der Client verbindet sich mit Host, Port, Benutzer, Passwort und Datenbankname, z. B. <code>db.firma.de:5432</code>, User <code>sekretariat</code>.</td></tr>
+          <tr><td class="num">2</td><td>Authentifizierung</td><td>Der Server prüft, wer du bist und was du darfst.</td></tr>
+          <tr><td class="num">3</td><td>SQL senden</td><td>z. B. <code>SELECT * FROM kunden WHERE stadt = 'München';</code></td></tr>
+          <tr><td class="num">4</td><td>Server arbeitet</td><td>Suchen per Index, filtern, sortieren, joinen: alles <b>auf dem Server</b>.</td></tr>
+          <tr><td class="num">5</td><td>Ergebnis zurück</td><td>Nur die 12 passenden Zeilen gehen über das Netz, nicht die ganze Tabelle mit 500.000 Kunden.</td></tr>
+        </table>
+
+        <p><b>Standard-Ports</b> (gern gefragt): <span class="example-tag">MySQL/MariaDB 3306</span><span class="example-tag">PostgreSQL 5432</span><span class="example-tag">SQL Server 1433</span><span class="example-tag">Oracle 1521</span></p>
+
+        <p><b>Was der Server zusätzlich übernimmt:</b></p>
+        <ul>
+          <li><b>Benutzer- und Rechteverwaltung:</b> feingranular pro Tabelle oder Spalte, z. B. darf der Azubi nur lesen, das Sekretariat Kunden anlegen, aber keine Gehälter sehen (<code>GRANT</code> / <code>REVOKE</code>).</li>
+          <li><b>Mehrbenutzerbetrieb:</b> hunderte bis tausende Nutzer gleichzeitig. Gesperrt wird meist nur die <b>einzelne Zeile</b>, nicht die ganze Datei.</li>
+          <li><b>Transaktionen &amp; Absturzsicherheit:</b> Bricht beim Client das Netz ab, macht der Server die halbe Transaktion rückgängig. Die Datenbank bleibt heil.</li>
+          <li><b>Backup, Replikation, Hochverfügbarkeit:</b> Sicherungen im laufenden Betrieb, Kopien auf einem zweiten Server, der bei Ausfall übernimmt.</li>
+          <li><b>Zentrale Datenhaltung:</b> eine Wahrheit für alle, kein „Welche Version ist die aktuelle?“.</li>
+        </ul>
+
+        <div class="anomaly-box">
+          <div class="a-title">Echtes Beispiel: Wikipedia</div>
+          <p>Wikipedia speichert alle Artikel, Versionen und Benutzerkonten in <b>MariaDB</b> auf Servern der Wikimedia Foundation. Ruft ihr einen Artikel auf, fragt euer Browser den Webserver. Der <b>Webserver ist hier der Client der Datenbank</b>: Er schickt eine SQL-Abfrage an den Datenbankserver („Gib mir die aktuelle Version des Artikels <i>Ingolstadt</i>“) und bekommt genau diesen Datensatz zurück. Gleichzeitig bearbeiten Tausende Menschen weltweit andere Artikel, ohne sich gegenseitig zu blockieren. Mit Access auf einer NAS wäre das undenkbar. Dasselbe Prinzip steckt hinter Online-Banking, jedem Webshop und jeder Lernplattform.</p>
+        </div>
+
+        <div class="grid2">
+          <div class="indep-box adv"><div class="i-title">Vorteile</div><p>Zentrale Verwaltung und Datenhaltung · geringe Netzlast (nur Ergebnisse) · feine Rechteverwaltung, hohe Sicherheit · sehr viele gleichzeitige Nutzer · Absturzsicherheit, Backup, Replikation · skalierbar</p></div>
+          <div class="indep-box dis"><div class="i-title">Nachteile</div><p>Server muss dauerhaft laufen (Hardware, Kosten) · braucht Betreuung durch einen <b>Datenbankadministrator</b> (Updates, Backups, Sicherheit) · ohne Netzwerkverbindung kein Zugriff · Server ist ohne Replikation ein Single Point of Failure</p></div>
+        </div>
+
+        <!-- ================= VERGLEICH ================= -->
+        <h3 class="subhead">Alle drei Betriebskonzepte im Vergleich</h3>
+        <div style="overflow-x:auto">
+        <table class="compact">
+          <tr><th></th><th>Stand-Alone</th><th>File-Share</th><th>Client-Server</th></tr>
+          <tr><td><b>Datenbasis liegt auf</b></td><td>lokalem Rechner</td><td>Netzlaufwerk (gemeinsame Datei)</td><td>Server</td></tr>
+          <tr><td><b>DBMS läuft auf</b></td><td>demselben Rechner</td><td><b>jedem einzelnen Client</b></td><td><b>zentral auf dem Server</b></td></tr>
+          <tr><td><b>Server-Prozess</b></td><td>nein</td><td>nein</td><td>ja</td></tr>
+          <tr><td><b>Wer filtert die Daten?</b></td><td>lokaler Rechner</td><td>jeder Client selbst</td><td>Server</td></tr>
+          <tr><td><b>Netzwerkverkehr</b></td><td>keiner</td><td>hoch (Rohdaten)</td><td>gering (SQL rein, Ergebnis raus)</td></tr>
+          <tr><td><b>Sperren</b></td><td>kaum nötig</td><td>Datei-Locks, oft ganze Datei</td><td>zeilenweise, vom Server verwaltet</td></tr>
+          <tr><td><b>Gleichzeitige Nutzer</b></td><td>1</td><td>wenige (ca. 5–20)</td><td>hunderte bis tausende</td></tr>
+          <tr><td><b>Login &amp; Rechte</b></td><td>keine</td><td>nur Ordnerrechte</td><td>feingranular pro Tabelle/Spalte</td></tr>
+          <tr><td><b>Aufwand</b></td><td>keiner</td><td>gering</td><td>Installation, DB-Administrator</td></tr>
+          <tr><td><b>Typisches Beispiel</b></td><td>SQLite im Browser, Access lokal</td><td>Access-Datei auf der Firmen-NAS</td><td>MySQL, PostgreSQL, Oracle, SQL Server</td></tr>
+        </table>
+        </div>
+
+        <div class="note"><b>Prüfungsfallen:</b>
+          <ul style="margin:8px 0 0">
+            <li>Bei <b>Client-Server</b> liegen Datenbasis <b>und</b> DBMS auf dem <b>Server</b>, nicht auf dem Client. Der Client ist nur die Oberfläche.</li>
+            <li>Bei <b>File-Share</b> liegt nur die <b>Datei</b> auf dem Server, das <b>DBMS läuft auf jedem Client</b>. Es gibt keinen Datenbankserver.</li>
+            <li>File-Share <b>vermeidet</b> Redundanz: Alle arbeiten mit derselben zentralen Datei. Redundanz entsteht eher, wenn mehrere Stand-Alone-Datenbanken parallel gepflegt werden.</li>
+            <li>Dasselbe Produkt kann in verschiedenen Konzepten laufen: Access ist lokal Stand-Alone, auf der NAS File-Share.</li>
+            <li>Die Einteilung nach Betriebskonzept ist <b>unabhängig</b> vom Datenmodell: MySQL ist relational <b>und</b> Client-Server, SQLite ist relational <b>und</b> Stand-Alone.</li>
+          </ul>
+        </div>
+
+        <p style="margin-top:16px"><b>Merksatz:</b> Stand-Alone = <i>alles auf einem Rechner</i>. File-Share = <i>gemeinsame Datei im Netz, jeder rechnet selbst</i>. Client-Server = <i>ein Server rechnet für alle, Clients schicken nur Anfragen</i>.</p>
+      <div class="page-nav-footer">
+        <a href="#dreischichten"><span class="pn-label">&larr; Zurück</span><span class="pn-title">3-Schichten-Architektur</span></a>
+        <a href="#datenmodelle" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">Datenmodelle im Vergleich</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-datenmodelle">
+      <div class="page-header">
+        <span class="kicker">Klassifikation, Teil 2</span>
+        <h1>Einteilung nach Datenmodell: Datenbankmodelle im Vergleich</h1>
+      </div>
+
+        <p>Nach dem <b>Betriebskonzept</b> (siehe vorheriger Abschnitt) geht es jetzt um das zweite Kriterium: das <b>Datenmodell</b>, also wie die Daten intern organisiert sind. Wir kennen aus der Geschichte oben schon IBM IMS und CODASYL, hier ordnen wir sie ein.</p>
+
+        <h3 class="subhead">Einteilung nach Datenmodell: die drei Klassiker</h3>
+        <p>Die zweite Einteilung betrachtet, wie die Daten intern organisiert und miteinander verknüpft sind, und macht damit den Kern der Unterschiede zwischen Datenmodellen aus.</p>
+
+        <div class="grid3">
+          <div class="model-card">
+            <h4>1 &middot; Hierarchisch</h4>
+            <div class="model-diagram">
+              <div class="tree-diagram">
+                <div class="node-box">SUPPLIER</div>
+                <div class="tree-line"></div>
+                <div class="row2">
+                  <div class="node-box small">PART A</div>
+                  <div class="node-box small">PART B</div>
+                </div>
+              </div>
+            </div>
+            <p style="font-size:13px; color:var(--slate); margin:0">Beispiel: IBM IMS. Jeder Datensatz hat genau einen Vorgänger, wie ein Ordnersystem.</p>
+            <p class="model-strength">+ Einfach, schnell bei klaren Hierarchien</p>
+            <p class="model-weakness">&minus; Unflexibel: ein Teil mit mehreren Lieferanten muss dupliziert werden</p>
+          </div>
+
+          <div class="model-card">
+            <h4>2 &middot; Netzwerk</h4>
+            <div class="model-diagram">
+              <div class="net-diagram">
+                <svg viewBox="0 0 220 150"><line x1="60" y1="30" x2="110" y2="90" stroke="#8fb3ec" stroke-width="2"/><line x1="160" y1="30" x2="110" y2="90" stroke="#8fb3ec" stroke-width="2"/></svg>
+                <div class="node-box small" style="left:10px; top:10px;">SUPPLIER</div>
+                <div class="node-box small" style="left:130px; top:10px;">PART</div>
+                <div class="node-box small" style="left:75px; top:82px;">SUPPLY</div>
+              </div>
+            </div>
+            <p style="font-size:13px; color:var(--slate); margin:0">Beispiel: CODASYL/IDS. Ein Datensatz kann über feste Zeiger mehrere Vorgänger haben.</p>
+            <p class="model-strength">+ Flexibler als hierarchisch</p>
+            <p class="model-weakness">&minus; Navigation im Code fest verdrahtet, änderungsanfällig</p>
+          </div>
+
+          <div class="model-card">
+            <h4>3 &middot; Relational</h4>
+            <div class="model-diagram">
+              <div class="rel-diagram">
+                <div class="node-box small">SUPPLIER</div>
+                <span class="dash-arrow">&#8596;</span>
+                <div class="node-box small">SUPPLY</div>
+                <span class="dash-arrow">&#8596;</span>
+                <div class="node-box small">PART</div>
+              </div>
+            </div>
+            <p style="font-size:13px; color:var(--slate); margin:0">Codds Lösung: freie Tabellen, verknüpft über Schlüssel bei Bedarf, das ist der JOIN.</p>
+            <p class="model-strength">+ Flexibel, deklarativ abfragbar, datenunabhängig</p>
+            <p class="model-weakness">&minus; Bei riesigen, stark vernetzten Daten teils langsamer als Spezialmodelle</p>
+          </div>
+        </div>
+
+        <table class="compact">
+          <tr><th>Modell</th><th>Verknüpfung</th><th>Stärke</th><th>Schwäche</th></tr>
+          <tr><td>Hierarchisch</td><td>Baum, 1 Vorgänger pro Datensatz</td><td>Einfach, schnell bei klaren Hierarchien</td><td>Unflexibel bei Mehrfachbeziehungen (n:m)</td></tr>
+          <tr><td>Netzwerk</td><td>Feste Zeiger/Pfade, mehrere Vorgänger möglich</td><td>Flexibler als hierarchisch</td><td>Navigation im Code fest verdrahtet, änderungsanfällig</td></tr>
+          <tr><td>Relational</td><td>Freie Tabellen + JOIN über Schlüssel</td><td>Flexibel, deklarativ abfragbar, datenunabhängig</td><td>Kann bei riesigen, stark vernetzten Daten performanter sein mit Spezialmodellen (z. B. Graphdatenbanken)</td></tr>
+        </table>
+
+        <p>Das relationale Modell hat sich durchgesetzt, weil es sauber trennt, WAS man wissen will, von WIE der Computer intern navigiert, genau die Idee, die schon bei Codd und der 3-Schichten-Architektur weiter oben steckt. Alles hängt zusammen.</p>
+
+        <h3 class="subhead">Weitere Datenmodelle: objektorientiert und objektrelational</h3>
+        <div class="grid2">
+          <div class="model-card">
+            <h4>Objektdatenbank</h4>
+            <p style="font-size:13px; color:var(--slate); margin:0">Beim objektorientierten Datenmodell werden Daten mit dem dazugehörigen Programmierparadigma abgelegt. Das Datenmodell basiert auf der objektorientierten Programmierung, ist recht mächtig, aber auch sehr komplex. Durch die Entwicklung der NoSQL-Datenbanken hat dieses Modell an Bedeutung verloren.</p>
+            <p style="font-size:12.5px; color:var(--slate); margin:0"><b>Beispiele:</b> db4o, Gemstone</p>
+          </div>
+          <div class="model-card">
+            <h4>Objektrelationale Datenbank</h4>
+            <p style="font-size:13px; color:var(--slate); margin:0">Hier wird versucht, die Vorteile des relationalen Modells mit denen des objektorientierten Modells zu verbinden, zum Beispiel indem Daten als Relation von komplexen Objekten gespeichert werden.</p>
+            <p style="font-size:12.5px; color:var(--slate); margin:0"><b>Beispiel:</b> PostgreSQL</p>
+          </div>
+        </div>
+
+        <h3 class="subhead">NoSQL-Datenbanken (Not only SQL)</h3>
+        <p>NoSQL-Datenbanken wurden entwickelt, um sehr große Datenmengen effizient zu speichern und zu verarbeiten, wie sie zum Beispiel im Big-Data-Bereich anfallen, bei denen relationale Datenbanken an ihre Grenzen stoßen und die sehr gut skalierbar sein müssen. Die meisten dieser Systeme sind auf eine bestimmte Aufgabe spezialisiert, für die sie hervorragend geeignet sind, bei anderen Aufgaben aber eine schlechtere Performance bieten oder gar nicht infrage kommen.</p>
+
+        <div class="model-normalize-grid">
+          <div class="mn-row">
+            <div class="mn-icon">KV</div>
+            <div>
+              <div class="mn-title">Key-Value-Datenbank</div>
+              <p>Daten werden in Form von Schlüssel-Wertepaaren abgespeichert. Der Schlüssel dient als Index, über den auf die zugehörigen, oft unstrukturierten Werte zugegriffen werden kann. Beispiele: Amazon Dynamo, Google BigTable.</p>
+            </div>
+          </div>
+          <div class="mn-row">
+            <div class="mn-icon">Doc</div>
+            <div>
+              <div class="mn-title">Dokumentenorientierte Datenbank</div>
+              <p>Nutzt Dokumente als Grundeinheit zur Speicherung der Daten. Ein Dokument kann sowohl strukturierte als auch unstrukturierte Daten enthalten. Beispiele: BaseX, MongoDB.</p>
+            </div>
+          </div>
+          <div class="mn-row">
+            <div class="mn-icon">Gr</div>
+            <div>
+              <div class="mn-title">Graphdatenbank</div>
+              <p>Eine Art Weiterentwicklung des Netzwerkmodells. Nutzt Graphen zur Darstellung und Speicherung stark vernetzter Informationen, die Beziehungen zwischen den Daten sind hier neben den eigentlichen Daten selbst sehr wichtig, zum Beispiel die Follower-Beziehungen zwischen Nutzern bei Twitter/X. Beispiele: Neo4j, HyperGraphDB.</p>
+            </div>
+          </div>
+          <div class="mn-row">
+            <div class="mn-icon">Sp</div>
+            <div>
+              <div class="mn-title">Spaltenorientierte Datenbank</div>
+              <p>Hier werden die Daten, anders als beim relationalen Modell, nicht zeilen-, sondern spaltenweise im Speicher abgelegt. Das macht sie besonders für analytische Auswertungen über sehr große Datenmengen interessant. Beispiele: Apache Cassandra, Sybase IQ.</p>
+            </div>
+          </div>
+        </div>
+
+        <table class="compact">
+          <tr><th>NoSQL-Typ</th><th>Grundeinheit</th><th>Typisch gut für</th><th>Beispiele</th></tr>
+          <tr><td>Key-Value</td><td>Schlüssel-Wertepaar</td><td>sehr schnelle, einfache Lookups</td><td>Amazon Dynamo, Google BigTable</td></tr>
+          <tr><td>Dokumentenorientiert</td><td>Dokument, z. B. JSON</td><td>flexible, sich ändernde Datenstrukturen</td><td>MongoDB, BaseX</td></tr>
+          <tr><td>Graph</td><td>Knoten + Kante</td><td>stark vernetzte Beziehungen</td><td>Neo4j, HyperGraphDB</td></tr>
+          <tr><td>Spaltenorientiert</td><td>Spalte</td><td>analytische Big-Data-Auswertungen</td><td>Apache Cassandra, Sybase IQ</td></tr>
+        </table>
+
+        <div class="note">Wichtig für die Prüfung: NoSQL heißt <b>„Not only SQL"</b>, nicht „kein SQL". Die meisten NoSQL-Systeme sind auf eine bestimmte Aufgabe spezialisiert, für die sie sehr gut geeignet sind, bei anderen Aufgaben aber schlechter abschneiden als ein relationales System oder gar nicht infrage kommen. Das relationale Modell bleibt deshalb der Allrounder-Standard, NoSQL wird gezielt dort eingesetzt, wo Big Data, Skalierung oder sehr flexible Strukturen wichtiger sind als strenge Konsistenz.</div>
+      <div class="page-nav-footer">
+        <a href="#betriebskonzepte"><span class="pn-label">&larr; Zurück</span><span class="pn-title">Betriebskonzepte</span></a>
+        <a href="#relational-vor-nachteil" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">Vor-/Nachteile relational</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-relational-vor-nachteil">
+      <div class="page-header">
+        <span class="kicker">Bewertung</span>
+        <h1>Vor- und Nachteile relationaler Datenmodelle</h1>
+      </div>
+
+        <p>Das relationale Modell ist heute der Standard, aber kein Allheilmittel. Für die Prüfung solltet ihr beide Seiten kennen:</p>
+
+        <div class="grid2">
+          <div>
+            <div class="indep-box adv"><div class="i-title">Einfachheit &amp; Verständlichkeit</div><p>Tabellen mit Zeilen und Spalten sind intuitiv, jeder kennt das aus Excel.</p></div>
+            <div class="indep-box adv"><div class="i-title">Datenunabhängigkeit</div><p>Physische Speicherung kann sich ändern, ohne dass Anwendungen betroffen sind, siehe das Beispiel mit den drei Ebenen weiter oben.</p></div>
+            <div class="indep-box adv"><div class="i-title">Deklarative Abfragesprache (SQL)</div><p>Man beschreibt WAS man will, nicht WIE der Computer es holt, die Datenbank optimiert selbst.</p></div>
+            <div class="indep-box adv"><div class="i-title">Datenintegrität</div><p>Regeln wie Primär-/Fremdschlüssel werden zentral von der Datenbank durchgesetzt.</p></div>
+          </div>
+          <div>
+            <div class="indep-box adv"><div class="i-title">Flexibilität bei Abfragen</div><p>Beliebige neue Kombinationen von Tabellen über JOINs, ohne die Struktur zu ändern.</p></div>
+            <div class="indep-box adv"><div class="i-title">Ausgereift &amp; standardisiert</div><p>Über 50 Jahre Entwicklung, riesiges Ökosystem an Tools, Wissen und Fachkräften.</p></div>
+            <div class="indep-box adv"><div class="i-title">ACID-Transaktionen</div><p>Verlässliche Garantien, dass Daten auch bei Fehlern konsistent bleiben.</p></div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <div class="indep-box dis"><div class="i-title">Schema muss vorher feststehen</div><p>Anders als bei NoSQL kann man nicht einfach neue, unstrukturierte Felder ohne Planung hinzufügen (Schema-on-write).</p></div>
+            <div class="indep-box dis"><div class="i-title">Skalierung über viele Server ist schwieriger</div><p>Klassische relationale Datenbanken laufen historisch eher auf einem starken Server statt über tausende verteilt.</p></div>
+          </div>
+          <div>
+            <div class="indep-box dis"><div class="i-title">Impedance Mismatch</div><p>Objekte aus der Programmierung müssen erst in flache Tabellen zerlegt werden.</p></div>
+            <div class="indep-box dis"><div class="i-title">Performance bei stark vernetzten Daten</div><p>Sehr viele JOINs können langsamer sein als spezialisierte Modelle wie Graphdatenbanken.</p></div>
+            <div class="indep-box dis"><div class="i-title">Nicht ideal für jede Datenart</div><p>Zeitreihen, Dokumente oder Graphen haben oft eigene, spezialisiertere Systeme (siehe NoSQL-Familie oben).</p></div>
+          </div>
+        </div>
+
+        <p><b>Merksatz:</b> Das relationale Modell ist nicht „das Beste" in jeder Hinsicht, es ist der beste Allrounder mit dem größten Ökosystem. Genau deshalb lernt man es zuerst, bevor man sich mit Spezialsystemen beschäftigt.</p>
+      <div class="page-nav-footer">
+        <a href="#datenmodelle"><span class="pn-label">&larr; Zurück</span><span class="pn-title">Datenmodelle im Vergleich</span></a>
+        <a href="#aussagen" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">Aussagen: richtig/falsch</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-aussagen">
+      <div class="page-header">
+        <span class="kicker">Prüfungsaufgabe</span>
+        <h1>Welche Aussagen sind richtig?</h1>
+      </div>
+
+        <p>Typische Prüfungsaufgabe über das ganze Thema. Erst selbst entscheiden, dann auflösen.</p>
+        <ol class="stmt-list" type="a">
+          <li>Ein Datenbanksystem besteht aus einer Datenbasis und einem Datenbankmanagementsystem.</li>
+          <li>MySQL ist eine Datenbasis.</li>
+          <li>PostgreSQL ist ein DBMS.</li>
+          <li>Ziel der ANSI/SPARC-Architektur ist die Entkopplung der Anwendung von der Datenspeicherung.</li>
+          <li>Das interne Schema ist Bestandteil der ANSI/SPARC-Architektur.</li>
+          <li>Das externe Schema ermöglicht die Bildung unterschiedlicher Benutzergruppen.</li>
+          <li>Das externe und das interne Schema hängen stark voneinander ab.</li>
+          <li>Das interne Schema beschreibt, auf welchen Speichermedien die Daten gespeichert werden.</li>
+          <li>Das konzeptionelle Schema beschreibt die Beziehungen zwischen den Daten.</li>
+          <li>Bei Stand-Alone-Datenbanken befinden sich Datenbank und -programm auf einem System.</li>
+          <li>File-Share-Datenbanken erzeugen redundante Daten.</li>
+          <li>Bei Client-Server-Datenbanken befinden sich die Datenbasis und das Datenbankmanagementsystem auf dem Client.</li>
+          <li>MySQL ist ein Client-Server-Datenbanksystem.</li>
+          <li>Relationale Datenbanken sind sehr weitverbreitet.</li>
+          <li>Spaltenorientierte Datenbanken gehören zu den NoSQL-Datenbanken.</li>
+          <li>Dokumentenorientierte Datenbanken sind eine Unterart von relationalen Datenbanken.</li>
+          <li>MongoDB ist eine Graphdatenbank.</li>
+          <li>Bei hierarchischen Datenbanken werden die Daten in einer Baumstruktur verwaltet.</li>
+        </ol>
+
+        <button class="reveal-btn" onclick="toggleReveal('aussagen-loesung')">Lösung anzeigen</button>
+        <div class="reveal-answer" id="aussagen-loesung">
+          <p><b>Richtig:</b> a, c, d, e, f, h, i, j, m, n, o, r &nbsp;·&nbsp; <b>Falsch:</b> b, g, k, l, p, q</p>
+          <div style="overflow-x:auto">
+          <table class="compact" style="background:#fff">
+            <tr><th></th><th></th><th>Begründung</th></tr>
+            <tr><td>a</td><td class="ok">✓</td><td>Datenbanksystem (DBS) = Datenbasis (DB) + Datenbankmanagementsystem (DBMS).</td></tr>
+            <tr><td>b</td><td class="no">✗</td><td>MySQL ist ein <b>DBMS</b>. Die Datenbasis sind die gespeicherten Daten selbst.</td></tr>
+            <tr><td>c</td><td class="ok">✓</td><td>PostgreSQL ist ein (objektrelationales) DBMS.</td></tr>
+            <tr><td>d</td><td class="ok">✓</td><td>Ziel ist die <b>Datenunabhängigkeit</b>: Anwendungen hängen nicht von der physischen Speicherung ab.</td></tr>
+            <tr><td>e</td><td class="ok">✓</td><td>Drei Ebenen: externes, konzeptionelles und internes Schema.</td></tr>
+            <tr><td>f</td><td class="ok">✓</td><td>Das externe Schema bietet unterschiedliche Sichten (Views) für verschiedene Benutzergruppen.</td></tr>
+            <tr><td>g</td><td class="no">✗</td><td>Im Gegenteil: Sie sind über das konzeptionelle Schema <b>entkoppelt</b>.</td></tr>
+            <tr><td>h</td><td class="ok">✓</td><td>Das interne Schema beschreibt die physische Speicherung: Speichermedien, Dateien, Indizes.</td></tr>
+            <tr><td>i</td><td class="ok">✓</td><td>Das konzeptionelle Schema ist die logische Gesamtsicht: Entitäten, Attribute, Beziehungen.</td></tr>
+            <tr><td>j</td><td class="ok">✓</td><td>Datenbank und Anwendung laufen auf einem Rechner.</td></tr>
+            <tr><td>k</td><td class="no">✗</td><td>Die Datei liegt zentral, alle nutzen dieselbe. Das <b>vermeidet</b> Redundanz.</td></tr>
+            <tr><td>l</td><td class="no">✗</td><td>Datenbasis und DBMS liegen auf dem <b>Server</b>, der Client schickt nur Anfragen.</td></tr>
+            <tr><td>m</td><td class="ok">✓</td><td>MySQL läuft als Server-Dienst (Port 3306), Clients verbinden sich über das Netz.</td></tr>
+            <tr><td>n</td><td class="ok">✓</td><td>Das mit Abstand verbreitetste Datenbankmodell.</td></tr>
+            <tr><td>o</td><td class="ok">✓</td><td>Spaltenorientierte Datenbanken (z. B. Cassandra) zählen zu NoSQL.</td></tr>
+            <tr><td>p</td><td class="no">✗</td><td>Dokumentenorientierte Datenbanken gehören zu <b>NoSQL</b>.</td></tr>
+            <tr><td>q</td><td class="no">✗</td><td>MongoDB ist <b>dokumentenorientiert</b>. Eine Graphdatenbank ist z. B. Neo4j.</td></tr>
+            <tr><td>r</td><td class="ok">✓</td><td>Baumstruktur, jeder Datensatz hat genau einen Vorgänger (z. B. IBM IMS).</td></tr>
+          </table>
+          </div>
+        </div>
+      <div class="page-nav-footer">
+        <a href="#relational-vor-nachteil"><span class="pn-label">&larr; Zurück</span><span class="pn-title">Vor-/Nachteile relational</span></a>
+        <a href="#pruefungscheck" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">Kurzquiz</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-pruefungscheck">
+      <div class="page-header">
+        <span class="kicker">Selbsttest, interaktiv</span>
+        <h1>Prüfungscheck: Kurzquiz</h1>
+      </div>
+
+        <form id="quizForm">
+          <div class="quiz-q">
+            <div class="q-text">1. Auf welcher Ebene der 3-Schichten-Architektur liegt das logische Gesamtschema mit allen Tabellen und Beziehungen?</div>
+            <label><input type="radio" name="q1" value="wrong">Externe Ebene</label>
+            <label><input type="radio" name="q1" value="correct">Konzeptionelle Ebene</label>
+            <label><input type="radio" name="q1" value="wrong">Interne Ebene</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">2. Worin liegt der Hauptunterschied zwischen hierarchischem und relationalem Datenmodell?</div>
+            <label><input type="radio" name="q2" value="wrong">Relationale Datenbanken speichern keine Tabellen</label>
+            <label><input type="radio" name="q2" value="correct">Hierarchisch erlaubt nur einen Vorgänger pro Datensatz, relational verknüpft freie Tabellen bei Bedarf über Schlüssel</label>
+            <label><input type="radio" name="q2" value="wrong">Hierarchisch ist neuer als relational</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">3. Welches ist KEIN Vorteil relationaler Datenbanken?</div>
+            <label><input type="radio" name="q3" value="wrong">Deklarative Abfragesprache (SQL)</label>
+            <label><input type="radio" name="q3" value="wrong">Datenunabhängigkeit</label>
+            <label><input type="radio" name="q3" value="correct">Beliebig einfaches Hinzufügen unstrukturierter Felder ohne Schema-Planung</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">4. Ein Nutzer sieht in seiner App nur „Kontostand: 1.245,32 €", ohne zu wissen, wie und wo die Daten gespeichert sind. Welches Prinzip wird hier sichtbar?</div>
+            <label><input type="radio" name="q4" value="correct">Datenunabhängigkeit durch die 3-Schichten-Architektur</label>
+            <label><input type="radio" name="q4" value="wrong">Eine Insert-Anomalie</label>
+            <label><input type="radio" name="q4" value="wrong">Ein NoSQL-Datenmodell</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">5. Wo läuft bei einer File-Share-Datenbank das DBMS?</div>
+            <label><input type="radio" name="q5" value="wrong">Zentral auf dem Fileserver</label>
+            <label><input type="radio" name="q5" value="correct">Auf jedem einzelnen Client, auf dem Server liegt nur die Datei</label>
+            <label><input type="radio" name="q5" value="wrong">Es gibt kein DBMS, nur eine Datei</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">6. Warum erzeugt eine Client-Server-Datenbank weniger Netzwerkverkehr als eine File-Share-Datenbank?</div>
+            <label><input type="radio" name="q6" value="wrong">Weil sie Daten komprimiert auf die Clients kopiert</label>
+            <label><input type="radio" name="q6" value="correct">Weil der Server die Abfrage selbst ausführt und nur das Ergebnis zurückschickt</label>
+            <label><input type="radio" name="q6" value="wrong">Weil nur ein Nutzer gleichzeitig zugreifen darf</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">7. Chrome speichert euren Verlauf lokal in einer SQLite-Datei. Welches Betriebskonzept ist das?</div>
+            <label><input type="radio" name="q7" value="correct">Stand-Alone</label>
+            <label><input type="radio" name="q7" value="wrong">File-Share</label>
+            <label><input type="radio" name="q7" value="wrong">Client-Server</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">8. Welche Aussage über MySQL ist richtig?</div>
+            <label><input type="radio" name="q8" value="wrong">MySQL ist eine Datenbasis</label>
+            <label><input type="radio" name="q8" value="wrong">MySQL ist eine dokumentenorientierte NoSQL-Datenbank</label>
+            <label><input type="radio" name="q8" value="correct">MySQL ist ein relationales Client-Server-DBMS</label>
+            <div class="q-feedback"></div>
+          </div>
+          <button type="button" class="quiz-check-btn" onclick="checkQuiz()">Antworten prüfen</button>
+          <div class="quiz-score" id="quizScore"></div>
+        </form>
+      <div class="page-nav-footer">
+        <a href="#aussagen"><span class="pn-label">&larr; Zurück</span><span class="pn-title">Aussagen: richtig/falsch</span></a>
+        <a href="#zusammenfassung" class="next"><span class="pn-label">Weiter &rarr;</span><span class="pn-title">Zusammenfassung</span></a>
+      </div>
+    </div>
+
+    <div class="page" id="page-zusammenfassung">
+      <div class="page-header">
+        <span class="kicker">Zusammenfassung</span>
+        <h1>Was ihr mitnehmen solltet</h1>
+      </div>
+
+        <ul class="recap-list">
+          <li>Datenbanken sind eine Antwort auf ein reales Praxisproblem: wachsende, unstrukturierte Datenmengen ohne gemeinsames System.</li>
+          <li>Codds relationales Modell (1970) trennt logische Sicht und physische Speicherung, SQL ist bis heute der gemeinsame Nenner.</li>
+          <li>Ein DBMS sitzt zwischen Anwendung und Daten und übernimmt Speicherung, Abfragesprache, Zugriffskontrolle, Integrität, Mehrbenutzerbetrieb und Backup.</li>
+          <li>Sieben klassische Probleme dateibasierter Datenhaltung führten zur Entwicklung von DBMS.</li>
+          <li>Redundanz erzeugt konkret drei Anomalien: Einfüge-, Update- und Lösch-Anomalie. Getrennte, verknüpfte Tabellen lösen das.</li>
+          <li>Jede Abfrage durchläuft die drei Ebenen der ANSI/SPARC-Architektur (extern, konzeptionell, intern), der Nutzer merkt davon nichts, das ist Datenunabhängigkeit.</li>
+          <li>Datenbanksystem (DBS) = Datenbasis (die Daten) + DBMS (die Software). MySQL, PostgreSQL und SQLite sind DBMS, keine Datenbasis.</li>
+          <li>Nach dem Betriebskonzept gibt es drei Formen: <b>Stand-Alone</b> (alles auf einem Rechner, z. B. SQLite im Browser), <b>File-Share</b> (gemeinsame Datei auf dem Netzlaufwerk, DBMS auf jedem Client, z. B. Access auf der NAS) und <b>Client-Server</b> (DB und DBMS zentral auf dem Server, Clients schicken nur SQL, z. B. MySQL, PostgreSQL, Oracle).</li>
+          <li>Datenmodelle unterscheiden sich vor allem darin, wie Beziehungen verknüpft werden: fester Baum (hierarchisch), feste Zeiger (Netzwerk), freie Tabellen mit JOIN (relational), plus objektorientierte, objektrelationale und NoSQL-Modelle (Key-Value, Dokumenten-, Graph-, spaltenorientiert).</li>
+          <li>Das relationale Modell ist der beste Allrounder, aber kein Allheilmittel: Stärken sind Einfachheit, Datenunabhängigkeit, SQL und Integrität, Schwächen sind das feste Schema und die Skalierung bei riesigen, stark vernetzten Datenmengen.</li>
+        </ul>
+      <div class="page-nav-footer">
+        <a href="#pruefungscheck"><span class="pn-label">&larr; Zurück</span><span class="pn-title">Kurzquiz</span></a>
+        <span></span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>IBB &middot; AnwP-DBSQL, Theorieteil &middot; Doppelstunde 1 &amp; 2 &middot; inkl. Betriebskonzepte</footer>
+
+
+<script>
+  function toggleReveal(id) {
+    document.getElementById(id).classList.toggle('shown');
+  }
+  function showLayer(btn, id, state) {
+    var container = document.getElementById(id + '-demo');
+    container.querySelectorAll('.layer-view').forEach(function(v) {
+      v.style.display = (v.getAttribute('data-state') === state ? 'block' : 'none');
+    });
+    container.querySelectorAll('.layer-toggle-btn').forEach(function(b) {
+      b.classList.remove('active');
+    });
+    btn.classList.add('active');
+  }
+  function checkQuiz() {
+    var form = document.getElementById('quizForm');
+    var questions = form.querySelectorAll('.quiz-q');
+    var score = 0;
+    questions.forEach(function(q) {
+      var selected = q.querySelector('input[type=radio]:checked');
+      var feedback = q.querySelector('.q-feedback');
+      if (!selected) {
+        feedback.className = 'q-feedback wrong';
+        feedback.textContent = 'Bitte eine Antwort auswählen.';
+        return;
+      }
+      if (selected.value === 'correct') {
+        score++;
+        feedback.className = 'q-feedback correct';
+        feedback.textContent = 'Richtig!';
+      } else {
+        feedback.className = 'q-feedback wrong';
+        feedback.textContent = 'Nicht ganz, schaut euch die Antwort noch einmal an.';
+      }
+    });
+    document.getElementById('quizScore').textContent = score + ' von ' + questions.length + ' richtig';
+  }
+
+  var VALID_PAGES = ["warum", "geschichte", "datei-db", "dbms", "probleme", "anomalien", "dreischichten", "betriebskonzepte", "datenmodelle", "relational-vor-nachteil", "aussagen", "pruefungscheck", "zusammenfassung"];
+
+  function showPage(id, doScroll) {
+    if (VALID_PAGES.indexOf(id) === -1) { id = VALID_PAGES[0]; }
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    var target = document.getElementById('page-' + id);
+    if (target) { target.classList.add('active'); }
+    document.querySelectorAll('.nav-link').forEach(function(a) {
+      a.classList.toggle('active', a.getAttribute('data-target') === id);
+    });
+    if (doScroll !== false) {
+      document.getElementById('contentArea').scrollTop = 0;
+      window.scrollTo(0, 0);
+    }
+    closeSidebar();
+  }
+
+  function currentHashId() {
+    return (location.hash || '').replace('#', '') || VALID_PAGES[0];
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+  }
+
+  window.addEventListener('hashchange', function() { showPage(currentHashId()); });
+  document.addEventListener('DOMContentLoaded', function() { showPage(currentHashId(), false); });
+</script>
+
+</body>
+</html>

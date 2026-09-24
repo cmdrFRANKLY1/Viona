@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Normalisierung – Grundidee & Datenanomalien</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400..700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0b2545;
+    --blue: #2563eb;
+    --blue-light: #eef4fc;
+    --blue-tint: #dbe8fb;
+    --slate: #57657c;
+    --text: #16233a;
+    --border: #dbe6f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Public Sans', Arial, sans-serif;
+    color: var(--text);
+    background: #f6f9fd;
+    line-height: 1.6;
+  }
+  .hero {
+    background: var(--navy);
+    color: #eef4fc;
+    padding: 56px 24px 64px;
+    text-align: center;
+  }
+  .hero .eyebrow {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #4f8ff7;
+    margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: clamp(28px, 4.6vw, 46px);
+    font-weight: 600;
+    margin: 0 0 16px;
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: 17px;
+    color: #c3d3ea;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .wrap {
+    max-width: 880px;
+    margin: -32px auto 60px;
+    padding: 0 20px;
+  }
+  .toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .toolbar button {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    color: var(--navy);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .toolbar button:hover { background: var(--blue-light); }
+
+  .toc {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 10px rgba(11,37,69,0.05);
+  }
+  .toc h2 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 20px;
+    color: var(--navy);
+    margin: 0 0 12px;
+  }
+  .toc ol {
+    margin: 0;
+    padding-left: 20px;
+    columns: 2;
+    column-gap: 24px;
+  }
+  .toc li { margin-bottom: 6px; break-inside: avoid; }
+  .toc a { color: var(--blue); text-decoration: none; font-size: 14.5px; }
+  .toc a:hover { text-decoration: underline; }
+
+  section.card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 10px rgba(11,37,69,0.05);
+    overflow: hidden;
+    scroll-margin-top: 20px;
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 22px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary .stitle { display: flex; flex-direction: column; gap: 4px; }
+  summary .kicker {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+  summary h2 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--navy);
+    margin: 0;
+  }
+  summary .chevron {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--blue-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+    color: var(--blue);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  details[open] summary .chevron { transform: rotate(45deg); }
+  .content {
+    padding: 0 28px 30px;
+    border-top: 1px solid var(--border);
+    padding-top: 22px;
+  }
+  .content p { margin: 0 0 14px; font-size: 15.5px; color: var(--text); }
+  .content ul { margin: 0 0 14px; padding-left: 20px; }
+  .content li { margin-bottom: 8px; font-size: 15.5px; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 18px; }
+  @media (max-width: 760px) { .grid2, .grid3 { grid-template-columns: 1fr; } .toc ol { columns: 1; } }
+
+  /* --- Roadmap / flow --- */
+  .flowbox-row { display: flex; align-items: center; gap: 10px; justify-content: center; margin: 10px 0 20px; flex-wrap: wrap; }
+  .flowbox { background: var(--blue-light); border-radius: 12px; padding: 14px 16px; text-align: center; min-width: 130px; flex: 1; }
+  .flowbox.mid { background: var(--navy); color: #eef4fc; }
+  .flowbox .fb-title { font-weight: 700; font-size: 13.5px; margin-bottom: 4px; color: var(--navy); }
+  .flowbox.mid .fb-title { color: #4f8ff7; }
+  .flowbox .fb-sub { font-size: 11.8px; color: var(--slate); }
+  .flowbox.mid .fb-sub { color: #c3d3ea; }
+  .flow-arrow { font-size: 20px; color: var(--blue); flex-shrink: 0; }
+  @media (max-width: 640px) { .flowbox-row { flex-direction: column; } .flow-arrow { transform: rotate(90deg); } }
+
+  /* --- Kernfrage callout --- */
+  .kernfrage { background: var(--navy); color: #eef4fc; border-radius: 12px; padding: 20px 24px; margin-bottom: 18px; }
+  .kernfrage .kf-label { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #4f8ff7; margin-bottom: 8px; }
+  .kernfrage p { margin: 0; font-size: 16.5px; color: #eef4fc; font-family: 'EB Garamond', Georgia, serif; }
+
+  /* --- Anomaly example --- */
+  table.flat { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13.5px; }
+  table.flat th { background: var(--navy); color: #fff; padding: 8px 10px; text-align: left; }
+  table.flat td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  table.flat tr.hl td { background: #fde8e8; }
+
+  .anomaly-box { border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; border-left: 5px solid var(--blue); background: var(--blue-light); }
+  .anomaly-box.insert { border-left-color: #16a34a; background: #eafaf0; }
+  .anomaly-box.update { border-left-color: #d97706; background: #fef6e8; }
+  .anomaly-box.delete { border-left-color: #dc2626; background: #fdeceb; }
+  .anomaly-box .a-title { font-weight: 700; color: var(--navy); margin-bottom: 4px; font-size: 15px; }
+  .anomaly-box p { margin: 0; font-size: 14.5px; color: var(--text); }
+
+  .split-diagram { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 14px 0 22px; }
+  .split-diagram .single { background: #fdeceb; border: 2px solid #dc2626; border-radius: 10px; padding: 10px 20px; font-size: 13.5px; font-weight: 600; color: #7a1f1f; }
+  .split-diagram .arrow-down { font-size: 22px; color: var(--blue); }
+  .split-diagram .pair { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+  .split-diagram .pair .box { background: var(--blue-light); border: 2px solid var(--blue); border-radius: 10px; padding: 10px 18px; font-size: 13.5px; font-weight: 700; color: var(--navy); text-align: center; }
+  .split-diagram .pair .box span { display: block; font-weight: 400; color: var(--slate); font-size: 11.5px; margin-top: 2px; }
+  .split-diagram .key { font-size: 12px; color: var(--slate); }
+
+  /* --- Normal form timeline & interactive demo --- */
+  .nf-timeline { display: flex; gap: 10px; margin: 10px 0 20px; flex-wrap: wrap; }
+  .nf-step { flex: 1; min-width: 150px; border-radius: 12px; padding: 14px 16px; background: var(--blue-light); }
+  .nf-step.highlight { background: var(--navy); color: #eef4fc; }
+  .nf-step .nf-name { font-weight: 700; font-size: 14px; color: var(--navy); margin-bottom: 4px; }
+  .nf-step.highlight .nf-name { color: #4f8ff7; }
+  .nf-step p { margin: 0; font-size: 12.5px; color: var(--slate); }
+  .nf-step.highlight p { color: #c3d3ea; }
+
+  .nf-demo { border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; margin: 18px 0; background: #fbfdff; }
+  .nf-demo-title { font-weight: 700; font-size: 15px; color: var(--navy); margin-bottom: 12px; }
+  .nf-toggle { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .nf-toggle-btn { border: 1.5px solid var(--border); background: #fff; color: var(--slate); font-weight: 700; font-size: 12.8px; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-family: 'Public Sans', Arial, sans-serif; transition: all .15s ease; }
+  .nf-toggle-btn:hover { border-color: var(--blue); color: var(--navy); }
+  .nf-toggle-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .nf-view { display: none; }
+  .nf-flag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; }
+  .nf-flag.bad { background: #fdeceb; color: #dc2626; }
+  .nf-flag.good { background: #eafaf0; color: #16a34a; }
+  .nf-tables-split { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 4px; }
+  .nf-tables-split > div { flex: 1; min-width: 220px; }
+  .nf-table-label { font-weight: 700; font-size: 12.5px; color: var(--navy); margin-bottom: 6px; }
+  table.compact { width: 100%; border-collapse: collapse; font-size: 13.8px; margin: 10px 0 18px; }
+  table.compact th { background: var(--navy); color: #fff; text-align: left; padding: 9px 12px; }
+  table.compact td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.compact tr:nth-child(even) td { background: #f5f9fe; }
+  table.compact.small th, table.compact.small td { padding: 7px 10px; font-size: 12.8px; }
+  table.compact td.hl { background: #fde3e0 !important; font-weight: 700; color: #7a1f1f; }
+  .nf-callout { border-radius: 10px; padding: 12px 16px; font-size: 13.3px; margin-top: 12px; }
+  .nf-callout.bad { background: #fdeceb; border-left: 4px solid #dc2626; color: #7a1f1f; }
+  .nf-callout.good { background: #eafaf0; border-left: 4px solid #16a34a; color: #155724; }
+
+  /* --- Model family grid (non-relational normalization) --- */
+  .model-normalize-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 10px; }
+  .mn-row { display: flex; gap: 16px; background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; align-items: flex-start; }
+  .mn-row .mn-icon { flex-shrink: 0; width: 42px; height: 42px; border-radius: 10px; background: var(--blue-light); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--blue); font-size: 15px; }
+  .mn-row .mn-title { font-weight: 700; color: var(--navy); font-size: 14.5px; margin-bottom: 4px; }
+  .mn-row p { margin: 0; font-size: 13.8px; }
+  @media (max-width: 700px) { .mn-row { flex-direction: column; } }
+
+  .note { background: #fffbea; border: 1px solid #f2e2a8; border-radius: 10px; padding: 14px 18px; font-size: 14px; color: #6b5a12; margin-top: 10px; }
+
+  /* --- Group exercise scenario cards --- */
+  .scenario-card { border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; margin-bottom: 16px; background: #fbfdff; }
+  .scenario-card .sc-label { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--blue); margin-bottom: 8px; }
+  .scenario-card .sc-question { font-weight: 700; color: var(--navy); font-size: 15px; margin: 10px 0 12px; }
+
+  .reveal-btn {
+    background: var(--blue); color: #fff; border: none; font-family: inherit;
+    font-size: 13.5px; font-weight: 700; padding: 10px 20px; border-radius: 8px;
+    cursor: pointer; margin: 6px 0 14px;
+  }
+  .reveal-btn:hover { background: #1d4ed8; }
+  .reveal-answer { display: none; background: #eafaf0; border-left: 4px solid #16a34a; border-radius: 8px; padding: 16px 20px; }
+  .reveal-answer.shown { display: block; }
+  .reveal-answer p { margin: 0 0 8px; font-size: 14px; }
+  .reveal-answer p:last-child { margin-bottom: 0; }
+
+  /* --- Quiz --- */
+  .quiz-q { border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; }
+  .quiz-q .q-text { font-weight: 700; color: var(--navy); font-size: 14.5px; margin-bottom: 10px; }
+  .quiz-q label { display: block; font-size: 13.8px; margin-bottom: 8px; cursor: pointer; }
+  .quiz-q input[type=radio] { margin-right: 8px; }
+  .q-feedback { display: none; font-size: 13px; font-weight: 700; margin-top: 8px; padding: 8px 12px; border-radius: 8px; }
+  .q-feedback.correct { display: block; background: #eafaf0; color: #166534; }
+  .q-feedback.wrong { display: block; background: #fdeceb; color: #991b1b; }
+  .quiz-check-btn { background: var(--navy); color: #fff; border: none; font-family: inherit; font-size: 14px; font-weight: 700; padding: 12px 24px; border-radius: 8px; cursor: pointer; }
+  .quiz-check-btn:hover { background: #123363; }
+  .quiz-score { margin-top: 14px; font-weight: 700; color: var(--navy); font-size: 15px; }
+
+  .recap-list { list-style: none; padding: 0; margin: 0; }
+  .recap-list li {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--blue-light); border-radius: 10px; padding: 14px 18px;
+    margin-bottom: 10px; font-size: 15px;
+  }
+  .recap-list li::before { content: "✓"; color: var(--blue); font-weight: 700; flex-shrink: 0; }
+
+  h3.subhead { font-family: 'EB Garamond', Georgia, serif; font-size: 20px; color: var(--navy); margin: 22px 0 8px; font-weight: 600; }
+
+  footer { text-align: center; font-size: 12.5px; color: #93a1b8; padding: 20px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <p class="eyebrow">AnwP-DBSQL &middot; Grundlagen zu Datenbanken (2) &middot; FVP-Nr. 3</p>
+  <h1>Normalisierung – Grundidee & Datenanomalien</h1>
+  <p>Wie vermeidet man Redundanz und Anomalien systematisch, und wie funktioniert das in Datenmodellen, die gar keinen relationalen Ansatz haben? Das komplette Skript zum Durchklicken, Nachlesen und Lernen für die Prüfung.</p>
+</div>
+
+<div class="wrap">
+
+  <div class="toolbar">
+    <button onclick="toggleAll(true)">Alle aufklappen</button>
+    <button onclick="toggleAll(false)">Alle zuklappen</button>
+  </div>
+
+  <div class="toc">
+    <h2>Inhalt</h2>
+    <ol>
+      <li><a href="#ziel">Ziel der Stunde</a></li>
+      <li><a href="#recap-anomalien">Recap: Woher kommen Anomalien?</a></li>
+      <li><a href="#grundidee">Normalisierung: die Grundidee (1.–3. NF)</a></li>
+      <li><a href="#andere-modelle">Kernfrage: Normalisierung ohne relationalen Ansatz</a></li>
+      <li><a href="#ausblick-nf">Ausblick: Normalformen jenseits der 3. NF</a></li>
+      <li><a href="#gruppenuebung">Gruppenübung: Szenarien anwenden</a></li>
+      <li><a href="#pruefungscheck">Prüfungscheck: Kurzquiz</a></li>
+      <li><a href="#zusammenfassung">Zusammenfassung</a></li>
+    </ol>
+  </div>
+
+  <section class="card" id="ziel">
+    <details open>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Einstieg</span>
+          <h2>Ziel der Stunde</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>In den letzten Stunden habt ihr gesehen, wie unsauber gespeicherte Daten zu Redundanz und Anomalien führen, und wie das relationale Modell darauf antwortet. Heute geht es um die systematische Lösung, die <b>Normalisierung</b>, und um die Kernfrage: Was passiert eigentlich in Datenmodellen, die diese formale Normalisierung gar nicht kennen?</p>
+
+        <div class="diagram-label" style="text-align:center; font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--slate); margin:4px 0 14px;">So läuft die Stunde ab</div>
+        <div class="flowbox-row">
+          <div class="flowbox"><div class="fb-title">1 &middot; Recap</div><div class="fb-sub">Anomalien auffrischen</div></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flowbox"><div class="fb-title">2 &middot; Grundidee</div><div class="fb-sub">1., 2., 3. Normalform</div></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flowbox mid"><div class="fb-title">3 &middot; Kernfrage</div><div class="fb-sub">Normalisierung ohne relationalen Ansatz</div></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flowbox"><div class="fb-title">4 &middot; Übung</div><div class="fb-sub">Szenarien in Gruppen</div></div>
+        </div>
+
+        <div class="kernfrage">
+          <div class="kf-label">Leitfrage der Stunde</div>
+          <p>„Wie geht man mit einer Normalisierung von Daten in anderen Datenmodellen um, die keinen relationalen Ansatz haben?"</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="recap-anomalien">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Wiederholung</span>
+          <h2>Recap: Woher kommen Anomalien?</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Stellt euch eine einzige, flache Tabelle vor, die Bestellungen UND Kundendaten in einer Zeile mischt, so wie es in vielen alten, dateibasierten Systemen üblich war:</p>
+        <table class="flat">
+          <tr><th>Bestell-Nr</th><th>Kunde</th><th>Kunden-Adresse</th><th>Artikel</th></tr>
+          <tr class="hl"><td>1001</td><td>Meier GmbH</td><td>Musterstr. 1, München</td><td>Laptop</td></tr>
+          <tr class="hl"><td>1002</td><td>Meier GmbH</td><td>Musterstr. 1, München</td><td>Monitor</td></tr>
+          <tr><td>1003</td><td>Schmidt AG</td><td>Bahnhofstr. 5, Berlin</td><td>Tastatur</td></tr>
+        </table>
+        <p>Der Name und die Adresse von „Meier GmbH" stehen doppelt (rot markiert). Genau daraus entstehen drei klassische <b>Anomalien</b>:</p>
+
+        <div class="anomaly-box insert">
+          <div class="a-title">Einfüge-Anomalie (Insert-Anomalie)</div>
+          <p>Ein neuer Kunde, der noch keine Bestellung aufgegeben hat, kann gar nicht erfasst werden, weil die Tabelle nur über Bestellungen funktioniert.</p>
+        </div>
+        <div class="anomaly-box update">
+          <div class="a-title">Update-Anomalie (Änderungs-Anomalie)</div>
+          <p>Zieht „Meier GmbH" um, muss die Adresse in JEDER Zeile geändert werden, in denen der Kunde vorkommt. Wird nur eine Zeile aktualisiert, widersprechen sich die Daten sofort.</p>
+        </div>
+        <div class="anomaly-box delete">
+          <div class="a-title">Lösch-Anomalie (Delete-Anomalie)</div>
+          <p>Storniert „Schmidt AG" ihre einzige Bestellung 1003 und die Zeile wird gelöscht, verschwinden ungewollt auch alle Informationen über die Kundin selbst.</p>
+        </div>
+
+        <p>Die Lösung: Kunden- und Bestelldaten werden in <b>getrennte Tabellen</b> aufgeteilt, verknüpft über einen Schlüssel, bei Bedarf per <b>JOIN</b> wieder zusammengeführt:</p>
+
+        <div class="split-diagram">
+          <div class="single">1 Tabelle mit Redundanz &amp; Anomalien</div>
+          <div class="arrow-down">&darr;</div>
+          <div class="pair">
+            <div class="box">KUNDEN<span>Kunde, Adresse (1x pro Kunde)</span></div>
+            <div class="box">BESTELLUNGEN<span>Bestell-Nr, Artikel, Kunden-Schlüssel</span></div>
+          </div>
+          <div class="key">verknüpft über einen gemeinsamen Schlüssel (Kunden-ID)</div>
+        </div>
+
+        <p>Diese Aufteilung nach festen Regeln, statt nach Bauchgefühl, ist genau das, was <b>Normalisierung</b> heißt. Das schauen wir uns jetzt systematisch an.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="grundidee">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Grundidee</span>
+          <h2>Normalisierung: die Grundidee (1.–3. NF)</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p><b>Normalisierung</b> ist der formale Prozess, mit dem man Tabellen so aufteilt, dass Datenredundanz und die daraus entstehenden Anomalien systematisch vermieden werden. Jede Stufe (Normalform) baut auf der vorherigen auf und verlangt strengere Regeln.</p>
+
+        <div class="nf-timeline">
+          <div class="nf-step">
+            <div class="nf-name">1. Normalform (1NF)</div>
+            <p>Jede Spalte enthält nur atomare (unteilbare) Werte, keine Listen oder Wiederholungsgruppen in einer Zelle.</p>
+          </div>
+          <div class="nf-step">
+            <div class="nf-name">2. Normalform (2NF)</div>
+            <p>1NF plus: jedes Nicht-Schlüssel-Attribut hängt vom GESAMTEN Primärschlüssel ab, nicht nur von einem Teil davon.</p>
+          </div>
+          <div class="nf-step highlight">
+            <div class="nf-name">3. Normalform (3NF)</div>
+            <p>2NF plus: kein Nicht-Schlüssel-Attribut hängt von einem anderen Nicht-Schlüssel-Attribut ab (keine transitiven Abhängigkeiten).</p>
+          </div>
+        </div>
+
+        <p><b>Zum Anklicken:</b> Für jede Normalform seht ihr unten eine Tabelle vorher (mit dem Problem) und danach (normalisiert). Klickt auf die Buttons, um zwischen beiden Ansichten zu wechseln.</p>
+
+        <div class="nf-demo" id="nf1-demo">
+          <div class="nf-demo-title">1NF: Bestellungen mit mehreren Produkten pro Zeile</div>
+          <div class="nf-toggle">
+            <button class="nf-toggle-btn active" onclick="showNF(this,'nf1','before')">Vorher (unnormalisiert)</button>
+            <button class="nf-toggle-btn" onclick="showNF(this,'nf1','after')">Nachher (1NF)</button>
+          </div>
+          <div class="nf-view" data-state="before" style="display:block">
+            <span class="nf-flag bad">Verstößt gegen 1NF</span>
+            <table class="compact small">
+              <tr><th>BestellNr</th><th>Kunde</th><th>Produkte</th></tr>
+              <tr><td>1001</td><td>Anna Berger</td><td class="hl">Laptop, Maus, Tastatur</td></tr>
+              <tr><td>1002</td><td>Tom Krüger</td><td>Monitor</td></tr>
+            </table>
+            <div class="nf-callout bad">Die Spalte <b>Produkte</b> enthält mehrere Werte in einer Zelle (eine Wiederholungsgruppe). Das verstößt gegen die 1NF, die verlangt, dass jede Spalte nur einen atomaren Wert enthält.</div>
+          </div>
+          <div class="nf-view" data-state="after">
+            <span class="nf-flag good">Erfüllt 1NF</span>
+            <table class="compact small">
+              <tr><th>BestellNr</th><th>Kunde</th><th>Produkt</th></tr>
+              <tr><td>1001</td><td>Anna Berger</td><td>Laptop</td></tr>
+              <tr><td>1001</td><td>Anna Berger</td><td>Maus</td></tr>
+              <tr><td>1001</td><td>Anna Berger</td><td>Tastatur</td></tr>
+              <tr><td>1002</td><td>Tom Krüger</td><td>Monitor</td></tr>
+            </table>
+            <div class="nf-callout good">Jede Zelle enthält jetzt genau einen Wert. Kunde wiederholt sich noch, das behebt erst die 2. und 3. Normalform.</div>
+          </div>
+        </div>
+
+        <div class="nf-demo" id="nf2-demo">
+          <div class="nf-demo-title">2NF: Bestellpositionen mit Produktinfos in derselben Zeile</div>
+          <div class="nf-toggle">
+            <button class="nf-toggle-btn active" onclick="showNF(this,'nf2','before')">Vorher (nur 1NF)</button>
+            <button class="nf-toggle-btn" onclick="showNF(this,'nf2','after')">Nachher (2NF)</button>
+          </div>
+          <div class="nf-view" data-state="before" style="display:block">
+            <span class="nf-flag bad">Verstößt gegen 2NF</span>
+            <p style="font-size:13px; color:var(--slate); margin:0 0 10px">Schlüssel ist hier die Kombination aus <b>BestellNr + ProduktNr</b>.</p>
+            <table class="compact small">
+              <tr><th>BestellNr</th><th>ProduktNr</th><th>Menge</th><th>Produktname</th><th>Preis</th></tr>
+              <tr><td>1001</td><td>P01</td><td>1</td><td class="hl">Laptop</td><td class="hl">899 €</td></tr>
+              <tr><td>1001</td><td>P02</td><td>2</td><td class="hl">Maus</td><td class="hl">15 €</td></tr>
+              <tr><td>1002</td><td>P03</td><td>1</td><td>Monitor</td><td>220 €</td></tr>
+              <tr><td>1003</td><td>P02</td><td>3</td><td class="hl">Maus</td><td class="hl">15 €</td></tr>
+            </table>
+            <div class="nf-callout bad"><b>Produktname</b> und <b>Preis</b> hängen nur von <b>ProduktNr</b> ab, nicht vom gesamten Schlüssel. Das ist eine partielle Abhängigkeit und verstößt gegen die 2NF.</div>
+          </div>
+          <div class="nf-view" data-state="after">
+            <span class="nf-flag good">Erfüllt 2NF</span>
+            <div class="nf-tables-split">
+              <div>
+                <div class="nf-table-label">Bestellpositionen</div>
+                <table class="compact small">
+                  <tr><th>BestellNr</th><th>ProduktNr</th><th>Menge</th></tr>
+                  <tr><td>1001</td><td>P01</td><td>1</td></tr>
+                  <tr><td>1001</td><td>P02</td><td>2</td></tr>
+                  <tr><td>1002</td><td>P03</td><td>1</td></tr>
+                  <tr><td>1003</td><td>P02</td><td>3</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="nf-table-label">Produkte</div>
+                <table class="compact small">
+                  <tr><th>ProduktNr</th><th>Produktname</th><th>Preis</th></tr>
+                  <tr><td>P01</td><td>Laptop</td><td>899 €</td></tr>
+                  <tr><td>P02</td><td>Maus</td><td>15 €</td></tr>
+                  <tr><td>P03</td><td>Monitor</td><td>220 €</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="nf-callout good">Jede Tabelle hat jetzt einen eigenen, passenden Schlüssel. Produktname und Preis stehen nur noch einmal pro Produkt.</div>
+          </div>
+        </div>
+
+        <div class="nf-demo" id="nf3-demo">
+          <div class="nf-demo-title">3NF: Kundendaten mit Ort, der von der PLZ abhängt</div>
+          <div class="nf-toggle">
+            <button class="nf-toggle-btn active" onclick="showNF(this,'nf3','before')">Vorher (nur 2NF)</button>
+            <button class="nf-toggle-btn" onclick="showNF(this,'nf3','after')">Nachher (3NF)</button>
+          </div>
+          <div class="nf-view" data-state="before" style="display:block">
+            <span class="nf-flag bad">Verstößt gegen 3NF</span>
+            <table class="compact small">
+              <tr><th>KundenID</th><th>Name</th><th>PLZ</th><th>Stadt</th></tr>
+              <tr><td>K01</td><td>Anna Berger</td><td>85049</td><td class="hl">Ingolstadt</td></tr>
+              <tr><td>K02</td><td>Tom Krüger</td><td>85049</td><td class="hl">Ingolstadt</td></tr>
+              <tr><td>K03</td><td>Mia Schulz</td><td>80331</td><td>München</td></tr>
+            </table>
+            <div class="nf-callout bad"><b>Stadt</b> hängt nicht direkt von <b>KundenID</b> ab, sondern von <b>PLZ</b> (transitive Abhängigkeit). Das verstößt gegen die 3NF.</div>
+          </div>
+          <div class="nf-view" data-state="after">
+            <span class="nf-flag good">Erfüllt 3NF</span>
+            <div class="nf-tables-split">
+              <div>
+                <div class="nf-table-label">Kunden</div>
+                <table class="compact small">
+                  <tr><th>KundenID</th><th>Name</th><th>PLZ</th></tr>
+                  <tr><td>K01</td><td>Anna Berger</td><td>85049</td></tr>
+                  <tr><td>K02</td><td>Tom Krüger</td><td>85049</td></tr>
+                  <tr><td>K03</td><td>Mia Schulz</td><td>80331</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="nf-table-label">Orte</div>
+                <table class="compact small">
+                  <tr><th>PLZ</th><th>Stadt</th></tr>
+                  <tr><td>85049</td><td>Ingolstadt</td></tr>
+                  <tr><td>80331</td><td>München</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="nf-callout good">Stadt steht jetzt nur noch einmal pro PLZ. Keine Spalte hängt mehr von einer anderen Nicht-Schlüssel-Spalte ab.</div>
+          </div>
+        </div>
+
+        <p>In der Praxis gilt 3NF für die meisten Anwendungen als guter, praktikabler Standard, solange man mit einem relationalen Modell arbeitet. Aber genau das ist die Voraussetzung, um die wir uns jetzt kümmern.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="andere-modelle">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Kernfrage der Stunde</span>
+          <h2>Normalisierung ohne relationalen Ansatz</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <div class="kernfrage">
+          <div class="kf-label">FVP-Nr. 3</div>
+          <p>Wie geht man mit einer Normalisierung von Daten in anderen Datenmodellen um, die keinen relationalen Ansatz haben?</p>
+        </div>
+
+        <p>Normalisierung als formale Theorie mit Normalformen (1NF bis 6NF) ist speziell für das <b>relationale Modell</b> entwickelt worden, weil sie auf Tabellen, Schlüsseln und funktionalen Abhängigkeiten aufbaut. Modelle ohne relationalen Ansatz kennen diese Normalformen gar nicht, sie gehen mit Redundanz auf ihre eigene, strukturelle Art um:</p>
+
+        <div class="model-normalize-grid">
+          <div class="mn-row">
+            <div class="mn-icon">H</div>
+            <div>
+              <div class="mn-title">Hierarchisches Modell (z. B. IBM IMS)</div>
+              <p>Es gibt keine formale Normalisierungstheorie. Redundanz wird durch die Baumstruktur teilweise vermieden, ein Kind gehört zu genau einem Elternteil. Bei n:m-Beziehungen (ein Teil gehört zu mehreren Lieferanten) lässt sich Duplizierung aber gar nicht sauber vermeiden, genau das war der strukturelle Schwachpunkt, der zum Netzwerk- und später zum relationalen Modell geführt hat.</p>
+            </div>
+          </div>
+          <div class="mn-row">
+            <div class="mn-icon">N</div>
+            <div>
+              <div class="mn-title">Netzwerkmodell (CODASYL/IDS)</div>
+              <p>Auch hier keine formalen Normalformen. Redundanz wird strukturell über explizite Zeiger/Verknüpfungssätze vermieden, statt einen Wert mehrfach abzuspeichern, verweist man per Zeiger auf den einen Datensatz. Der Preis dafür: Diese Verknüpfungen müssen im Programmcode fest nachvollzogen werden.</p>
+            </div>
+          </div>
+          <div class="mn-row">
+            <div class="mn-icon">Doc</div>
+            <div>
+              <div class="mn-title">Dokumentenorientierte NoSQL-Datenbanken (z. B. MongoDB)</div>
+              <p>Hier dreht sich die Logik teilweise um: Redundanz wird oft bewusst in Kauf genommen. Man wählt zwischen <b>Embedding</b> (verwandte Daten direkt in ein Dokument einbetten, schnell zu lesen, aber redundant) und <b>Referencing</b> (wie ein Fremdschlüssel, normalisierter, aber braucht zusätzliche Abfragen). Es gibt keine Normalform-Theorie, sondern die Faustregel „Daten, die zusammen gelesen werden, sollten zusammen gespeichert werden", also oft das Gegenteil von strikter Normalisierung.</p>
+            </div>
+          </div>
+          <div class="mn-row">
+            <div class="mn-icon">Gr</div>
+            <div>
+              <div class="mn-title">Graphdatenbanken (z. B. Neo4j)</div>
+              <p>Redundanz wird vermieden, indem Beziehungen als eigene Kanten zwischen Knoten modelliert werden, statt Fremdschlüssel-Werte zu wiederholen. Das ist strukturell näher am Netzwerkmodell als am relationalen, es gibt aber ebenfalls keine formalen Normalformen, sondern Modellierungs-Best-Practices.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">Kurz gesagt: Normalisierung im strengen Sinn (1NF bis 6NF) ist ein Konzept, das speziell für Tabellen mit Schlüsseln und Abhängigkeiten entwickelt wurde. Andere Modelle vermeiden Redundanz auf ihre eigene, strukturelle Art, oder verzichten teilweise bewusst darauf, wenn das der Performance nützt.</div>
+        <p class="sources" style="font-size:12.5px; color:var(--slate); margin-top:10px;">Quellen: <a href="https://en.wikipedia.org/wiki/Database_normalization" target="_blank" rel="noopener">Wikipedia: Database normalization</a> &middot; <a href="https://liambx.com/blog/mongodb-data-modeling-schema-design-guide" target="_blank" rel="noopener">MongoDB Data Modeling &amp; Schema Design Guide</a></p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="ausblick-nf">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Ausblick</span>
+          <h2>Normalformen jenseits der 3. Normalform</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Nur damit ihr die Begriffe schon mal gehört habt, für die Prüfung reicht meist 3NF, vertieft wird das erst später:</p>
+        <div class="model-normalize-grid">
+          <div class="mn-row">
+            <div class="mn-icon">BC</div>
+            <div>
+              <div class="mn-title">Boyce-Codd-Normalform (BCNF)</div>
+              <p>Eine strengere Variante der 3NF: Jede nicht-triviale funktionale Abhängigkeit muss von einem Superschlüssel ausgehen.</p>
+            </div>
+          </div>
+          <div class="mn-row">
+            <div class="mn-icon">4</div>
+            <div>
+              <div class="mn-title">Vierte Normalform (4NF)</div>
+              <p>Behebt mehrwertige Abhängigkeiten, wenn eine Tabelle zwei voneinander unabhängige Mehrfachbeziehungen mischt.</p>
+            </div>
+          </div>
+          <div class="mn-row">
+            <div class="mn-icon">5</div>
+            <div>
+              <div class="mn-title">Fünfte Normalform (5NF)</div>
+              <p>Auch Project-Join-Normalform genannt, verlangt, dass sich eine Tabelle nicht verlustfrei in kleinere Tabellen zerlegen lässt, außer über deren Schlüssel.</p>
+            </div>
+          </div>
+        </div>
+        <div class="note">Für den Kursalltag reicht 3NF fast immer aus. BCNF, 4NF und 5NF lösen Sonderfälle mit komplexen Abhängigkeiten.</div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="gruppenuebung">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Gruppenarbeit, interaktiv</span>
+          <h2>Gruppenübung: Szenarien anwenden</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Diskutiert in Kleingruppen die folgenden drei Szenarien. Jedes greift ein Modell aus der Kernfrage oben auf. Wenn ihr fertig seid, klickt auf „Musterlösung anzeigen" und vergleicht.</p>
+
+        <div class="scenario-card">
+          <div class="sc-label">Szenario 1 &middot; Dokumentenorientierte NoSQL</div>
+          <p>Ein Onlineshop nutzt MongoDB für Bestellungen. Jede Bestellung speichert Produktname und Preis direkt im Bestelldokument, statt sie über eine ProduktNr in einer eigenen Produkte-Sammlung zu referenzieren.</p>
+          <div class="sc-question">Frage: Ist das ein Modellierungsfehler?</div>
+          <button class="reveal-btn" onclick="toggleReveal('sc1-antwort')">Musterlösung anzeigen</button>
+          <div class="reveal-answer" id="sc1-antwort">
+            <p>Nein, das ist bewusstes <b>Embedding</b>. Bestellungen ändern sich im Nachhinein kaum, werden aber sehr oft gelesen (z. B. für die Bestellhistorie). Die Redundanz wird hier in Kauf genommen, weil sie die Lesegeschwindigkeit erhöht. <b>Referencing</b> wäre sinnvoller, wenn sich Produktdaten häufig ändern und diese Änderung überall sofort sichtbar sein müsste.</p>
+          </div>
+        </div>
+
+        <div class="scenario-card">
+          <div class="sc-label">Szenario 2 &middot; Graphdatenbank</div>
+          <p>Ein soziales Netzwerk nutzt Neo4j, um Freundschaften zwischen Millionen Nutzern zu speichern.</p>
+          <div class="sc-question">Frage: Es gibt bei Graphdatenbanken keine Normalform-Theorie wie bei SQL. Wie wird Redundanz trotzdem vermieden?</div>
+          <button class="reveal-btn" onclick="toggleReveal('sc2-antwort')">Musterlösung anzeigen</button>
+          <div class="reveal-answer" id="sc2-antwort">
+            <p>Jede Freundschaft wird als eigene <b>Kante</b> zwischen zwei Knoten gespeichert, nicht als wiederholter Text in einer Freundesliste bei jedem einzelnen Nutzerprofil. Die Beziehung existiert nur einmal im Graphen, unabhängig davon, wie oft sie abgefragt wird.</p>
+          </div>
+        </div>
+
+        <div class="scenario-card">
+          <div class="sc-label">Szenario 3 &middot; Hierarchisches Modell</div>
+          <p>Ein älteres Bibliothekssystem nach dem Vorbild von IBM IMS verwaltet Bücher. Ein bestimmtes Buch kann aber an mehreren Standorten gleichzeitig ausleihbar sein.</p>
+          <div class="sc-question">Frage: Was ist hier das strukturelle Problem?</div>
+          <button class="reveal-btn" onclick="toggleReveal('sc3-antwort')">Musterlösung anzeigen</button>
+          <div class="reveal-answer" id="sc3-antwort">
+            <p>Im hierarchischen Modell darf jeder Datensatz nur genau einen Vorgänger haben. Gehört ein Buch zu mehreren Standorten, muss der Buch-Datensatz dupliziert werden, einmal pro Standort. Genau dieses strukturelle Problem bei n:m-Beziehungen führte historisch erst zum Netzwerkmodell und später zum relationalen Modell mit freien Tabellen und JOIN.</p>
+          </div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="pruefungscheck">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Selbsttest, interaktiv</span>
+          <h2>Prüfungscheck: Kurzquiz</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <form id="quizForm">
+          <div class="quiz-q">
+            <div class="q-text">1. Welche Anomalie tritt auf, wenn beim Löschen der einzigen Bestellung eines Kunden auch dessen Adresse ungewollt verschwindet?</div>
+            <label><input type="radio" name="q1" value="wrong">Einfüge-Anomalie</label>
+            <label><input type="radio" name="q1" value="wrong">Update-Anomalie</label>
+            <label><input type="radio" name="q1" value="correct">Lösch-Anomalie</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">2. Was prüft die 3. Normalform zusätzlich zur 2. Normalform?</div>
+            <label><input type="radio" name="q2" value="wrong">Dass jede Spalte nur atomare Werte enthält</label>
+            <label><input type="radio" name="q2" value="correct">Dass kein Nicht-Schlüssel-Attribut von einem anderen Nicht-Schlüssel-Attribut abhängt</label>
+            <label><input type="radio" name="q2" value="wrong">Dass die Tabelle mindestens 3 Spalten hat</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">3. Warum gibt es für das relationale Modell eine formale Normalform-Theorie (1NF bis 6NF), für das hierarchische Modell aber nicht?</div>
+            <label><input type="radio" name="q3" value="wrong">Weil das hierarchische Modell neuer ist</label>
+            <label><input type="radio" name="q3" value="correct">Weil die Normalform-Theorie speziell auf Tabellen, Schlüssel und funktionale Abhängigkeiten aufbaut, die es im hierarchischen Modell so nicht gibt</label>
+            <label><input type="radio" name="q3" value="wrong">Weil hierarchische Datenbanken nie Redundanz haben</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">4. Wie geht MongoDB typischerweise mit Redundanz um?</div>
+            <label><input type="radio" name="q4" value="wrong">Es erzwingt automatisch 3NF für alle Dokumente</label>
+            <label><input type="radio" name="q4" value="correct">Es erlaubt bewusstes Embedding, also kontrollierte Redundanz für schnelleres Lesen</label>
+            <label><input type="radio" name="q4" value="wrong">Es verbietet jede Form von Referenzen zwischen Dokumenten</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">5. Wie vermeiden Graphdatenbanken wie Neo4j Redundanz bei Beziehungen?</div>
+            <label><input type="radio" name="q5" value="wrong">Über Normalformen wie bei relationalen Datenbanken</label>
+            <label><input type="radio" name="q5" value="correct">Über eigene Kanten zwischen Knoten, statt wiederholte Fremdschlüssel-Werte</label>
+            <label><input type="radio" name="q5" value="wrong">Sie vermeiden Redundanz gar nicht</label>
+            <div class="q-feedback"></div>
+          </div>
+          <button type="button" class="quiz-check-btn" onclick="checkQuiz()">Antworten prüfen</button>
+          <div class="quiz-score" id="quizScore"></div>
+        </form>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="zusammenfassung">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Zusammenfassung</span>
+          <h2>Was ihr mitnehmen solltet</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <ul class="recap-list">
+          <li>Normalisierung ist der formale Prozess, mit dem man Tabellen so aufteilt, dass Redundanz und Anomalien systematisch vermieden werden.</li>
+          <li>1NF: atomare Werte. 2NF: volle Abhängigkeit vom gesamten Schlüssel. 3NF: keine transitiven Abhängigkeiten.</li>
+          <li>Normalisierung im strengen Sinn ist speziell für das relationale Modell entwickelt worden, mit Tabellen, Schlüsseln und funktionalen Abhängigkeiten.</li>
+          <li>Andere Datenmodelle vermeiden Redundanz auf ihre eigene, strukturelle Art: hierarchisch und Netzwerk über feste Baum-/Zeigerstrukturen, Graphdatenbanken über eigene Kanten.</li>
+          <li>Dokumentenorientierte NoSQL-Datenbanken nehmen Redundanz oft bewusst in Kauf (Embedding), wenn das der Lesegeschwindigkeit nützt, Referencing bleibt die normalisiertere Alternative.</li>
+          <li>Strengere Normalformen (BCNF, 4NF, 5NF) lösen Sonderfälle, für den Kursalltag reicht 3NF meist aus.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+</div>
+
+<footer>IBB &middot; AnwP-DBSQL &middot; Grundlagen zu Datenbanken (2), FVP-Nr. 3</footer>
+
+<script>
+  function toggleAll(open) {
+    document.querySelectorAll('details').forEach(function(d) { d.open = open; });
+  }
+  function toggleReveal(id) {
+    document.getElementById(id).classList.toggle('shown');
+  }
+  function showNF(btn, id, state) {
+    var container = document.getElementById(id + '-demo');
+    container.querySelectorAll('.nf-view').forEach(function(v) {
+      v.style.display = (v.getAttribute('data-state') === state ? 'block' : 'none');
+    });
+    container.querySelectorAll('.nf-toggle-btn').forEach(function(b) {
+      b.classList.remove('active');
+    });
+    btn.classList.add('active');
+  }
+  function checkQuiz() {
+    var form = document.getElementById('quizForm');
+    var questions = form.querySelectorAll('.quiz-q');
+    var score = 0;
+    questions.forEach(function(q) {
+      var selected = q.querySelector('input[type=radio]:checked');
+      var feedback = q.querySelector('.q-feedback');
+      if (!selected) {
+        feedback.className = 'q-feedback wrong';
+        feedback.textContent = 'Bitte eine Antwort auswählen.';
+        return;
+      }
+      if (selected.value === 'correct') {
+        score++;
+        feedback.className = 'q-feedback correct';
+        feedback.textContent = 'Richtig!';
+      } else {
+        feedback.className = 'q-feedback wrong';
+        feedback.textContent = 'Nicht ganz, schaut euch die Antwort noch einmal an.';
+      }
+    });
+    document.getElementById('quizScore').textContent = score + ' von ' + questions.length + ' richtig';
+  }
+</script>
+
+</body>
+</html>

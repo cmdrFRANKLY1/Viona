@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Normalisierung: Primärschlüssel & die Normalformen 0 bis 3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400..700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0b2545;
+    --blue: #2563eb;
+    --blue-light: #eef4fc;
+    --blue-tint: #dbe8fb;
+    --slate: #57657c;
+    --text: #16233a;
+    --border: #dbe6f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Public Sans', Arial, sans-serif;
+    color: var(--text);
+    background: #f6f9fd;
+    line-height: 1.6;
+  }
+  .hero {
+    background: var(--navy);
+    color: #eef4fc;
+    padding: 56px 24px 64px;
+    text-align: center;
+  }
+  .hero .eyebrow {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #4f8ff7;
+    margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: clamp(28px, 4.6vw, 46px);
+    font-weight: 600;
+    margin: 0 0 16px;
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: 17px;
+    color: #c3d3ea;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .wrap {
+    max-width: 900px;
+    margin: -32px auto 60px;
+    padding: 0 20px;
+  }
+  .toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .toolbar button {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    color: var(--navy);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .toolbar button:hover { background: var(--blue-light); }
+
+  .toc {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 10px rgba(11,37,69,0.05);
+  }
+  .toc h2 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 20px;
+    color: var(--navy);
+    margin: 0 0 12px;
+  }
+  .toc ol {
+    margin: 0;
+    padding-left: 20px;
+    columns: 2;
+    column-gap: 24px;
+  }
+  .toc li { margin-bottom: 6px; break-inside: avoid; }
+  .toc a { color: var(--blue); text-decoration: none; font-size: 14.5px; }
+  .toc a:hover { text-decoration: underline; }
+
+  section.card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 10px rgba(11,37,69,0.05);
+    overflow: hidden;
+    scroll-margin-top: 20px;
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 22px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary .stitle { display: flex; flex-direction: column; gap: 4px; }
+  summary .kicker {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+  summary h2 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--navy);
+    margin: 0;
+  }
+  summary .chevron {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--blue-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+    color: var(--blue);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  details[open] summary .chevron { transform: rotate(45deg); }
+  .content {
+    padding: 0 28px 30px;
+    border-top: 1px solid var(--border);
+    padding-top: 22px;
+  }
+  .content p { margin: 0 0 14px; font-size: 15.5px; color: var(--text); }
+  .content ul { margin: 0 0 14px; padding-left: 20px; }
+  .content li { margin-bottom: 8px; font-size: 15.5px; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 18px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 18px; }
+  @media (max-width: 760px) { .grid2, .grid3 { grid-template-columns: 1fr; } .toc ol { columns: 1; } }
+
+  .flowbox-row { display: flex; align-items: center; gap: 10px; justify-content: center; margin: 10px 0 20px; flex-wrap: wrap; }
+  .flowbox { background: var(--blue-light); border-radius: 12px; padding: 14px 16px; text-align: center; min-width: 130px; flex: 1; }
+  .flowbox.mid { background: var(--navy); color: #eef4fc; }
+  .flowbox .fb-title { font-weight: 700; font-size: 13.5px; margin-bottom: 4px; color: var(--navy); }
+  .flowbox.mid .fb-title { color: #4f8ff7; }
+  .flowbox .fb-sub { font-size: 11.8px; color: var(--slate); }
+  .flowbox.mid .fb-sub { color: #c3d3ea; }
+  .flow-arrow { font-size: 20px; color: var(--blue); flex-shrink: 0; }
+  @media (max-width: 640px) { .flowbox-row { flex-direction: column; } .flow-arrow { transform: rotate(90deg); } }
+
+  .kernfrage { background: var(--navy); color: #eef4fc; border-radius: 12px; padding: 20px 24px; margin-bottom: 18px; }
+  .kernfrage .kf-label { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #4f8ff7; margin-bottom: 8px; }
+  .kernfrage p { margin: 0; font-size: 16.5px; color: #eef4fc; font-family: 'EB Garamond', Georgia, serif; }
+
+  .def-box { background: var(--blue-light); border-left: 5px solid var(--blue); border-radius: 10px; padding: 16px 20px; margin-bottom: 16px; }
+  .def-box .def-label { font-size: 11.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
+  .def-box p { margin: 0; font-size: 15px; font-weight: 600; color: var(--navy); }
+
+  .pk-props { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 14px 0 18px; }
+  .pk-props .pk-box { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .pk-props .pk-box .pk-icon { font-size: 20px; margin-bottom: 6px; }
+  .pk-props .pk-box .pk-title { font-weight: 700; color: var(--navy); font-size: 14px; margin-bottom: 4px; }
+  .pk-props .pk-box p { margin: 0; font-size: 13.3px; color: var(--slate); }
+  @media (max-width: 700px) { .pk-props { grid-template-columns: 1fr; } }
+
+  .nf-timeline { display: flex; gap: 10px; margin: 10px 0 20px; flex-wrap: wrap; }
+  .nf-step { flex: 1; min-width: 150px; border-radius: 12px; padding: 14px 16px; background: var(--blue-light); }
+  .nf-step.highlight { background: var(--navy); color: #eef4fc; }
+  .nf-step .nf-name { font-weight: 700; font-size: 14px; color: var(--navy); margin-bottom: 4px; }
+  .nf-step.highlight .nf-name { color: #4f8ff7; }
+  .nf-step p { margin: 0; font-size: 12.5px; color: var(--slate); }
+  .nf-step.highlight p { color: #c3d3ea; }
+
+  .nf-demo { border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; margin: 18px 0; background: #fbfdff; }
+  .nf-demo-title { font-weight: 700; font-size: 15px; color: var(--navy); margin-bottom: 12px; }
+  .nf-toggle { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .nf-toggle-btn { border: 1.5px solid var(--border); background: #fff; color: var(--slate); font-weight: 700; font-size: 12.8px; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-family: 'Public Sans', Arial, sans-serif; transition: all .15s ease; }
+  .nf-toggle-btn:hover { border-color: var(--blue); color: var(--navy); }
+  .nf-toggle-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .nf-view { display: none; }
+  .nf-flag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; }
+  .nf-flag.bad { background: #fdeceb; color: #dc2626; }
+  .nf-flag.good { background: #eafaf0; color: #16a34a; }
+  .nf-flag.neutral { background: var(--blue-tint); color: var(--navy); }
+  .nf-tables-split { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 4px; }
+  .nf-tables-split > div { flex: 1; min-width: 200px; }
+  .nf-table-label { font-weight: 700; font-size: 12.5px; color: var(--navy); margin-bottom: 6px; }
+  table.compact { width: 100%; border-collapse: collapse; font-size: 13.8px; margin: 10px 0 18px; }
+  table.compact th { background: var(--navy); color: #fff; text-align: left; padding: 9px 12px; }
+  table.compact td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.compact tr:nth-child(even) td { background: #f5f9fe; }
+  table.compact.small th, table.compact.small td { padding: 7px 10px; font-size: 12.8px; }
+  .nf-demo table.compact.small th, .nf-demo table.compact.small td { padding: 6px 5px; font-size: 11.5px; }
+  table.compact td.hl { background: #fde3e0 !important; font-weight: 700; color: #7a1f1f; }
+  table.compact td.key { background: #eafaf0 !important; font-weight: 700; color: #14532d; }
+  .nf-callout { border-radius: 10px; padding: 12px 16px; font-size: 13.3px; margin-top: 6px; }
+  .nf-callout.bad { background: #fdeceb; border-left: 4px solid #dc2626; color: #7a1f1f; }
+  .nf-callout.good { background: #eafaf0; border-left: 4px solid #16a34a; color: #155724; }
+  .nf-callout.neutral { background: var(--blue-tint); border-left: 4px solid var(--blue); color: var(--navy); }
+  .nf-rule { font-size: 13.5px; color: var(--slate); margin: 0 0 10px; }
+  .table-scroll { overflow-x: auto; margin: 10px 0 18px; -webkit-overflow-scrolling: touch; }
+  .table-scroll table.compact { margin: 0; }
+
+  .note { background: #fffbea; border: 1px solid #f2e2a8; border-radius: 10px; padding: 14px 18px; font-size: 14px; color: #6b5a12; margin-top: 10px; }
+
+  .reveal-btn {
+    background: var(--blue); color: #fff; border: none; font-family: inherit;
+    font-size: 13.5px; font-weight: 700; padding: 10px 20px; border-radius: 8px;
+    cursor: pointer; margin: 6px 0 14px;
+  }
+  .reveal-btn:hover { background: #1d4ed8; }
+  .reveal-answer { display: none; background: #eafaf0; border-left: 4px solid #16a34a; border-radius: 8px; padding: 16px 20px; }
+  .reveal-answer.shown { display: block; }
+  .reveal-answer p { margin: 0 0 8px; font-size: 14px; }
+  .reveal-answer p:last-child { margin-bottom: 0; }
+
+  .quiz-q { border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; }
+  .quiz-q .q-text { font-weight: 700; color: var(--navy); font-size: 14.5px; margin-bottom: 10px; }
+  .quiz-q label { display: block; font-size: 13.8px; margin-bottom: 8px; cursor: pointer; }
+  .quiz-q input[type=radio] { margin-right: 8px; }
+  .q-feedback { display: none; font-size: 13px; font-weight: 700; margin-top: 8px; padding: 8px 12px; border-radius: 8px; }
+  .q-feedback.correct { display: block; background: #eafaf0; color: #166534; }
+  .q-feedback.wrong { display: block; background: #fdeceb; color: #991b1b; }
+  .quiz-check-btn { background: var(--navy); color: #fff; border: none; font-family: inherit; font-size: 14px; font-weight: 700; padding: 12px 24px; border-radius: 8px; cursor: pointer; }
+  .quiz-check-btn:hover { background: #123363; }
+  .quiz-score { margin-top: 14px; font-weight: 700; color: var(--navy); font-size: 15px; }
+
+  .recap-list { list-style: none; padding: 0; margin: 0; }
+  .recap-list li {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--blue-light); border-radius: 10px; padding: 14px 18px;
+    margin-bottom: 10px; font-size: 15px;
+  }
+  .recap-list li::before { content: "✓"; color: var(--blue); font-weight: 700; flex-shrink: 0; }
+
+  h3.subhead { font-family: 'EB Garamond', Georgia, serif; font-size: 20px; color: var(--navy); margin: 22px 0 8px; font-weight: 600; }
+
+  footer { text-align: center; font-size: 12.5px; color: #93a1b8; padding: 20px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <p class="eyebrow">AnwP-DBSQL &middot; Theorieteil &middot; Normalisierung</p>
+  <h1>Normalisierung: Primärschlüssel & die Normalformen 0 bis 3</h1>
+  <p>Was ein Primärschlüssel ist, was jede Normalform genau fordert, und wie eine einzige Beispielrechnung von der unnormalisierten Ausgangsform bis zur 3. Normalform verändert wird. Zum Durchklicken und Nachlesen für die Prüfung.</p>
+</div>
+
+<div class="wrap">
+
+  <div class="toolbar">
+    <button onclick="toggleAll(true)">Alle aufklappen</button>
+    <button onclick="toggleAll(false)">Alle zuklappen</button>
+  </div>
+
+  <div class="toc">
+    <h2>Inhalt</h2>
+    <ol>
+      <li><a href="#warum">Was ist Normalisierung, und warum macht man das?</a></li>
+      <li><a href="#primaerschluessel">Grundbegriff: der Primärschlüssel</a></li>
+      <li><a href="#ueberblick">Die Normalformen im Überblick (0. bis 3. NF)</a></li>
+      <li><a href="#interaktiv">Eine Rechnung von 0NF bis 3NF: das Beispiel zum Durchklicken</a></li>
+      <li><a href="#null">0. Normalform im Detail</a></li>
+      <li><a href="#eins">1. Normalform im Detail</a></li>
+      <li><a href="#zwei">2. Normalform im Detail</a></li>
+      <li><a href="#drei">3. Normalform im Detail</a></li>
+      <li><a href="#tabelle">Zusammenfassungstabelle: welche Regel löst welches Problem?</a></li>
+      <li><a href="#pruefungscheck">Prüfungscheck: Kurzquiz</a></li>
+      <li><a href="#zusammenfassung">Zusammenfassung</a></li>
+    </ol>
+  </div>
+
+  <section class="card" id="warum">
+    <details open>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Einstieg</span>
+          <h2>Was ist Normalisierung, und warum macht man das?</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <div class="def-box">
+          <div class="def-label">Definition</div>
+          <p>Normalisierung ist die Aufteilung von Attributen einer Datenbank in mehrere Relationen (Tabellen) nach festen Regeln, den Normalformen, sodass am Ende keine vermeidbaren Redundanzen mehr übrig bleiben.</p>
+        </div>
+        <p>Redundanzfrei bedeutet: Man kann eine Information löschen, ohne dass dabei ungewollt andere Informationen mit verloren gehen. Genau das ist bei einer einzigen, großen, unnormalisierten Tabelle nicht der Fall, wie ihr weiter unten am Beispiel seht.</p>
+
+        <h3 class="subhead">Ziele der Normalisierung</h3>
+        <div class="grid3">
+          <div class="flowbox">
+            <div class="fb-title">Redundanzen beseitigen</div>
+            <div class="fb-sub">Jede Information steht nur an einer Stelle, nicht mehrfach verstreut</div>
+          </div>
+          <div class="flowbox">
+            <div class="fb-title">Anomalien vermeiden</div>
+            <div class="fb-sub">Keine funktionalen und transitiven Abhängigkeiten, die beim Einfügen, Ändern oder Löschen Probleme machen</div>
+          </div>
+          <div class="flowbox">
+            <div class="fb-title">Klare Struktur</div>
+            <div class="fb-sub">Ein sauber strukturiertes Datenbankmodell, das nachvollziehbar und wartbar bleibt</div>
+          </div>
+        </div>
+
+        <p>Es gibt insgesamt fünf Normalformen. In der Praxis reicht die <b>3. Normalform (3NF)</b> fast immer aus, um eine gute Balance aus Redundanzfreiheit, Abfrage-Performance und Flexibilität zu erreichen. Nur in Sonderfällen, zum Beispiel im wissenschaftlichen Bereich, wird bis zur 4. oder 5. Normalform normalisiert.</p>
+
+        <div class="kernfrage">
+          <div class="kf-label">Roter Faden dieser Stunde</div>
+          <p>Eine einzige Beispielrechnung wird Schritt für Schritt von der unnormalisierten Form (0NF) bis zur 3NF verändert. Ihr seht bei jedem Schritt genau, welche Regel angewendet wird und warum.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="primaerschluessel">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Grundbegriff</span>
+          <h2>Grundbegriff: der Primärschlüssel</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Bevor es um die Normalformen geht, muss ein Begriff sitzen, der in jeder einzelnen Normalform vorkommt: der <b>Primärschlüssel</b>. Ohne ihn lässt sich keine der folgenden Regeln überhaupt formulieren.</p>
+
+        <div class="def-box">
+          <div class="def-label">Definition</div>
+          <p>Der Primärschlüssel (Primary Key) ist das Attribut, oder die Kombination mehrerer Attribute, das jeden Datensatz einer Tabelle eindeutig identifiziert.</p>
+        </div>
+
+        <p>Beispiel: In einer Tabelle <b>Kunde</b> reicht der Name allein nicht aus, denn es kann mehrere Kunden mit dem Namen „Müller" geben. Deshalb bekommt jeder Kunde eine eigene, künstliche <b>Kundennummer (K.-Nr.)</b>, die garantiert nur einmal vergeben wird. Diese K.-Nr. wird der Primärschlüssel der Tabelle.</p>
+
+        <h3 class="subhead">Drei Eigenschaften, die ein Primärschlüssel erfüllen muss</h3>
+        <div class="pk-props">
+          <div class="pk-box">
+            <div class="pk-icon">🔑</div>
+            <div class="pk-title">Eindeutig</div>
+            <p>Kein Wert darf doppelt vorkommen. Jeder Datensatz muss sich klar unterscheiden lassen.</p>
+          </div>
+          <div class="pk-box">
+            <div class="pk-icon">🚫</div>
+            <div class="pk-title">Nie leer (NOT NULL)</div>
+            <p>Ein Primärschlüssel darf niemals fehlen, sonst wäre der Datensatz nicht mehr identifizierbar.</p>
+          </div>
+          <div class="pk-box">
+            <div class="pk-icon">📏</div>
+            <div class="pk-title">Minimal</div>
+            <p>Er enthält nur so viele Attribute wie nötig. Besteht er aus mehreren Spalten, darf keine davon überflüssig sein.</p>
+          </div>
+        </div>
+
+        <p>Ein Primärschlüssel kann aus <b>einem</b> Attribut bestehen (z. B. K.-Nr.) oder aus <b>mehreren</b> Attributen zusammengesetzt sein, dann spricht man von einem <b>zusammengesetzten Schlüssel</b>. Ein Beispiel dafür seht ihr gleich in der Tabelle Rechnungsposition: dort identifiziert erst die Kombination aus R.-P.-Nr. den Datensatz eindeutig.</p>
+
+        <div class="note">Wichtig für die Normalisierung: Alle Regeln der 2. und 3. Normalform beschreiben, wie sich <b>andere</b> Attribute (die Nicht-Schlüssel-Attribute) zum Primärschlüssel verhalten müssen. Ohne einen klar festgelegten Primärschlüssel lässt sich also gar nicht prüfen, ob eine Tabelle normalisiert ist.</div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="ueberblick">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Überblick</span>
+          <h2>Die Normalformen im Überblick (0. bis 3. NF)</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Jede Stufe baut auf der vorherigen auf. Um die 2NF zu erfüllen, muss eine Tabelle also automatisch auch die 1NF erfüllen, und so weiter.</p>
+        <div class="nf-timeline">
+          <div class="nf-step">
+            <div class="nf-name">0. Normalform (0NF)</div>
+            <p>Alle Informationen stehen unstrukturiert in einer einzigen Tabelle. Der Ausgangszustand, meist direkt aus der Anforderungsanalyse.</p>
+          </div>
+          <div class="nf-step">
+            <div class="nf-name">1. Normalform (1NF)</div>
+            <p>Alle Attributwerte sind atomar, das heißt nicht weiter teilbar, und stehen in eigenen Spalten.</p>
+          </div>
+          <div class="nf-step">
+            <div class="nf-name">2. Normalform (2NF)</div>
+            <p>1NF plus: jedes Nicht-Schlüssel-Attribut ist vom gesamten Primärschlüssel voll funktional abhängig.</p>
+          </div>
+          <div class="nf-step highlight">
+            <div class="nf-name">3. Normalform (3NF)</div>
+            <p>2NF plus: kein Nicht-Schlüssel-Attribut hängt transitiv von einem anderen Nicht-Schlüssel-Attribut ab.</p>
+          </div>
+        </div>
+        <p>Wie diese vier Regeln konkret an einer einzigen Rechnung angewendet werden, seht ihr jetzt Schritt für Schritt zum Anklicken.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="interaktiv">
+    <details open>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Interaktives Hauptbeispiel</span>
+          <h2>Eine Rechnung von 0NF bis 3NF: das Beispiel zum Durchklicken</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <p>Ausgangspunkt sind fünf Rechnungen eines Bürobedarf-Händlers an drei verschiedene Kunden. Erst mit mehreren Zeilen sieht man die Redundanz wirklich, bei nur einer einzigen Rechnung würde man sie kaum bemerken. Klickt euch durch die vier Stufen und beobachtet, was sich bei jedem Schritt ändert und warum.</p>
+
+        <div class="nf-demo" id="rechnung-demo">
+          <div class="nf-demo-title">Beispiel: fünf Rechnungen eines Bürobedarf-Händlers an drei Kunden</div>
+          <div class="nf-toggle">
+            <button class="nf-toggle-btn active" onclick="showNF(this,'rechnung','0nf')">0. Normalform</button>
+            <button class="nf-toggle-btn" onclick="showNF(this,'rechnung','1nf')">1. Normalform</button>
+            <button class="nf-toggle-btn" onclick="showNF(this,'rechnung','2nf')">2. Normalform</button>
+            <button class="nf-toggle-btn" onclick="showNF(this,'rechnung','3nf')">3. Normalform</button>
+          </div>
+
+          <div class="nf-view" data-state="0nf" style="display:block">
+            <span class="nf-flag bad">Unnormalisiert</span>
+            <p class="nf-rule">Alle Informationen aus der Anforderungsanalyse stehen ungeordnet in einer einzigen Tabelle.</p>
+            <div class="table-scroll">
+            <table class="compact small">
+              <tr><th>R.-Nr.</th><th>Datum</th><th>Name</th><th>Straße</th><th>Ort</th><th>Artikel</th><th>Anzahl</th><th>Preis</th></tr>
+              <tr><td>2041</td><td>03.03.2024</td><td class="hl">Sabine Kellner</td><td class="hl">Ahornweg 4</td><td class="hl">93047 Regensburg</td><td>Kopierpapier A4</td><td>10</td><td>4,50 €</td></tr>
+              <tr><td>2042</td><td>04.03.2024</td><td class="hl">Sabine Kellner</td><td class="hl">Ahornweg 4</td><td class="hl">93047 Regensburg</td><td>Tintenpatrone</td><td>3</td><td>12,90 €</td></tr>
+              <tr><td>2043</td><td>05.03.2024</td><td class="hl">Jonas Brandt</td><td class="hl">Rathausplatz 12</td><td class="hl">93047 Regensburg</td><td>Kopierpapier A4</td><td>5</td><td>4,50 €</td></tr>
+              <tr><td>2044</td><td>06.03.2024</td><td class="hl">Laura Vogt</td><td class="hl">Lindenstr. 22</td><td class="hl">80331 München</td><td>Aktenordner</td><td>8</td><td>3,20 €</td></tr>
+              <tr><td>2045</td><td>07.03.2024</td><td class="hl">Jonas Brandt</td><td class="hl">Rathausplatz 12</td><td class="hl">93047 Regensburg</td><td>Tintenpatrone</td><td>2</td><td>12,90 €</td></tr>
+            </table>
+            </div>
+            <div class="nf-callout bad">Die rot markierten Spalten enthalten mehrere Informationen in einer Zelle: „Sabine Kellner" ist Vor- und Nachname zugleich, „Ahornweg 4" ist Straße und Hausnummer, „93047 Regensburg" ist Postleitzahl und Ort. Zusätzlich fällt auf: Name, Straße und Ort von Sabine Kellner stehen in Zeile 2041 und 2042 komplett doppelt, nur weil sie zweimal bestellt hat, genauso bei Jonas Brandt in Zeile 2043 und 2045. Das ist die typische, noch unnormalisierte 0. Normalform.</div>
+          </div>
+
+          <div class="nf-view" data-state="1nf">
+            <span class="nf-flag good">Erfüllt 1NF</span>
+            <p class="nf-rule">Regel angewendet: alle Attributwerte werden atomar gemacht, jede Information bekommt ihre eigene Spalte.</p>
+            <div class="table-scroll">
+            <table class="compact small">
+              <tr><th>R.-Nr.</th><th>Datum</th><th>Name</th><th>Vorname</th><th>Straße</th><th>H.-Nr.</th><th>Plz</th><th>Ort</th><th>Artikel</th><th>Anzahl</th><th>Preis</th><th>Währung</th></tr>
+              <tr><td>2041</td><td>03.03.2024</td><td class="hl">Kellner</td><td class="hl">Sabine</td><td class="hl">Ahornweg</td><td class="hl">4</td><td class="hl">93047</td><td class="hl">Regensburg</td><td>Kopierpapier A4</td><td>10</td><td>4,50</td><td>Euro</td></tr>
+              <tr><td>2042</td><td>04.03.2024</td><td class="hl">Kellner</td><td class="hl">Sabine</td><td class="hl">Ahornweg</td><td class="hl">4</td><td class="hl">93047</td><td class="hl">Regensburg</td><td>Tintenpatrone</td><td>3</td><td>12,90</td><td>Euro</td></tr>
+              <tr><td>2043</td><td>05.03.2024</td><td class="hl">Brandt</td><td class="hl">Jonas</td><td class="hl">Rathausplatz</td><td class="hl">12</td><td class="hl">93047</td><td class="hl">Regensburg</td><td>Kopierpapier A4</td><td>5</td><td>4,50</td><td>Euro</td></tr>
+              <tr><td>2044</td><td>06.03.2024</td><td>Vogt</td><td>Laura</td><td>Lindenstr.</td><td>22</td><td>80331</td><td>München</td><td>Aktenordner</td><td>8</td><td>3,20</td><td>Euro</td></tr>
+              <tr><td>2045</td><td>07.03.2024</td><td class="hl">Brandt</td><td class="hl">Jonas</td><td class="hl">Rathausplatz</td><td class="hl">12</td><td class="hl">93047</td><td class="hl">Regensburg</td><td>Tintenpatrone</td><td>2</td><td>12,90</td><td>Euro</td></tr>
+            </table>
+            </div>
+            <div class="nf-callout good">Name wurde in Name und Vorname getrennt, Straße in Straße und Hausnummer, Ort in Plz und Ort. Auch Preis und Währung stehen jetzt getrennt. Jede Zelle enthält nur noch einen atomaren Wert, damit ist die 1NF erfüllt.</div>
+            <div class="nf-callout neutral">Was noch fehlt: Die rot markierten Zellen zeigen es deutlich: Weil Sabine Kellner zweimal bestellt hat, stehen Name, Vorname, Straße, Hausnummer, Plz und Ort in Zeile 2041 und 2042 komplett doppelt, genauso bei Jonas Brandt in Zeile 2043 und 2045. Das ist Redundanz. Das behebt erst die 2NF.</div>
+          </div>
+
+          <div class="nf-view" data-state="2nf">
+            <span class="nf-flag good">Erfüllt 2NF</span>
+            <p class="nf-rule">Regel angewendet: Attribute, die nur von einem Teil eines zusammengesetzten Schlüssels abhängen, werden in eine eigene Tabelle mit eigenem Primärschlüssel ausgelagert.</p>
+            <div class="nf-tables-split">
+              <div>
+                <div class="nf-table-label">Rechnung</div>
+                <table class="compact small">
+                  <tr><th>R.-Nr.</th><th>Datum</th><th>K.-Nr.</th></tr>
+                  <tr><td class="key">2041</td><td>03.03.2024</td><td>101</td></tr>
+                  <tr><td class="key">2042</td><td>04.03.2024</td><td>101</td></tr>
+                  <tr><td class="key">2043</td><td>05.03.2024</td><td>102</td></tr>
+                  <tr><td class="key">2044</td><td>06.03.2024</td><td>103</td></tr>
+                  <tr><td class="key">2045</td><td>07.03.2024</td><td>102</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="nf-table-label">Kunde</div>
+                <div class="table-scroll">
+                <table class="compact small">
+                  <tr><th>K.-Nr.</th><th>Name</th><th>Vorname</th><th>Straße</th><th>H.-Nr.</th><th>Plz</th><th>Ort</th></tr>
+                  <tr><td class="key">101</td><td>Kellner</td><td>Sabine</td><td>Ahornweg</td><td>4</td><td class="hl">93047</td><td class="hl">Regensburg</td></tr>
+                  <tr><td class="key">102</td><td>Brandt</td><td>Jonas</td><td>Rathausplatz</td><td>12</td><td class="hl">93047</td><td class="hl">Regensburg</td></tr>
+                  <tr><td class="key">103</td><td>Vogt</td><td>Laura</td><td>Lindenstr.</td><td>22</td><td>80331</td><td>München</td></tr>
+                </table>
+                </div>
+              </div>
+            </div>
+            <div class="nf-tables-split">
+              <div>
+                <div class="nf-table-label">Rechnungsposition</div>
+                <table class="compact small">
+                  <tr><th>R.-P.-Nr.</th><th>R.-Nr.</th><th>Art.-Nr.</th><th>Anzahl</th></tr>
+                  <tr><td class="key">1</td><td>2041</td><td>310</td><td>10</td></tr>
+                  <tr><td class="key">2</td><td>2042</td><td>455</td><td>3</td></tr>
+                  <tr><td class="key">3</td><td>2043</td><td>310</td><td>5</td></tr>
+                  <tr><td class="key">4</td><td>2044</td><td>512</td><td>8</td></tr>
+                  <tr><td class="key">5</td><td>2045</td><td>455</td><td>2</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="nf-table-label">Artikel</div>
+                <table class="compact small">
+                  <tr><th>Art.-Nr.</th><th>Artikel</th><th>Preis</th></tr>
+                  <tr><td class="key">310</td><td>Kopierpapier A4</td><td>4,50</td></tr>
+                  <tr><td class="key">455</td><td>Tintenpatrone</td><td>12,90</td></tr>
+                  <tr><td class="key">512</td><td>Aktenordner</td><td>3,20</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="nf-callout good">Weil ein Name nicht eindeutig ist, bekommt jeder Kunde eine Kundennummer (K.-Nr.), die zum Primärschlüssel der neuen Tabelle Kunde wird. Genauso bekommt jeder Artikel eine Artikelnummer. Sabine Kellner steht jetzt nur noch einmal in der Kunde-Tabelle, egal wie viele Rechnungen (2041 und 2042) sie hat, Kopierpapier A4 und Tintenpatrone stehen nur noch einmal in der Artikel-Tabelle. Die Redundanz aus der 1NF ist weg.</div>
+            <div class="nf-callout neutral">Was noch fehlt: Die rot markierten Zellen zeigen ein neues, subtileres Problem. In der Tabelle Kunde hängt „Ort" eigentlich nicht von der K.-Nr. ab, sondern von der Plz. Weil Kellner (K.-Nr. 101) und Brandt (K.-Nr. 102) zufällig dieselbe Plz 93047 haben, steht „Regensburg" jetzt trotzdem zweimal in der Tabelle. Das behebt erst die 3NF.</div>
+          </div>
+
+          <div class="nf-view" data-state="3nf">
+            <span class="nf-flag good">Erfüllt 3NF</span>
+            <p class="nf-rule">Regel angewendet: Attribute, die transitiv über ein anderes Nicht-Schlüssel-Attribut abhängen, werden in eine weitere eigene Tabelle ausgelagert.</p>
+            <div class="nf-tables-split">
+              <div>
+                <div class="nf-table-label">Kunde</div>
+                <div class="table-scroll">
+                <table class="compact small">
+                  <tr><th>K.-Nr.</th><th>Name</th><th>Vorname</th><th>Straße</th><th>H.-Nr.</th><th>Plz</th></tr>
+                  <tr><td class="key">101</td><td>Kellner</td><td>Sabine</td><td>Ahornweg</td><td>4</td><td>93047</td></tr>
+                  <tr><td class="key">102</td><td>Brandt</td><td>Jonas</td><td>Rathausplatz</td><td>12</td><td>93047</td></tr>
+                  <tr><td class="key">103</td><td>Vogt</td><td>Laura</td><td>Lindenstr.</td><td>22</td><td>80331</td></tr>
+                </table>
+                </div>
+              </div>
+              <div>
+                <div class="nf-table-label">Postleitzahl</div>
+                <table class="compact small">
+                  <tr><th>Plz</th><th>Ort</th></tr>
+                  <tr><td class="key">93047</td><td>Regensburg</td></tr>
+                  <tr><td class="key">80331</td><td>München</td></tr>
+                </table>
+              </div>
+            </div>
+            <p style="font-size:13px; color:var(--slate); margin:0 0 10px">Rechnung, Rechnungsposition und Artikel bleiben unverändert wie in der 2NF.</p>
+            <div class="nf-callout good">„Ort" hängt von „Plz" ab, nicht direkt vom Primärschlüssel K.-Nr. Das ist eine transitive Abhängigkeit (K.-Nr. → Plz → Ort) und wird durch eine eigene Tabelle Postleitzahl aufgelöst. „Regensburg" steht jetzt nur noch einmal, obwohl gleich zwei Kunden (101 und 102) die Plz 93047 haben. Jedes Nicht-Schlüssel-Attribut hängt jetzt nur noch direkt vom jeweiligen Primärschlüssel ab. Die Daten sind in der 3. Normalform.</div>
+          </div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="null">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">0. Normalform</span>
+          <h2>0. Normalform im Detail</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <div class="def-box">
+          <div class="def-label">Definition</div>
+          <p>Eine Tabelle befindet sich in der 0. Normalform, wenn alle Informationen der realen Welt in einer einzigen Tabelle zusammengefasst und aufgelistet sind, also unnormalisiert vorliegen.</p>
+        </div>
+        <p><b>Wann kommt die 0NF in der Praxis vor?</b> Meistens während der Anforderungsanalyse, also am Anfang der Datenbankentwicklung, wenn Informationen aus verschiedenen Fachbereichen erst einmal gesammelt werden, ohne auf Struktur zu achten.</p>
+        <p>Genau das war die Ausgangstabelle im Beispiel oben: Rechnungsnummer, Datum, Name, Straße, Ort, Artikel, Anzahl und Preis standen alle unstrukturiert in einer Zeile, teils mit mehreren Informationen in einer Zelle.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="eins">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">1. Normalform</span>
+          <h2>1. Normalform im Detail</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <div class="def-box">
+          <div class="def-label">Definition</div>
+          <p>Eine Tabelle befindet sich in der 1. Normalform (1NF), wenn die Wertebereiche aller Attribute atomar sind.</p>
+        </div>
+        <p>Atomar heißt: jede Information bekommt eine eigene Spalte. Zusammengehörige Informationen wie Postleitzahl und Ort dürfen nicht in einer einzigen Spalte stehen. Was vorher unstrukturiert vorlag, wird jetzt einheitlich und klar aufgeteilt.</p>
+        <p>Im Beispiel oben wurden dafür „Name" in Name und Vorname aufgeteilt, „Straße" in Straße und Hausnummer, und „Ort" in Postleitzahl und Ort. Auch eine Wiederholungsgruppe in einer Zelle, zum Beispiel mehrere Artikel in einer einzigen Rechnungszeile, verstößt gegen die 1NF und muss auf mehrere Zeilen oder eine eigene Tabelle verteilt werden.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="zwei">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">2. Normalform</span>
+          <h2>2. Normalform im Detail</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <div class="def-box">
+          <div class="def-label">Definition</div>
+          <p>Eine Tabelle befindet sich in der 2. Normalform (2NF), wenn sie sich in der 1NF befindet und zusätzlich jedes Nicht-Schlüssel-Attribut von jedem Schlüsselkandidaten voll funktional abhängig ist.</p>
+        </div>
+        <p>Diese Regel wird erst wichtig, wenn ein Primärschlüssel aus <b>mehreren</b> Attributen zusammengesetzt ist. Dann prüft man: Hängt ein Attribut nur von einem <b>Teil</b> des Schlüssels ab, statt vom gesamten Schlüssel? Wenn ja, liegt eine partielle Abhängigkeit vor, und die 2NF ist verletzt.</p>
+        <p><b>Vorgehen:</b> Zuerst den Primärschlüssel festlegen. Besteht er nur aus einem Attribut, ist die 2NF automatisch erfüllt. Besteht er aus mehreren Attributen, wird geprüft, ob Attribute bereits von einem Teilschlüssel abhängen. Ist das der Fall, wandert das Teilschlüsselattribut zusammen mit den davon abhängigen Attributen in eine neue Tabelle, in der es selbst zum Primärschlüssel wird.</p>
+        <p>Im Beispiel oben ist das genau der Schritt von der 1NF zur 2NF: Der Kundenname allein ist nicht eindeutig, deshalb bekommt der Kunde eine eigene Kundennummer und wird in eine eigene Tabelle Kunde ausgelagert. Ebenso wandert der Artikel mit Artikelnummer und Preis in eine eigene Tabelle Artikel.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="drei">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">3. Normalform</span>
+          <h2>3. Normalform im Detail</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <div class="def-box">
+          <div class="def-label">Definition</div>
+          <p>Eine Tabelle befindet sich in der 3. Normalform (3NF), wenn sie sich in der 2NF befindet und kein Nicht-Schlüssel-Attribut transitiv von einem Schlüsselkandidaten abhängt.</p>
+        </div>
+        <p>Transitiv bedeutet: Ein Nicht-Schlüssel-Attribut hängt nicht direkt vom Primärschlüssel ab, sondern über ein anderes Nicht-Schlüssel-Attribut. Die Kette sieht dann so aus: Primärschlüssel → Attribut A → Attribut B. Attribut B hängt zwar am Ende vom Primärschlüssel ab, aber nur indirekt, über Attribut A.</p>
+        <p><b>Vorgehen:</b> Untersuchen, ob aus einem Nicht-Schlüssel-Attribut ein weiteres Nicht-Schlüssel-Attribut folgt. Wenn ja, wird eine neue Tabelle gebildet: Das auslösende Attribut wird darin zum neuen Primärschlüssel, das abhängige Attribut wandert mit. In der Ausgangstabelle bleibt nur das auslösende Attribut als Fremdschlüssel stehen.</p>
+        <p>Im Beispiel oben ist das der Schritt von der 2NF zur 3NF: In der Tabelle Kunde hängt „Ort" nicht direkt von der Kundennummer ab, sondern von der Postleitzahl (K.-Nr. → Plz → Ort). Deshalb wird eine eigene Tabelle Postleitzahl gebildet, in der Plz der Primärschlüssel ist und Ort das einzige abhängige Attribut.</p>
+        <div class="note">Die 3NF ist in der Praxis meist das Ziel der Normalisierung: sie vermeidet Anomalien und Redundanzen zuverlässig und bietet gleichzeitig noch genug Performance für SQL-Abfragen, ohne die Daten in zu viele einzelne Tabellen zu zersplittern.</div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="tabelle">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Zusammenfassung</span>
+          <h2>Zusammenfassungstabelle: welche Regel löst welches Problem?</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <table class="compact">
+          <tr><th>Normalform</th><th>Voraussetzung</th><th>Zusätzliche Regel</th><th>Löst welches Problem</th></tr>
+          <tr><td>0NF</td><td>keine</td><td>keine, Ausgangszustand</td><td>nichts, alles steht ungeordnet in einer Tabelle</td></tr>
+          <tr><td>1NF</td><td>0NF</td><td>alle Attributwerte sind atomar</td><td>mehrere Informationen oder Wiederholungsgruppen in einer Zelle</td></tr>
+          <tr><td>2NF</td><td>1NF</td><td>volle funktionale Abhängigkeit vom gesamten Primärschlüssel</td><td>partielle Abhängigkeit von nur einem Teil eines zusammengesetzten Schlüssels</td></tr>
+          <tr><td>3NF</td><td>2NF</td><td>keine transitiven Abhängigkeiten zwischen Nicht-Schlüssel-Attributen</td><td>ein Attribut hängt indirekt über ein anderes Nicht-Schlüssel-Attribut vom Primärschlüssel ab</td></tr>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="pruefungscheck">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Prüfungscheck</span>
+          <h2>Prüfungscheck: Kurzquiz</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <form id="quizForm" onsubmit="return false;">
+          <div class="quiz-q">
+            <div class="q-text">1. Was muss ein Primärschlüssel garantieren?</div>
+            <label><input type="radio" name="q1" value="wrong"> Dass die Tabelle möglichst wenige Spalten hat</label>
+            <label><input type="radio" name="q1" value="correct"> Dass jeder Datensatz eindeutig identifiziert werden kann und der Wert nie leer ist</label>
+            <label><input type="radio" name="q1" value="wrong"> Dass alle Werte in der Spalte Zahlen sind</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">2. Eine Tabelle enthält die Spalte „Kunde" mit dem Wert „Sabine Kellner, Ahornweg 4, 93047 Regensburg" in einer einzigen Zelle. Welche Normalform ist verletzt?</div>
+            <label><input type="radio" name="q2" value="correct"> Die 1. Normalform, weil der Wert nicht atomar ist</label>
+            <label><input type="radio" name="q2" value="wrong"> Die 2. Normalform, weil der Schlüssel nicht zusammengesetzt ist</label>
+            <label><input type="radio" name="q2" value="wrong"> Die 3. Normalform, weil eine transitive Abhängigkeit vorliegt</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">3. Warum wird im Beispiel eine eigene Tabelle „Artikel" mit Artikelnummer als Primärschlüssel gebildet?</div>
+            <label><input type="radio" name="q3" value="wrong"> Weil Artikel sonst alphabetisch nicht sortiert werden können</label>
+            <label><input type="radio" name="q3" value="correct"> Weil Artikelname und Preis nur von der Artikelnummer abhängen, nicht vom gesamten Schlüssel der Rechnungsposition</label>
+            <label><input type="radio" name="q3" value="wrong"> Weil jede Tabelle in einer Datenbank genau vier Spalten haben muss</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">4. In der Tabelle Kunde hängt „Ort" von „Plz" ab, nicht direkt von der Kundennummer. Wie nennt man diese Art der Abhängigkeit, und welche Normalform behebt sie?</div>
+            <label><input type="radio" name="q4" value="wrong"> Partielle Abhängigkeit, behoben durch die 2NF</label>
+            <label><input type="radio" name="q4" value="correct"> Transitive Abhängigkeit, behoben durch die 3NF</label>
+            <label><input type="radio" name="q4" value="wrong"> Atomare Abhängigkeit, behoben durch die 1NF</label>
+            <div class="q-feedback"></div>
+          </div>
+          <div class="quiz-q">
+            <div class="q-text">5. Welche Normalform reicht in der Praxis meistens aus, um eine gute Balance zwischen Redundanzfreiheit und Performance zu erreichen?</div>
+            <label><input type="radio" name="q5" value="wrong"> Die 1. Normalform</label>
+            <label><input type="radio" name="q5" value="correct"> Die 3. Normalform</label>
+            <label><input type="radio" name="q5" value="wrong"> Die 5. Normalform</label>
+            <div class="q-feedback"></div>
+          </div>
+          <button type="button" class="quiz-check-btn" onclick="checkQuiz()">Antworten prüfen</button>
+          <div class="quiz-score" id="quizScore"></div>
+        </form>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="zusammenfassung">
+    <details>
+      <summary>
+        <div class="stitle">
+          <span class="kicker">Fazit</span>
+          <h2>Zusammenfassung</h2>
+        </div>
+        <span class="chevron">+</span>
+      </summary>
+      <div class="content">
+        <ul class="recap-list">
+          <li>Der Primärschlüssel identifiziert jeden Datensatz eindeutig, ist nie leer und so minimal wie möglich.</li>
+          <li>0NF: alle Daten liegen unstrukturiert in einer Tabelle, meist direkt nach der Anforderungsanalyse.</li>
+          <li>1NF: jedes Attribut enthält nur einen atomaren Wert, keine Wiederholungsgruppen in einer Zelle.</li>
+          <li>2NF: jedes Nicht-Schlüssel-Attribut hängt vom gesamten Primärschlüssel ab, nicht nur von einem Teil davon.</li>
+          <li>3NF: kein Nicht-Schlüssel-Attribut hängt transitiv über ein anderes Nicht-Schlüssel-Attribut vom Primärschlüssel ab.</li>
+          <li>In der Praxis ist die 3NF meistens das Ziel, weitere Normalformen (4NF, 5NF) bleiben Sonderfällen vorbehalten.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+</div>
+
+<footer>IBB &middot; AnwP-DBSQL, Theorieteil &middot; Normalisierung: Primärschlüssel & Normalformen 0 bis 3</footer>
+
+<script>
+  function toggleAll(open) {
+    document.querySelectorAll('details').forEach(function(d) { d.open = open; });
+  }
+  function toggleReveal(id) {
+    document.getElementById(id).classList.toggle('shown');
+  }
+  function showNF(btn, id, state) {
+    var container = document.getElementById(id + '-demo');
+    container.querySelectorAll('.nf-view').forEach(function(v) {
+      v.style.display = (v.getAttribute('data-state') === state ? 'block' : 'none');
+    });
+    container.querySelectorAll('.nf-toggle-btn').forEach(function(b) {
+      b.classList.remove('active');
+    });
+    btn.classList.add('active');
+  }
+  function checkQuiz() {
+    var form = document.getElementById('quizForm');
+    var questions = form.querySelectorAll('.quiz-q');
+    var score = 0;
+    questions.forEach(function(q) {
+      var selected = q.querySelector('input[type=radio]:checked');
+      var feedback = q.querySelector('.q-feedback');
+      if (!selected) {
+        feedback.className = 'q-feedback wrong';
+        feedback.textContent = 'Bitte eine Antwort auswählen.';
+        return;
+      }
+      if (selected.value === 'correct') {
+        score++;
+        feedback.className = 'q-feedback correct';
+        feedback.textContent = 'Richtig!';
+      } else {
+        feedback.className = 'q-feedback wrong';
+        feedback.textContent = 'Nicht ganz. Schaut euch die passende Normalform nochmal an.';
+      }
+    });
+    document.getElementById('quizScore').textContent = score + ' von ' + questions.length + ' richtig';
+  }
+</script>
+
+</body>
+</html>
