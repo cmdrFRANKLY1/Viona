@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netzwerkbefehle für Strolchfreunde</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                        mono: ['Courier New', 'Courier', 'monospace'],
+                    },
+                    colors: {
+                        kde: {
+                            bg: '#1a1b1e',
+                            panel: 'rgba(35, 38, 41, 0.85)',
+                            panelHover: 'rgba(255, 255, 255, 0.1)',
+                            accent: '#3daee9',
+                            text: '#eff0f1',
+                            windowBg: '#31363b',
+                            windowBorder: '#1d2023',
+                            surface: '#232629',
+                            input: '#1a1b1e'
+                        },
+                        brand: {
+                            50: '#e1f4fc',
+                            100: '#b4e1f7',
+                            200: '#84cbf2',
+                            300: '#54b6ec',
+                            400: '#3daee9',
+                            500: '#1b92d2',
+                            600: '#1575a8',
+                            900: '#0a3a54',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            background-color: var(--tw-colors-kde-bg);
+            color: var(--tw-colors-kde-text);
+        }
+
+        .tab-btn.active {
+            border-bottom: 2px solid #3daee9;
+            color: #3daee9;
+            background-color: rgba(61, 174, 233, 0.1);
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--tw-colors-kde-bg); }
+        ::-webkit-scrollbar-thumb { background: #4d5157; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6c7178; }
+
+        .os-badge {
+            font-size: 0.65rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .os-win { background: rgba(0, 120, 212, 0.2); color: #84cbf2; border: 1px solid rgba(0, 120, 212, 0.4); }
+        .os-lin { background: rgba(252, 175, 62, 0.2); color: #fcaf3e; border: 1px solid rgba(252, 175, 62, 0.4); }
+        .os-mac { background: rgba(150, 150, 150, 0.2); color: #d3d3d3; border: 1px solid rgba(150, 150, 150, 0.4); }
+        .os-all { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+
+    </style>
+    <script>
+        window.switchTab = function(tabId) {
+            const views = ['basics', 'routing', 'analyse'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('animate-fade-in');
+                }
+                const btn = document.getElementById(`tab-${v}`);
+                if (btn) btn.classList.remove('active');
+            });
+
+            const activeView = document.getElementById(`view-${tabId}`);
+            if (activeView) {
+                activeView.classList.remove('hidden');
+                void activeView.offsetWidth; // trigger reflow
+                activeView.classList.add('animate-fade-in');
+            }
+
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            if (activeBtn) activeBtn.classList.add('active');
+        };
+    </script>
+</head>
+<body class="min-h-screen flex flex-col bg-kde-bg text-kde-text">
+
+    <header class="bg-kde-windowBg shadow-md sticky top-0 z-40 border-b border-kde-windowBorder">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row md:items-center justify-between">
+            <div class="flex items-center gap-2 py-3">
+                <i class="fa-solid fa-terminal text-brand-400 text-xl"></i>
+                <h1 class="text-xl font-semibold tracking-wide text-white">Netzwerkbefehle <span class="text-brand-400 font-normal">für Strolchfreunde</span></h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <nav class="flex overflow-x-auto scrollbar-hide text-sm">
+                    <button onclick="switchTab('basics')" id="tab-basics" class="tab-btn active px-4 py-4 text-gray-400 hover:text-brand-400 hover:bg-white/5 whitespace-nowrap transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-house-signal text-xs"></i> 1. Basics & IP
+                    </button>
+                    <button onclick="switchTab('routing')" id="tab-routing" class="tab-btn px-4 py-4 text-gray-400 hover:text-brand-400 hover:bg-white/5 whitespace-nowrap transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-route text-xs"></i> 2. Routing & DNS
+                    </button>
+                    <button onclick="switchTab('analyse')" id="tab-analyse" class="tab-btn px-4 py-4 text-gray-400 hover:text-brand-400 hover:bg-white/5 whitespace-nowrap transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass-chart text-xs"></i> 3. Analyse & Ports
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-8 relative z-30">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: BASICS & IP                         -->
+        <!-- ========================================== -->
+        <section id="view-basics" class="block animate-fade-in space-y-6">
+            <div class="bg-kde-windowBg rounded-lg shadow border border-kde-windowBorder p-6 mb-6">
+                <h2 class="text-xl font-semibold text-white mb-2 flex items-center gap-2"><i class="fa-solid fa-network-wired text-brand-400"></i> Grundlagen & Schnittstellen</h2>
+                <p class="text-gray-300 text-sm">Diese Befehle bilden das absolute Fundament. Sie helfen dir herauszufinden, wer du im Netzwerk bist und ob du grundlegend mit anderen kommunizieren kannst.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Ping -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-tower-broadcast text-gray-400 text-sm"></i> ping
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Prüft die Erreichbarkeit eines Ziels mittels ICMP Echo-Requests.</p>
+                        </div>
+                        <span class="os-badge os-all">Cross-Platform</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Einfacher Test</div>
+                            <span class="text-brand-300">ping</span> 8.8.8.8
+                        </div>
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Dauerping (Windows) / Anzahl festlegen (Linux)</div>
+                            <span class="text-brand-300">ping</span> -t google.de <span class="text-gray-500 text-xs ml-2"># Windows (Abbruch mit Ctrl+C)</span><br>
+                            <span class="text-brand-300">ping</span> -c 4 google.de <span class="text-gray-500 text-xs ml-2"># Linux/Mac</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-kde-input rounded p-3 text-xs border border-gray-700">
+                        <p class="text-gray-400 font-semibold mb-2 uppercase tracking-wider">Erweiterte Parameter (Windows)</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-300">
+                            <div><span class="text-brand-300 font-mono">-t</span> : Fortlaufender Ping bis zum Abbruch</div>
+                            <div><span class="text-brand-300 font-mono">-a</span> : Umgekehrte Namensauflösung der IP</div>
+                            <div><span class="text-brand-300 font-mono">-n [Zahl]</span> : Anzahl der Echoanforderungen</div>
+                            <div><span class="text-brand-300 font-mono">-l [Byte]</span> : Datenfeldlänge (max 65.527)</div>
+                            <div><span class="text-brand-300 font-mono">-f</span> : "Nicht fragmentieren" setzen</div>
+                            <div><span class="text-brand-300 font-mono">-i [TTL]</span> : Time-To-Live (max 255)</div>
+                            <div><span class="text-brand-300 font-mono">-v [TOS]</span> : Type of Service (0-255)</div>
+                            <div><span class="text-brand-300 font-mono">-r [Anzahl]</span> : Recordroute (zeichnet Pfad auf)</div>
+                            <div><span class="text-brand-300 font-mono">-s [Anzahl]</span> : Internetzeitstempel (1-4)</div>
+                            <div><span class="text-brand-300 font-mono">-j [Liste]</span> : Loose Source Route</div>
+                            <div><span class="text-brand-300 font-mono">-k [Liste]</span> : Strict Source Route</div>
+                            <div><span class="text-brand-300 font-mono">-w [ms]</span> : Timeout in Millisekunden</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ipconfig / ip -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-address-card text-gray-400 text-sm"></i> ipconfig / ip
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Zeigt aktuelle IP-Konfiguration, Subnetzmaske und Gateway an. (Linux: ip addr)</p>
+                        </div>
+                        <span class="os-badge os-all">Cross-Platform</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Grundlegende Infos</div>
+                            <span class="text-brand-300">ipconfig</span> <span class="text-gray-500 text-xs ml-2"># Windows</span><br>
+                            <span class="text-brand-300">ip</span> a <span class="text-gray-500 text-xs ml-2"># Linux</span>
+                        </div>
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">DHCP & DNS erneuern/leeren (Windows)</div>
+                            <span class="text-brand-300">ipconfig</span> /release <span class="text-gray-500">&amp;</span> <span class="text-brand-300">ipconfig</span> /renew<br>
+                            <span class="text-brand-300">ipconfig</span> /flushdns
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-kde-input rounded p-3 text-xs border border-gray-700">
+                        <p class="text-gray-400 font-semibold mb-2 uppercase tracking-wider">Weitere Parameter (Windows)</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-300">
+                            <div><span class="text-brand-300 font-mono">/ALL</span> : Alle Informationen (inkl. MAC)</div>
+                            <div><span class="text-brand-300 font-mono">/Batch [Datei]</span> : Schreibt IP-Daten in Datei</div>
+                            <div><span class="text-brand-300 font-mono">/renew_all</span> : Aktualisiert alle Adapter</div>
+                            <div><span class="text-brand-300 font-mono">/release_all</span> : Gibt alle Adapter frei</div>
+                            <div><span class="text-brand-300 font-mono">/renew N</span> : Adapter N aktualisieren</div>
+                            <div><span class="text-brand-300 font-mono">/release N</span> : Adapter N freigeben</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: ROUTING & DNS                       -->
+        <!-- ========================================== -->
+        <section id="view-routing" class="hidden animate-fade-in space-y-6">
+            <div class="bg-kde-windowBg rounded-lg shadow border border-kde-windowBorder p-6 mb-6">
+                <h2 class="text-xl font-semibold text-white mb-2 flex items-center gap-2"><i class="fa-solid fa-route text-brand-400"></i> Routing, Wege & Namen</h2>
+                <p class="text-gray-300 text-sm">Diese Tools zeigen dir den Weg, den ein Paket nimmt, oder übersetzen die Namen des Internets in greifbare IP- und Hardwareadressen.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- tracert -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-map-location-dot text-gray-400 text-sm"></i> tracert / traceroute
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Verfolgt den genauen Pfad (die einzelnen Router/Hops), den ein Paket zum Ziel nimmt.</p>
+                        </div>
+                        <span class="os-badge os-all">Cross-Platform</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Pfad anzeigen</div>
+                            <span class="text-brand-300">tracert</span> google.de <span class="text-gray-500 text-xs ml-2"># Windows</span><br>
+                            <span class="text-brand-300">traceroute</span> google.de <span class="text-gray-500 text-xs ml-2"># Linux</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-kde-input rounded p-3 text-xs border border-gray-700">
+                        <p class="text-gray-400 font-semibold mb-2 uppercase tracking-wider">Erweiterte Parameter (Windows)</p>
+                        <div class="grid grid-cols-1 gap-2 text-gray-300">
+                            <div><span class="text-brand-300 font-mono">-d</span> : Verhindert das Auflösen von IP-Adressen der Zwischenrouter in Namen (geht schneller)</div>
+                            <div><span class="text-brand-300 font-mono">-h [Hops]</span> : Maximale Anzahl der Hops im Pfad</div>
+                            <div><span class="text-brand-300 font-mono">-j [Hostliste]</span> : Nutzt Loose Source Route für die Liste der Zwischenziele</div>
+                            <div><span class="text-brand-300 font-mono">-w [ms]</span> : Wartezeit in Millisekunden auf ICMP-Zeitüberschreitung</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- nslookup -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-book-atlas text-gray-400 text-sm"></i> nslookup / dig
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Fragt DNS-Server ab, um Domänennamen in IP-Adressen zu übersetzen (oder umgekehrt).</p>
+                        </div>
+                        <span class="os-badge os-all">Cross-Platform</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Standard Abfrage</div>
+                            <span class="text-brand-300">nslookup</span> heise.de
+                        </div>
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Spezifischen DNS-Server nutzen</div>
+                            <span class="text-brand-300">nslookup</span> heise.de 8.8.8.8
+                        </div>
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Linux Alternative (Sehr detailliert)</div>
+                            <span class="text-brand-300">dig</span> heise.de +short
+                        </div>
+                    </div>
+                </div>
+
+                <!-- arp -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-address-book text-gray-400 text-sm"></i> arp / ip neigh
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Zeigt den ARP-Cache, der IP-Adressen zu Hardware-MAC-Adressen im lokalen Netz zuordnet.</p>
+                        </div>
+                        <span class="os-badge os-all">Cross-Platform</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">ARP-Tabelle anzeigen</div>
+                            <span class="text-brand-300">arp</span> -a <span class="text-gray-500 text-xs ml-2"># Windows / Mac</span><br>
+                            <span class="text-brand-300">ip</span> neigh <span class="text-gray-500 text-xs ml-2"># Linux</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-kde-input rounded p-3 text-xs border border-gray-700">
+                        <p class="text-gray-400 font-semibold mb-2 uppercase tracking-wider">Spezifische Parameter</p>
+                        <div class="grid grid-cols-1 gap-2 text-gray-300">
+                            <div><span class="text-brand-300 font-mono">-a / -g</span> : Zeigt die aktuellen ARP-Cachetabellen für alle Schnittstellen an</div>
+                            <div><span class="text-brand-300 font-mono">-s IP Mac [Schnittst.]</span> : Fügt einen statischen Eintrag in den ARP-Cache ein</div>
+                            <div><span class="text-brand-300 font-mono">-d IP [Schnittst.]</span> : Löscht den Eintrag dieser IP (Platzhalter * löscht alle)</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-kde-input border-l-4 border-l-yellow-500 rounded text-xs text-gray-300">
+                        <i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-1"></i> <strong>Achtung:</strong> ARP funktioniert nur im lokalen Netzwerk (Layer 2). Du wirst hier niemals die MAC-Adresse eines Google-Servers sehen, sondern höchstens die deines Routers.
+                    </div>
+                </div>
+
+                <!-- route -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-signs-post text-gray-400 text-sm"></i> route print / ip route
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Gibt die interne Routing-Tabelle deines PCs aus (wohin schickt er welche Pakete?).</p>
+                        </div>
+                        <span class="os-badge os-all">Cross-Platform</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Tabelle anzeigen</div>
+                            <span class="text-brand-300">route</span> print <span class="text-gray-500 text-xs ml-2"># Windows</span><br>
+                            <span class="text-brand-300">ip</span> route <span class="text-gray-500 text-xs ml-2"># Linux</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-xs text-gray-400 italic">
+                        Der wichtigste Eintrag ist meist "0.0.0.0" (bzw. "default") – das ist dein Standardgateway (meist dein Router), an das alles geschickt wird, was dein PC nicht direkt kennt.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: ANALYSE & PORTS                     -->
+        <!-- ========================================== -->
+        <section id="view-analyse" class="hidden animate-fade-in space-y-6">
+            <div class="bg-kde-windowBg rounded-lg shadow border border-kde-windowBorder p-6 mb-6">
+                <h2 class="text-xl font-semibold text-white mb-2 flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart text-brand-400"></i> Port- & Verbindungsanalyse</h2>
+                <p class="text-gray-300 text-sm">Wer kommuniziert gerade mit wem? Welche Türen (Ports) sind an deinem System offen? Diese Werkzeuge schauen tief unter die Haube.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- netstat -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-walkie-talkie text-gray-400 text-sm"></i> netstat / ss
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Zeigt alle aktiven TCP/UDP-Verbindungen sowie lauschende Ports und Statistiken an.</p>
+                        </div>
+                        <span class="os-badge os-all">Cross-Platform</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Die "Zeig mir alles"-Kombi (Windows)</div>
+                            <span class="text-brand-300">netstat</span> -ano
+                            <div class="text-xs text-gray-500 mt-1">a = alle, n = Nummern statt Namen, o = Prozess-ID (PID)</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-kde-input rounded p-3 text-xs border border-gray-700">
+                        <p class="text-gray-400 font-semibold mb-2 uppercase tracking-wider">Erweiterte Parameter</p>
+                        <div class="grid grid-cols-1 gap-2 text-gray-300">
+                            <div><span class="text-brand-300 font-mono">-a</span> : Alle aktiven TCP- & UDP-Verbindungen / Ports</div>
+                            <div><span class="text-brand-300 font-mono">-e</span> : Zeigt Ethernet-Statistiken (Pakete, Bytes) an</div>
+                            <div><span class="text-brand-300 font-mono">-n</span> : Zeigt Adressen & Ports rein numerisch an</div>
+                            <div><span class="text-brand-300 font-mono">-o</span> : Gibt die zugehörige Prozess-ID (PID) aus</div>
+                            <div><span class="text-brand-300 font-mono">-p [Protokoll]</span> : Filtert nach (tcp, udp, tcpv6, udpv6)</div>
+                            <div><span class="text-brand-300 font-mono">-s</span> : Zeigt Statistiken nach Protokollen</div>
+                            <div><span class="text-brand-300 font-mono">-r</span> : Zeigt den Inhalt der IP-Routingtabelle</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Port-Checks (tnc / nc) -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-door-open text-gray-400 text-sm"></i> Port-Checks (tnc / nc)
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Prüft, ob eine Firewall einen bestimmten Port blockiert.</p>
+                        </div>
+                        <span class="os-badge os-all">Cross-Platform</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Powershell (Windows)</div>
+                            <span class="text-brand-300">Test-NetConnection</span> 192.168.1.10 -Port 80
+                        </div>
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Netcat (Linux / Mac)</div>
+                            <span class="text-brand-300">nc</span> -vz 192.168.1.10 80
+                        </div>
+                    </div>
+                </div>
+
+                <!-- curl / wget -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-globe text-gray-400 text-sm"></i> curl
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Sendet Netzwerkanfragen (meist HTTP/HTTPS) über die Kommandozeile.</p>
+                        </div>
+                        <span class="os-badge os-all">Cross-Platform</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Webseite abrufen & Header sehen</div>
+                            <span class="text-brand-300">curl</span> -I https://google.de
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ssh -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-terminal text-gray-400 text-sm"></i> ssh
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Baut eine sichere, verschlüsselte Konsolen-Verbindung zu einem entfernten System auf.</p>
+                        </div>
+                        <span class="os-badge os-all">Cross-Platform</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-kde-input rounded p-3 text-sm font-mono border border-gray-700">
+                            <div class="text-gray-500 mb-1 text-xs font-sans uppercase tracking-wider">Mit Server verbinden</div>
+                            <span class="text-brand-300">ssh</span> benutzername@192.168.1.50
+                        </div>
+                    </div>
+                </div>
+
+                <!-- telnet -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors lg:col-span-2">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-desktop text-gray-400 text-sm"></i> telnet
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Baut eine zeilengestützte Terminal-Kommunikation mit einem Remotecomputer (Telnet-Server) auf.</p>
+                        </div>
+                        <span class="os-badge os-win">Windows</span>
+                    </div>
+                    <div class="text-sm text-gray-300 space-y-3">
+                        <p>Durch das Zusammenwirken von Telnet-Client und Telnet-Server wird Benutzern die Kommunikation mit einem Remotecomputer ermöglicht. Mit dem Telnet-Client können Benutzer eine Verbindung aufbauen und über ein Terminalfenster einen Datenaustausch im Zeichenmodus durchführen.</p>
+                        <p class="text-xs text-gray-400 bg-kde-input p-3 rounded border border-gray-700"><strong>Hinweis:</strong> Telnet-Server fungiert dabei als Gateway. Der Server, der zum Lieferumfang von Windows (z.B. XP) gehört, unterstützt oft maximal zwei Telnet-Clients gleichzeitig. Für mehr Lizenzen sind "Windows-Dienste für UNIX" erforderlich.</p>
+                    </div>
+                </div>
+
+                <!-- ftp -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors lg:col-span-2">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-file-arrow-up text-gray-400 text-sm"></i> ftp
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Überträgt Dateien zu und von einem Computer (z.B. IIS) im interaktiven oder Batchmodus (ASCII-Dateien).</p>
+                        </div>
+                        <span class="os-badge os-all">Cross-Platform</span>
+                    </div>
+                    <div class="bg-kde-input rounded text-xs font-mono border border-gray-700 relative overflow-hidden flex flex-col">
+                        <div class="text-gray-400 font-sans font-semibold p-3 border-b border-gray-700 bg-kde-input flex items-center gap-2 uppercase tracking-wider">
+                            <i class="fa-solid fa-keyboard text-brand-400"></i> Interaktive FTP-Kommandos
+                        </div>
+                        <div class="p-4 max-h-64 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2 text-gray-300">
+                            <div><span class="text-brand-300">!</span> : Escape zur Shell (zurück mit exit)</div>
+                            <div><span class="text-brand-300">$</span> : Makro ausführen</div>
+                            <div><span class="text-brand-300">? / help</span> : Ruft die Hilfe auf</div>
+                            <div><span class="text-brand-300">account</span> : Account-Kommando schicken</div>
+                            <div><span class="text-brand-300">append</span> : An Datei anhängen</div>
+                            <div><span class="text-brand-300">ascii</span> : ASCII-Modus einstellen</div>
+                            <div><span class="text-brand-300">bell</span> : Tonausgabe bei Kommando</div>
+                            <div><span class="text-brand-300">binary</span> : Binär-Modus einstellen</div>
+                            <div><span class="text-brand-300">bye / quit</span> : FTP-Sitzung beenden</div>
+                            <div><span class="text-brand-300">cd</span> : Remote Arbeitsverzeichnis wechseln</div>
+                            <div><span class="text-brand-300">cdup</span> : Remote in Elternverzeichnis</div>
+                            <div><span class="text-brand-300">chmod</span> : Rechte an Remote-Datei ändern</div>
+                            <div><span class="text-brand-300">close / disconnect</span> : Verbindung trennen</div>
+                            <div><span class="text-brand-300">cr</span> : Umschaltung</div>
+                            <div><span class="text-brand-300">debug</span> : Debugger-Modus setzen</div>
+                            <div><span class="text-brand-300">del / delete</span> : Remote-Datei löschen</div>
+                            <div><span class="text-brand-300">dir / ls</span> : Verzeichnisinhalt anzeigen</div>
+                            <div><span class="text-brand-300">form</span> : FTP-Format setzen</div>
+                            <div><span class="text-brand-300">get / recv</span> : Datei empfangen</div>
+                            <div><span class="text-brand-300">glob</span> : glob aus/an</div>
+                            <div><span class="text-brand-300">hash</span> : Parameter für Geschw.-Anzeige</div>
+                            <div><span class="text-brand-300">idle</span> : Idle Zeitlimit (900-7200s)</div>
+                            <div><span class="text-brand-300">lcd</span> : Lokales Verzeichnis wechseln</div>
+                            <div><span class="text-brand-300">macdef</span> : Makro definieren</div>
+                            <div><span class="text-brand-300">mdelete</span> : Mehrere Dateien löschen</div>
+                            <div><span class="text-brand-300">mdir / mls</span> : Inhalt mehrerer Remote-Verz.</div>
+                            <div><span class="text-brand-300">mget</span> : Mehrere Dateien empfangen</div>
+                            <div><span class="text-brand-300">mkdir</span> : Remote-Verzeichnis erstellen</div>
+                            <div><span class="text-brand-300">mode</span> : FTP-Modus setzen</div>
+                            <div><span class="text-brand-300">modtime</span> : Änderungszeit von Datei</div>
+                            <div><span class="text-brand-300">mput</span> : Mehrere Dateien senden</div>
+                            <div><span class="text-brand-300">newer</span> : Empfang, wenn Datei neuer</div>
+                            <div><span class="text-brand-300">nlist</span> : Inhalt von Remote-Verzeichnissen</div>
+                            <div><span class="text-brand-300">open</span> : Verbindung aufbauen</div>
+                            <div><span class="text-brand-300">prompt</span> : Interaktiver Prompt erzwingen</div>
+                            <div><span class="text-brand-300">put / send</span> : Datei senden</div>
+                            <div><span class="text-brand-300">pwd</span> : Arbeitsverzeichnis anzeigen</div>
+                            <div><span class="text-brand-300">rename</span> : Dateiname ändern</div>
+                            <div><span class="text-brand-300">restart</span> : Neustart Übertragung</div>
+                            <div><span class="text-brand-300">rhelp</span> : Hilfe vom Remote Server anfordern</div>
+                            <div><span class="text-brand-300">rmdir</span> : Remote Verzeichnis entfernen</div>
+                            <div><span class="text-brand-300">rstatus</span> : Status der Remote-Maschine</div>
+                            <div><span class="text-brand-300">size</span> : Dateigröße von Remote-Datei</div>
+                            <div><span class="text-brand-300">status</span> : Aktuellen Status anzeigen</div>
+                            <div><span class="text-brand-300">struct</span> : FTP-Struktur setzen</div>
+                            <div><span class="text-brand-300">system</span> : Remote-Systemtyp anzeigen</div>
+                            <div><span class="text-brand-300">tenex</span> : Tenex Datei-Typ setzen</div>
+                            <div><span class="text-brand-300">trace</span> : Paketverfolgung (an/aus)</div>
+                            <div><span class="text-brand-300">type</span> : FTP-Typ setzen</div>
+                            <div><span class="text-brand-300">user</span> : Neue User-Info senden</div>
+                            <div><span class="text-brand-300">verbose</span> : Umschalten auf Verbose Modus</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- net -->
+                <div class="bg-kde-surface border border-kde-windowBorder rounded-lg p-5 shadow-inner hover:border-brand-500/50 transition-colors lg:col-span-2">
+                    <div class="flex justify-between items-start mb-4 border-b border-kde-windowBorder pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white font-mono flex items-center gap-2">
+                                <i class="fa-solid fa-sitemap text-gray-400 text-sm"></i> net
+                            </h3>
+                            <p class="text-sm text-gray-400 mt-1">Umfangreiches Netzwerk-Programm mit vielen Unterfunktionen (z.B. Freigaben, Konten). Nutze <code>net /?</code> für alle Details.</p>
+                        </div>
+                        <span class="os-badge os-win">Windows</span>
+                    </div>
+                    <div class="overflow-x-auto border border-gray-700 rounded-lg">
+                        <table class="w-full text-sm text-left text-gray-300">
+                            <thead class="text-xs text-gray-400 uppercase bg-kde-input border-b border-gray-700">
+                                <tr>
+                                    <th class="px-4 py-3 font-semibold">Befehl</th>
+                                    <th class="px-4 py-3 font-semibold">Beschreibung & Spezifische Parameter</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700/50 bg-kde-surface">
+                                <tr class="hover:bg-kde-input/50 transition-colors">
+                                    <td class="px-4 py-3 font-mono text-brand-300 align-top whitespace-nowrap">net accounts</td>
+                                    <td class="px-4 py-3 text-sm">
+                                        Aktualisiert die Benutzerkontendatenbank (Der Anmeldedienst muss ausgeführt werden).<br>
+                                        <div class="grid grid-cols-[1fr] sm:grid-cols-[200px_1fr] gap-x-2 gap-y-1 mt-2 text-xs">
+                                            <span class="text-gray-400 font-mono">/forcelogoff:{Minuten|no}</span><span class="text-gray-300">Trennt Session bei Ablauf von Anmeldezeit.</span>
+                                            <span class="text-gray-400 font-mono">/minpwlen:Länge</span><span class="text-gray-300">Minimale Kennwortlänge.</span>
+                                            <span class="text-gray-400 font-mono">/maxpwage:{Tage|unlimited}</span><span class="text-gray-300">Maximale Gültigkeitsdauer des Kennworts.</span>
+                                            <span class="text-gray-400 font-mono">/minpwage:Tage</span><span class="text-gray-300">Frühester Zeitpunkt für Kennwortänderung.</span>
+                                            <span class="text-gray-400 font-mono">/uniquepw:Anzahl</span><span class="text-gray-300">Zähler, bevor Kennwort wiederholt werden darf.</span>
+                                            <span class="text-gray-400 font-mono">/domain</span><span class="text-gray-300">Führt Aktion auf dem primären Domänencontroller aus.</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-kde-input/50 transition-colors">
+                                    <td class="px-4 py-3 font-mono text-brand-300 align-top whitespace-nowrap">net config</td>
+                                    <td class="px-4 py-3 text-sm">
+                                        Zeigt konfigurierbare Dienste an oder ändert Einstellungen.<br>
+                                        Syntax: <code class="bg-gray-800 px-1 py-0.5 rounded font-mono text-xs">net config [{server|workstation}]</code>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-kde-input/50 transition-colors">
+                                    <td class="px-4 py-3 font-mono text-brand-300 align-top whitespace-nowrap">net file</td>
+                                    <td class="px-4 py-3 text-sm">
+                                        Zeigt geöffnete/freigegebene Dateien auf einem Server (Kann Freigabe schließen).<br>
+                                        Syntax: <code class="bg-gray-800 px-1 py-0.5 rounded font-mono text-xs">net file [ID [/close]]</code>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-kde-input/50 transition-colors">
+                                    <td class="px-4 py-3 font-mono text-brand-300 align-top whitespace-nowrap">net help</td>
+                                    <td class="px-4 py-3 text-sm">
+                                        Gibt ausführliche Hilfe zu net-Befehlen aus. (<code class="bg-gray-800 px-1 py-0.5 rounded font-mono text-xs">net help [Befehl]</code>)
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-kde-input/50 transition-colors">
+                                    <td class="px-4 py-3 font-mono text-brand-300 align-top whitespace-nowrap">net share</td>
+                                    <td class="px-4 py-3 text-sm">
+                                        Zeigt und verwaltet freigegebene Ressourcen (Ohne Parameter = Liste lokaler Freigaben).
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-kde-input/50 transition-colors">
+                                    <td class="px-4 py-3 font-mono text-brand-300 align-top whitespace-nowrap">net use</td>
+                                    <td class="px-4 py-3 text-sm">
+                                        Verbindet oder trennt Computer von einer Freigabe (Ohne Parameter = Liste aktiver Verbindungen).
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-kde-input/50 transition-colors">
+                                    <td class="px-4 py-3 font-mono text-brand-300 align-top whitespace-nowrap">net view</td>
+                                    <td class="px-4 py-3 text-sm">
+                                        Zeigt eine Liste der Domänen, Computer oder freigegebenen Ressourcen an.<br>
+                                        <div class="grid grid-cols-[1fr] sm:grid-cols-[170px_1fr] gap-x-2 gap-y-1 mt-2 text-xs">
+                                            <span class="text-gray-400 font-mono">[ohne Parameter]</span><span class="text-gray-300">Computer in aktueller Domäne.</span>
+                                            <span class="text-gray-400 font-mono">\\Computername</span><span class="text-gray-300">Ressourcen eines spezifischen Computers anzeigen.</span>
+                                            <span class="text-gray-400 font-mono">/all</span><span class="text-gray-300">Zeigt alle Freigaben an.</span>
+                                            <span class="text-gray-400 font-mono">/domain[:Domänenname]</span><span class="text-gray-300">Computer der ausgewählten (oder aller) Domänen.</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Start with the basics tab active
+        window.onload = () => {
+            switchTab('basics');
+        };
+    </script>
+</body>
+</html>

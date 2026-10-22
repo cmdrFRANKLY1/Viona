@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="de" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DHCP & DORA Cheatsheet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- LaTeX Support via KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        wiki: {
+                            bg: 'var(--bg-color)',
+                            panel: 'var(--panel-color)',
+                            border: 'var(--border-color)',
+                            text: 'var(--text-color)',
+                            textMuted: 'var(--text-muted)',
+                            link: 'var(--link-color)',
+                            linkHover: 'var(--link-hover)',
+                            heading: 'var(--heading-color)',
+                            codeBg: 'var(--code-bg)',
+                            infoBox: 'var(--info-box)',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Lora', 'serif'],
+                        mono: ['Fira Code', 'Consolas', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* ============================================================
+           FALLBACK PALETTE (dark)
+           Real values come from settings/colors.json (or the built-in
+           15-scheme fallback in the script below).
+           ============================================================ */
+        :root {
+            --bg-color: #181a1b;
+            --panel-color: #202324;
+            --sidebar-color: #202122;
+            --border-color: #54595d;
+            --panel-border: #54595d;
+            --text-color: #eaecf0;
+            --text-muted: #a8aeb3;
+            --link-color: #99c1f1;
+            --link-hover: #629deb;
+            --heading-color: #ffffff;
+            --subtitle-color: #eaecf0;
+            --code-bg: #27292a;
+            --code-block-bg: #111213;
+            --info-box: #2c2d30;
+            --table-alt: rgba(255,255,255,0.02);
+            --search-match: rgba(250, 204, 21, 0.3);
+            --search-text: #ffffff;
+
+            /* Network Protocol Colors - Adapted for DORA */
+            --c-tcp: #3b82f6; /* Kept for compatibility with theme engine */
+            --c-udp: #f59e0b; /* Kept for compatibility with theme engine */
+            --c-ack: #10b981; /* Kept for compatibility with theme engine */
+            --c-error: #ef4444;
+
+            /* DORA Colors */
+            --c-d: #3b82f6; /* Blue - Discover */
+            --c-o: #8b5cf6; /* Purple - Offer */
+            --c-r: #f59e0b; /* Amber - Request */
+            --c-a: #10b981; /* Green - Ack */
+
+            /* Accents */
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-violet: #8b5cf6;
+            --accent-teal: #14b8a6;
+            --accent-red: #ef4444;
+            --accent-gray: #6b7280;
+
+            /* Layout tuning */
+            --content-max: 1600px;
+            --sidebar-w: 20rem;
+
+            /* Shadows */
+            --shadow-color: rgba(0, 0, 0, 0.55);
+            --shadow-color-strong: rgba(0, 0, 0, 0.7);
+            --card-shadow:
+                0 0 22px 0 var(--shadow-color),
+                0 0 10px 0 var(--shadow-color),
+                0 4px 24px 0 var(--shadow-color);
+            --card-shadow-hover:
+                0 0 40px 0 var(--shadow-color-strong),
+                0 0 18px 0 var(--shadow-color-strong),
+                0 8px 36px 0 var(--shadow-color-strong);
+        }
+
+        html { font-size: 16px; }
+        @media (min-width: 1536px)  { html { font-size: 17px; } }
+        @media (min-width: 1800px)  { html { font-size: 18px; } }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.65;
+            transition: background-color 0.2s, color 0.2s;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Lora', serif; color: var(--heading-color); font-weight: 800 !important; line-height: 1.15; text-wrap: balance; }
+        h3, h4 { color: var(--subtitle-color, var(--heading-color)); }
+        h1 { font-size: clamp(2.1rem, 3vw, 3.1rem) !important; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        h2 { font-size: clamp(1.6rem, 2.1vw, 2.15rem) !important; padding-bottom: 0.4rem; margin-top: 0; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); }
+        h3 { font-size: clamp(1.25rem, 1.5vw, 1.6rem) !important; margin-top: 1.25rem; margin-bottom: 0.7rem; }
+        h4 { font-size: clamp(1.1rem, 1.2vw, 1.35rem) !important; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+
+        a { color: var(--link-color); text-decoration: none; cursor: pointer; }
+        a:hover { color: var(--link-hover); text-decoration: underline; }
+        p { margin-bottom: 1rem; max-width: 90ch; }
+
+        code { background-color: var(--code-bg); padding: 0.15rem 0.4rem; border-radius: 0.25rem; border: 1px solid var(--border-color); font-family: 'Fira Code', monospace; font-size: 0.85em; color: var(--text-color); }
+
+        .wikitable { width: 100%; border-collapse: collapse; margin: 1em 0; background-color: var(--bg-color); font-size: 0.95em; border: 1px solid var(--panel-border); border-radius: 0.5rem; overflow: hidden; }
+        .wikitable th, .wikitable td { border: 1px solid var(--panel-border); padding: 0.7em 0.95em; text-align: left; vertical-align: top; }
+        .wikitable th { background-color: var(--info-box); font-weight: 600; color: var(--heading-color); }
+        .wikitable tr:nth-child(even) { background-color: var(--table-alt); }
+
+        .toc-link.active { font-weight: 600; color: var(--heading-color); position: relative; }
+        .toc-link.active::before { content: ''; position: absolute; left: -1rem; top: 0; height: 100%; width: 3px; background-color: var(--link-color); }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        .app-sidebar { width: var(--sidebar-w); max-height: 50vh; }
+        @media (min-width: 1024px) { .app-sidebar { max-height: 100vh; } }
+        .app-main { flex: 1 1 0%; min-width: 0; width: 100%; max-width: var(--content-max); padding: 1rem; }
+        @media (min-width: 1024px) { .app-main { padding: 1.5rem; } }
+        @media (min-width: 1280px) { .app-main { padding: 2rem; } }
+
+        .topic-panel { background-color: var(--panel-color); border: 1px solid var(--panel-border); box-shadow: var(--card-shadow); border-radius: 1rem; padding: 1.5rem; margin: 2rem 0; transition: box-shadow 0.3s ease; }
+        .topic-panel:hover { box-shadow: var(--card-shadow-hover); }
+        .topic-panel.mt-0 { margin-top: 0; }
+
+        .subtopic-card { background-color: var(--bg-color); border: 1px solid var(--panel-border); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem; transition: transform 0.2s ease; }
+        .subtopic-card:hover { box-shadow: var(--card-shadow); transform: translateY(-2px); }
+
+        .math-card { background-color: var(--panel-color); border: 1px solid var(--panel-border); border-radius: 0.5rem; padding: 1.25rem; margin: 1rem 0; }
+        .symbol-legend { display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem; align-items: start; font-size: 0.875rem; color: var(--text-muted); margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+        .symbol-legend .sym { font-family: 'Fira Code', monospace; color: var(--heading-color); font-weight: 500; text-align: right; }
+
+        .btn-primary { background-color: var(--link-color); color: #fff; transition: transform 0.1s, opacity 0.2s; border: none; }
+        html:not(.light) .btn-primary { color: #000; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(1px); }
+
+        .search-match { background-color: var(--search-match); border-radius: 2px; padding: 0 2px; color: var(--search-text) !important; }
+
+        /* Language Toggle Classes */
+        .lang-en { display: none; }
+        body[data-active-lang="en"] .lang-de { display: none !important; }
+        body[data-active-lang="en"] .lang-en { display: block !important; }
+        body[data-active-lang="en"] span.lang-en, body[data-active-lang="en"] a.lang-en { display: inline !important; }
+        body[data-active-lang="de"] .lang-en { display: none !important; }
+        body[data-active-lang="de"] .lang-de { display: block !important; }
+        body[data-active-lang="de"] span.lang-de, body[data-active-lang="de"] a.lang-de { display: inline !important; }
+
+        /* ---------- Sidebar control buttons ---------- */
+        .ctrl-btn { flex: 1; padding: 0.375rem 0; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; color: var(--text-muted); border: 1px solid transparent; transition: background-color .15s, color .15s; cursor: pointer; }
+        .ctrl-btn:hover { background: var(--code-bg); color: var(--link-color); }
+
+        /* ---------- Theme context menu ---------- */
+        #themeContextMenu { display: none; position: absolute; left: 0; right: 0; top: calc(100% + .35rem); max-height: 24rem; overflow-y: auto; background: var(--panel-color); border: 1px solid var(--panel-border); border-radius: .75rem; box-shadow: 0 12px 36px var(--shadow-color-strong), 0 4px 12px var(--shadow-color); z-index: 200; }
+        #themeContextMenu.open { display: block; }
+        .theme-menu-header { padding: .5rem .75rem; font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); border-bottom: 1px solid var(--border-color); background: var(--info-box); position: sticky; top: 0; z-index: 1; }
+        .theme-menu-item { display: flex; align-items: center; gap: .55rem; width: 100%; padding: .5rem .75rem; font-size: .8rem; color: var(--text-color); text-align: left; border: none; background: transparent; cursor: pointer; transition: background .12s, color .12s; border-left: 3px solid transparent; }
+        .theme-menu-item:hover { background: var(--code-bg); color: var(--link-color); }
+        .theme-menu-item.active { font-weight: 700; color: var(--link-color); background: var(--info-box); border-left-color: var(--link-color); }
+        .theme-menu-item .scheme-swatches { display: inline-flex; gap: 2px; flex-shrink: 0; }
+        .theme-menu-item .scheme-swatches span { width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--border-color); }
+        .theme-menu-item .scheme-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .theme-menu-item .scheme-check { font-size: .65rem; color: var(--link-color); opacity: 0; }
+        .theme-menu-item.active .scheme-check { opacity: 1; }
+    </style>
+</head>
+
+<body class="flex flex-col lg:flex-row min-h-screen bg-[var(--bg-color)] text-[var(--text-color)]" data-active-lang="de">
+
+    <aside class="app-sidebar flex-shrink-0 bg-[var(--sidebar-color)] border-b lg:border-b-0 lg:border-r border-[var(--border-color)] lg:h-screen lg:sticky lg:top-0 overflow-y-auto p-4 lg:p-6 z-40 relative transition-colors">
+
+        <!-- Controls -->
+        <div class="flex items-center justify-between gap-2 mb-6 bg-[var(--panel-color)] p-2 rounded-xl border border-[var(--panel-border)] shadow-sm relative">
+            <button onclick="toggleLang()" class="ctrl-btn" title="Sprache wechseln / Toggle language">
+                <i class="fa-solid fa-language mr-1"></i> <span id="lang-indicator">DE</span>
+            </button>
+            <div class="w-px h-4 bg-[var(--border-color)]"></div>
+            <button id="themeToggleBtn" class="ctrl-btn" title="Linksklick: Hell/Dunkel · Rechtsklick: alle Farbschemata">
+                <i id="themeToggleIcon" class="fa-solid fa-sun"></i>
+            </button>
+            <div id="downloadDivider" class="w-px h-4 bg-[var(--border-color)]"></div>
+            <button id="downloadBtn" onclick="downloadHTML()" class="ctrl-btn" style="color:var(--link-color)" title="Download Cheatsheet">
+                <i class="fa-solid fa-download"></i>
+            </button>
+            <div id="themeContextMenu" role="menu" aria-label="Farbschemata"></div>
+        </div>
+
+        <div class="mb-6 pb-4 border-b border-[var(--border-color)]">
+            <i class="fa-solid fa-server text-3xl mb-3 text-[var(--text-color)] opacity-80"></i>
+            <div class="font-serif text-2xl tracking-tight text-[var(--heading-color)] leading-tight">
+                <span class="lang-de">DHCP &amp; DORA<br>Protokoll</span>
+                <span class="lang-en">DHCP &amp; DORA<br>Protocol</span>
+            </div>
+            <div class="text-xs text-[var(--text-muted)] mt-2 font-mono">v1.0 - Computer Networks</div>
+        </div>
+
+        <div class="mb-6 relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <i class="fa-solid fa-magnifying-glass text-[var(--text-muted)] text-sm"></i>
+            </div>
+            <input type="text" id="wikiSearch" placeholder="Search..." class="w-full bg-[var(--bg-color)] border border-[var(--panel-border)] rounded-xl pl-10 pr-3 py-2.5 text-sm text-[var(--text-color)] focus:outline-none focus:border-[var(--link-color)] transition-all shadow-sm" onkeyup="filterWiki()">
+        </div>
+
+        <nav class="text-sm space-y-1.5" id="toc-nav">
+            <div class="font-bold text-[var(--heading-color)] mb-3 uppercase tracking-wider text-xs">
+                <span class="lang-de">Inhaltsverzeichnis</span>
+                <span class="lang-en">Table of Contents</span>
+            </div>
+            <ul class="space-y-1">
+                <li><a href="#simulation" class="toc-link block py-1.5 px-2 rounded-lg text-[var(--link-color)] hover:bg-[var(--code-bg)] font-medium transition-colors mb-2">
+                    <i class="fa-solid fa-play-circle mr-1"></i>
+                    <span class="lang-de">DORA Simulation</span><span class="lang-en">DORA Simulation</span>
+                </a></li>
+                <li><a href="#intro" class="toc-link block py-1.5 px-2 rounded-lg text-[var(--link-color)] hover:bg-[var(--code-bg)] font-medium transition-colors">
+                    <span class="lang-de">1. Was ist DHCP?</span><span class="lang-en">1. What is DHCP?</span>
+                </a></li>
+                <li><a href="#dora" class="toc-link block py-1.5 px-2 rounded-lg text-[var(--link-color)] hover:bg-[var(--code-bg)] font-medium transition-colors">
+                    <span class="lang-de">2. Der D.O.R.A. Prozess</span><span class="lang-en">2. The D.O.R.A. Process</span>
+                </a></li>
+                <li><a href="#lease" class="toc-link block py-1.5 px-2 rounded-lg text-[var(--link-color)] hover:bg-[var(--code-bg)] font-medium transition-colors">
+                    <span class="lang-de">3. Lease Time (Mietzeit)</span><span class="lang-en">3. Lease Time</span>
+                </a></li>
+                <li><a href="#ports" class="toc-link block py-1.5 px-2 rounded-lg text-[var(--link-color)] hover:bg-[var(--code-bg)] font-medium transition-colors">
+                    <span class="lang-de">4. Ports &amp; UDP</span><span class="lang-en">4. Ports &amp; UDP</span>
+                </a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="app-main" id="main-content">
+        <!-- Intro -->
+        <div id="intro" class="searchable-block topic-panel mt-0 mb-8">
+            <h1 id="top" class="border-b-0 pb-0 mb-4 mt-0">
+                <span class="lang-de">DHCP: Wie Computer eine IP bekommen</span>
+                <span class="lang-en">DHCP: How Computers Get an IP</span>
+            </h1>
+            <p class="text-lg mb-0">
+                <span class="lang-de"><strong>DHCP</strong> (Dynamic Host Configuration Protocol) ist der Grund, warum du dich einfach in ein WLAN einloggen kannst und sofort Internet hast. Ohne DHCP müsstest du jedem Gerät manuell eine IP-Adresse, eine Subnetzmaske und einen Router zuweisen. Es nutzt im Hintergrund UDP (mehr dazu in <a href="cheatSheetTCPandUDP.html" class="font-mono text-[var(--link-color)] bg-[var(--code-bg)] px-1 rounded">cheatSheetTCPandUDP.html</a>).</span>
+                <span class="lang-en"><strong>DHCP</strong> (Dynamic Host Configuration Protocol) is the reason you can just connect to Wi-Fi and instantly have internet access. Without DHCP, you'd have to manually assign an IP address, subnet mask, and router to every single device. Under the hood, it uses UDP (learn more in <a href="cheatSheetTCPandUDP.html" class="font-mono text-[var(--link-color)] bg-[var(--code-bg)] px-1 rounded">cheatSheetTCPandUDP.html</a>).</span>
+            </p>
+        </div>
+
+        <!-- INTERACTIVE SIMULATION -->
+        <section id="simulation" class="scroll-mt-10 searchable-block topic-panel mb-8 !p-0 overflow-hidden border-2 border-[var(--border-color)]">
+            <div class="p-5 border-b border-[var(--border-color)] bg-[var(--panel-color)] flex justify-between items-center flex-wrap gap-4">
+                <div>
+                    <h2 class="!mt-0 !mb-1 text-[var(--link-color)] border-none">
+                        <i class="fa-solid fa-handshake-angle mr-2"></i>
+                        <span class="lang-de">Der DORA-Tanz</span>
+                        <span class="lang-en">The DORA Dance</span>
+                    </h2>
+                    <p class="text-sm text-[var(--text-muted)] !mb-0">
+                        <span class="lang-de">Beobachte, wie ein Client (Laptop) vom Router eine IP anfordert.</span>
+                        <span class="lang-en">Watch how a client (laptop) requests an IP from the router.</span>
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-4 bg-[var(--bg-color)] p-3 rounded-lg border border-[var(--border-color)]">
+                    <button onclick="startSimulation()" class="btn-primary px-4 py-2 rounded-lg font-bold text-sm shadow flex-shrink-0">
+                        <i class="fa-solid fa-bolt mr-2"></i>
+                        <span class="lang-de">DORA Starten</span><span class="lang-en">Start DORA</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="w-full bg-[var(--bg-color)] relative" style="height: 350px;">
+                <canvas id="simCanvas"></canvas>
+            </div>
+        </section>
+
+        <!-- DORA SECTION -->
+        <section id="dora" class="scroll-mt-10 searchable-block topic-panel mt-8">
+            <h2>
+                <span class="lang-de">2. Der D.O.R.A. Prozess</span>
+                <span class="lang-en">2. The D.O.R.A. Process</span>
+            </h2>
+
+            <div class="subtopic-card">
+                <p>
+                    <span class="lang-de">Wenn ein Gerät dem Netzwerk beitritt, durchläuft es vier Schritte, um eine IP-Adresse zu bekommen. Das nennt man den <strong>DORA</strong>-Prozess. Da der Client am Anfang noch keine IP hat, schreit er oft ins gesamte Netzwerk (Broadcast).</span>
+                    <span class="lang-en">When a device joins a network, it goes through four steps to get an IP address. This is called the <strong>DORA</strong> process. Since the client doesn't have an IP at first, it often shouts to the entire network (Broadcast).</span>
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    
+                    <!-- Discover -->
+                    <div class="bg-[var(--bg-color)] p-4 rounded-lg border border-[var(--border-color)] relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full" style="background-color: var(--c-d)"></div>
+                        <h4 class="mt-0 flex justify-between items-center" style="color:var(--c-d)">
+                            <span><i class="fa-solid fa-magnifying-glass mr-2"></i><strong>D</strong>iscover</span>
+                            <span class="text-xs font-mono bg-[var(--code-bg)] px-2 py-1 rounded text-[var(--text-color)]">Client $\rightarrow$ All</span>
+                        </h4>
+                        <p class="text-sm mb-0">
+                            <span class="lang-de">Der Client ruft ins Netzwerk: <em>"Hallo? Ist hier ein DHCP-Server? Ich brauche eine IP-Adresse!"</em> Dies passiert als <strong>Broadcast</strong> (an alle), weil er noch nicht weiß, wo der Server ist.</span>
+                            <span class="lang-en">The client shouts to the network: <em>"Hello? Is there a DHCP server here? I need an IP address!"</em> This is sent as a <strong>Broadcast</strong> (to everyone) because it doesn't know where the server is.</span>
+                        </p>
+                    </div>
+
+                    <!-- Offer -->
+                    <div class="bg-[var(--bg-color)] p-4 rounded-lg border border-[var(--border-color)] relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full" style="background-color: var(--c-o)"></div>
+                        <h4 class="mt-0 flex justify-between items-center" style="color:var(--c-o)">
+                            <span><i class="fa-solid fa-gift mr-2"></i><strong>O</strong>ffer</span>
+                            <span class="text-xs font-mono bg-[var(--code-bg)] px-2 py-1 rounded text-[var(--text-color)]">Server $\rightarrow$ Client</span>
+                        </h4>
+                        <p class="text-sm mb-0">
+                            <span class="lang-de">Der DHCP-Server antwortet: <em>"Hallo! Ich bin ein Server. Ich hätte die IP <strong>192.168.1.50</strong> für dich frei."</em></span>
+                            <span class="lang-en">The DHCP server replies: <em>"Hello! I am a server. I have the IP <strong>192.168.1.50</strong> available for you."</em></span>
+                        </p>
+                    </div>
+
+                    <!-- Request -->
+                    <div class="bg-[var(--bg-color)] p-4 rounded-lg border border-[var(--border-color)] relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full" style="background-color: var(--c-r)"></div>
+                        <h4 class="mt-0 flex justify-between items-center" style="color:var(--c-r)">
+                            <span><i class="fa-solid fa-hand-holding-heart mr-2"></i><strong>R</strong>equest</span>
+                            <span class="text-xs font-mono bg-[var(--code-bg)] px-2 py-1 rounded text-[var(--text-color)]">Client $\rightarrow$ All</span>
+                        </h4>
+                        <p class="text-sm mb-0">
+                            <span class="lang-de">Der Client antwortet (wieder als Broadcast): <em>"Super, ich nehme die 192.168.1.50!"</em> Der Broadcast ist wichtig, damit <strong>andere</strong> potenzielle DHCP-Server wissen, dass der Client bereits versorgt ist und ihre eigenen Angebote zurückziehen können.</span>
+                            <span class="lang-en">The client replies (again as a Broadcast): <em>"Awesome, I'll take 192.168.1.50!"</em> The broadcast is important so that <strong>other</strong> potential DHCP servers know the client has accepted an offer and can cancel theirs.</span>
+                        </p>
+                    </div>
+
+                    <!-- Acknowledge -->
+                    <div class="bg-[var(--bg-color)] p-4 rounded-lg border border-[var(--border-color)] relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full" style="background-color: var(--c-a)"></div>
+                        <h4 class="mt-0 flex justify-between items-center" style="color:var(--c-a)">
+                            <span><i class="fa-solid fa-circle-check mr-2"></i><strong>A</strong>cknowledge</span>
+                            <span class="text-xs font-mono bg-[var(--code-bg)] px-2 py-1 rounded text-[var(--text-color)]">Server $\rightarrow$ Client</span>
+                        </h4>
+                        <p class="text-sm mb-0">
+                            <span class="lang-de">Der Server bestätigt final: <em>"Alles klar, die IP gehört dir! Hier sind noch Infos wie Gateway und DNS, und du darfst die IP für 24 Stunden behalten."</em></span>
+                            <span class="lang-en">The server finally confirms: <em>"Alright, the IP is yours! Here is the Gateway and DNS info, and you can keep this IP for 24 hours."</em></span>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- LEASE TIME -->
+        <section id="lease" class="scroll-mt-10 searchable-block topic-panel mt-12">
+            <h2>
+                <span class="lang-de">3. Lease Time (Der Mietvertrag)</span>
+                <span class="lang-en">3. Lease Time (Renting the IP)</span>
+            </h2>
+
+            <div class="subtopic-card">
+                <p>
+                    <span class="lang-de">IP-Adressen werden nicht verschenkt, sie werden <strong>vermietet</strong>. Die Dauer dieser Miete nennt man <em>Lease Time</em>. Wenn du das Netzwerk verlässt, kann der Server die IP nach Ablauf der Zeit jemand anderem geben.</span>
+                    <span class="lang-en">IP addresses are not given away forever; they are <strong>leased</strong> (rented). The duration is called the <em>Lease Time</em>. If you leave the network, the server can give the IP to someone else once the lease expires.</span>
+                </p>
+
+                <div class="math-card my-4">
+                    <p class="font-mono text-sm mb-2 font-semibold mt-0">
+                        <span class="lang-de">Renewal (Verlängerung)</span>
+                        <span class="lang-en">Renewal Process</span>
+                    </p>
+                    <p class="text-sm text-[var(--text-muted)] mb-3">
+                        <span class="lang-de">Ein Gerät wartet nicht, bis die Zeit komplett abgelaufen ist. Es versucht die Miete schon vorher zu verlängern:</span>
+                        <span class="lang-en">A device doesn't wait until the time completely runs out. It tries to renew the lease early:</span>
+                    </p>
+                    
+                    <div class="symbol-legend mt-2">
+                        <div class="sym" style="color:var(--c-d)">$T_1$ (50%)</div>
+                        <div>
+                            <span class="lang-de">Nach der <strong>Hälfte der Zeit</strong> fragt der Client den Server direkt (Unicast): "Darf ich die IP behalten?"</span>
+                            <span class="lang-en">At <strong>50% of the lease time</strong>, the client asks the server directly (Unicast): "Can I keep this IP?"</span>
+                        </div>
+
+                        <div class="sym" style="color:var(--c-r)">$T_2$ (87.5%)</div>
+                        <div>
+                            <span class="lang-de">Falls der Server bei $T_1$ nicht antwortet, gerät der Client leicht in Panik und schreit bei <strong>87.5% der Zeit</strong> ins ganze Netz (Broadcast): "Kann BITTE irgendein Server meine IP verlängern?"</span>
+                            <span class="lang-en">If the server didn't reply at $T_1$, the client panics slightly and shouts to the whole network (Broadcast) at <strong>87.5% of the time</strong>: "Can ANY server PLEASE renew my IP?"</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PORTS AND TCP/UDP -->
+        <section id="ports" class="scroll-mt-10 searchable-block topic-panel mt-12 mb-20">
+            <h2>
+                <span class="lang-de">4. Ports &amp; UDP</span>
+                <span class="lang-en">4. Ports &amp; UDP</span>
+            </h2>
+            <div class="subtopic-card">
+                <p>
+                    <span class="lang-de">DHCP muss <strong>schnell</strong> sein und funktioniert auch dann, wenn noch keine stabile Verbindung existiert. Deshalb nutzt es das <strong>UDP-Protokoll</strong> (genau wie in <a href="cheatSheetTCPandUDP.html" class="font-mono text-[var(--link-color)] hover:underline">cheatSheetTCPandUDP.html</a> erklärt, gilt hier "Fire and Forget").</span>
+                    <span class="lang-en">DHCP needs to be <strong>fast</strong> and must work even before a stable connection is established. Therefore, it uses the <strong>UDP protocol</strong> (just as explained in <a href="cheatSheetTCPandUDP.html" class="font-mono text-[var(--link-color)] hover:underline">cheatSheetTCPandUDP.html</a>, it's "Fire and Forget").</span>
+                </p>
+
+                <table class="wikitable mt-4">
+                    <tr>
+                        <th class="w-1/4">Role</th>
+                        <th class="w-1/4">Protocol</th>
+                        <th class="w-1/2">Port</th>
+                    </tr>
+                    <tr>
+                        <td><strong>DHCP Server</strong> (Router)</td>
+                        <td class="font-mono" style="color:var(--c-udp)">UDP</td>
+                        <td class="font-mono text-lg font-bold" style="color:var(--c-a)">67</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DHCP Client</strong> (Laptop/Handy)</td>
+                        <td class="font-mono" style="color:var(--c-udp)">UDP</td>
+                        <td class="font-mono text-lg font-bold" style="color:var(--c-d)">68</td>
+                    </tr>
+                </table>
+                
+                <p class="text-sm mt-4 text-[var(--text-muted)]">
+                    <i class="fa-solid fa-lightbulb mr-1 text-[var(--c-udp)]"></i>
+                    <span class="lang-de"><strong>Eselsbrücke:</strong> Der Server (67) ist älter/kommt zuerst, der Client (68) ist jünger/kommt danach.</span>
+                    <span class="lang-en"><strong>Mnemonic:</strong> The server (67) comes first numerically, the client (68) comes second.</span>
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        /* ==================================================================
+           GLOBAL STATE
+           ================================================================== */
+        let isGerman = true;
+
+        // Dynamic Colors
+        let C_BG, C_GRID, C_TEXT, C_PANEL;
+        let C_D = "#3b82f6";
+        let C_O = "#8b5cf6";
+        let C_R = "#f59e0b";
+        let C_A = "#10b981";
+        let C_ERR = "#ef4444";
+
+        function updateDynamicColors() {
+            const style = getComputedStyle(document.body);
+            C_BG = style.getPropertyValue('--bg-color').trim() || "#181a1b";
+            C_GRID = style.getPropertyValue('--border-color').trim() || "#2c2d30";
+            C_TEXT = style.getPropertyValue('--text-color').trim() || "#eaecf0";
+            C_PANEL = style.getPropertyValue('--panel-color').trim() || "#202324";
+            
+            // For DORA we map to custom variables to keep it distinct
+            C_D = style.getPropertyValue('--c-d').trim() || C_D;
+            C_O = style.getPropertyValue('--c-o').trim() || C_O;
+            C_R = style.getPropertyValue('--c-r').trim() || C_R;
+            C_A = style.getPropertyValue('--c-a').trim() || C_A;
+            C_ERR = style.getPropertyValue('--c-error').trim() || C_ERR;
+        }
+
+        /* ==================================================================
+           LANGUAGE
+           ================================================================== */
+        function toggleLang() {
+            isGerman = !isGerman;
+            const indicator = document.getElementById('lang-indicator');
+            indicator.textContent = isGerman ? 'DE' : 'EN';
+            document.body.setAttribute('data-active-lang', isGerman ? 'de' : 'en');
+            const menu = document.getElementById('themeContextMenu');
+            if (menu && menu.classList.contains('open')) buildThemeMenuItems();
+            
+            // Update Canvas Text if running
+            if(doraState.phase !== -1) {
+                updateSimStatusText();
+            }
+        }
+
+        /* ==================================================================
+           DOWNLOAD
+           ================================================================== */
+        function downloadHTML() {
+            removeHighlights(document.getElementById('main-content'));
+            const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'DHCP_DORA_Cheatsheet.html';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function updateDownloadVisibility() {
+            const isLocal = (location.protocol === 'file:');
+            const btn = document.getElementById('downloadBtn');
+            const divider = document.getElementById('downloadDivider');
+            if (btn)     btn.style.display = isLocal ? 'none' : '';
+            if (divider) divider.style.display = isLocal ? 'none' : '';
+        }
+
+        /* ==================================================================
+           SEARCH
+           ================================================================== */
+        function filterWiki() {
+            const input = document.getElementById('wikiSearch');
+            const filter = input.value.toLowerCase();
+            const blocks = document.querySelectorAll('.searchable-block');
+            const mainContent = document.getElementById('main-content');
+            removeHighlights(mainContent);
+            if (!filter) { blocks.forEach(block => block.style.display = 'block'); return; }
+            blocks.forEach(block => {
+                const text = block.innerText.toLowerCase();
+                if (text.includes(filter)) { block.style.display = 'block'; highlightText(block, input.value); }
+                else { block.style.display = 'none'; }
+            });
+        }
+        function highlightText(element, keyword) {
+            if (!keyword) return;
+            const treeWalker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+            const nodesToReplace = []; let node;
+            while (node = treeWalker.nextNode()) {
+                if (node.nodeValue.toLowerCase().includes(keyword.toLowerCase())) {
+                    if (node.parentNode.tagName !== 'SCRIPT' && node.parentNode.tagName !== 'STYLE' && !node.parentNode.classList.contains('katex')) {
+                        nodesToReplace.push(node);
+                    }
+                }
+            }
+            nodesToReplace.forEach(node => {
+                const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
+                const fragment = document.createDocumentFragment();
+                let match; let lastIndex = 0; const text = node.nodeValue;
+                while ((match = regex.exec(text)) !== null) {
+                    fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+                    const span = document.createElement('span');
+                    span.className = 'search-match font-semibold';
+                    span.textContent = match[0];
+                    fragment.appendChild(span);
+                    lastIndex = regex.lastIndex;
+                }
+                fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+                node.parentNode.replaceChild(fragment, node);
+            });
+        }
+        function removeHighlights(element) {
+            element.querySelectorAll('.search-match').forEach(span => {
+                const parent = span.parentNode;
+                parent.replaceChild(document.createTextNode(span.textContent), span);
+                parent.normalize();
+            });
+        }
+        function escapeRegExp(string) { return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+        /* ==================================================================
+           COLOUR SCHEMES
+           ================================================================== */
+        // Reusing the exact same robust color scheme configuration as TCP/UDP
+        const FALLBACK_COLOR_CONFIG = {
+            version: '1.0',
+            defaultScheme: 'dark',
+            storageKey: 'cheatSheetDHCP.scheme',
+            base: {
+                'shadow-color': 'rgba(0, 0, 0, 0.55)',
+                'shadow-color-strong': 'rgba(0, 0, 0, 0.7)',
+                'card-shadow': '0 0 22px 0 var(--shadow-color), 0 0 10px 0 var(--shadow-color), 0 4px 24px 0 var(--shadow-color)',
+                'card-shadow-hover': '0 0 40px 0 var(--shadow-color-strong), 0 0 18px 0 var(--shadow-color-strong), 0 8px 36px 0 var(--shadow-color-strong)',
+                'table-alt': 'rgba(255, 255, 255, 0.02)',
+                'search-match': 'rgba(250, 204, 21, 0.3)',
+                'search-text': '#ffffff'
+            },
+            schemes: [
+                {
+                    id: 'dark', name: { de: 'Dunkel (Standard)', en: 'Dark (default)' }, dark: true,
+                    colors: {
+                        'bg-color':'#181a1b','panel-color':'#202324','sidebar-color':'#202122','border-color':'#54595d','panel-border':'#54595d',
+                        'text-color':'#eaecf0','text-muted':'#a8aeb3','link-color':'#99c1f1','link-hover':'#629deb',
+                        'heading-color':'#ffffff','subtitle-color':'#eaecf0','code-bg':'#27292a','code-block-bg':'#111213','info-box':'#2c2d30',
+                        'c-tcp':'#3b82f6','c-udp':'#f59e0b','c-ack':'#10b981','c-error':'#ef4444',
+                        'c-d':'#3b82f6','c-o':'#8b5cf6','c-r':'#f59e0b','c-a':'#10b981',
+                        'accent-blue':'#3b82f6','accent-green':'#10b981','accent-amber':'#f59e0b',
+                        'accent-violet':'#8b5cf6','accent-teal':'#14b8a6','accent-red':'#ef4444','accent-gray':'#6b7280'
+                    }
+                },
+                {
+                    id: 'light', name: { de: 'Hell', en: 'Light' }, dark: false,
+                    colors: {
+                        'bg-color':'#f4f6f9','panel-color':'#ffffff','sidebar-color':'#ffffff','border-color':'#cbd5e1','panel-border':'#e2e8f0',
+                        'text-color':'#0f172a','text-muted':'#475569','link-color':'#2563eb','link-hover':'#1d4ed8',
+                        'heading-color':'#020617','subtitle-color':'#0f172a','code-bg':'#f1f5f9','code-block-bg':'#f8fafc','info-box':'#e0f2fe',
+                        'shadow-color':'rgba(0,0,0,0.16)','shadow-color-strong':'rgba(0,0,0,0.28)',
+                        'table-alt':'rgba(0,0,0,0.015)','search-match':'rgba(250,204,21,0.5)','search-text':'#000000',
+                        'c-tcp':'#2563eb','c-udp':'#d97706','c-ack':'#059669','c-error':'#dc2626',
+                        'c-d':'#2563eb','c-o':'#7c3aed','c-r':'#d97706','c-a':'#059669',
+                        'accent-blue':'#2563eb','accent-green':'#059669','accent-amber':'#d97706',
+                        'accent-violet':'#7c3aed','accent-teal':'#0d9488','accent-red':'#dc2626','accent-gray':'#6b7280'
+                    }
+                },
+                {
+                    id: 'dracula', name: { de: 'Dracula', en: 'Dracula' }, dark: true,
+                    colors: {
+                        'bg-color':'#282a36','panel-color':'#343746','sidebar-color':'#21222c','border-color':'#44475a','panel-border':'#44475a',
+                        'text-color':'#f8f8f2','text-muted':'#bdc1d4','link-color':'#8be9fd','link-hover':'#bd93f9',
+                        'heading-color':'#ffffff','subtitle-color':'#f8f8f2','code-bg':'#21222c','code-block-bg':'#191a21','info-box':'#44475a',
+                        'c-tcp':'#8be9fd','c-udp':'#ffb86c','c-ack':'#50fa7b','c-error':'#ff5555',
+                        'c-d':'#8be9fd','c-o':'#bd93f9','c-r':'#ffb86c','c-a':'#50fa7b',
+                        'accent-blue':'#8be9fd','accent-green':'#50fa7b','accent-amber':'#ffb86c',
+                        'accent-violet':'#bd93f9','accent-teal':'#8be9fd','accent-red':'#ff5555','accent-gray':'#6272a4'
+                    }
+                }
+            ]
+        };
+
+        let colorConfig = FALLBACK_COLOR_CONFIG;
+        let activeSchemeId = null;
+        let lastDarkSchemeId  = 'dark';
+        let lastLightSchemeId = 'light';
+
+        function getSchemeById(id) { return (colorConfig.schemes || []).find(s => s.id === id) || null; }
+        function resolveSchemeColors(scheme) { return Object.assign({}, colorConfig.base || {}, scheme.colors || {}); }
+
+        function initColorSchemes() {
+            const stored = readStoredScheme();
+            const preferred = colorConfig.defaultScheme || colorConfig.schemes[0].id;
+            const initial = (stored && getSchemeById(stored)) ? stored : preferred;
+            const initScheme = getSchemeById(initial);
+            if (initScheme) {
+                if (initScheme.dark) lastDarkSchemeId = initScheme.id;
+                else                 lastLightSchemeId = initScheme.id;
+            }
+            applyColorScheme(initial);
+        }
+
+        function applyColorScheme(id) {
+            const scheme = getSchemeById(id) || colorConfig.schemes[0];
+            if (!scheme) return;
+            const root = document.documentElement;
+            const colors = resolveSchemeColors(scheme);
+            Object.keys(colors).forEach(key => {
+                if (colors[key] === null || colors[key] === undefined) return;
+                root.style.setProperty('--' + key, String(colors[key]));
+            });
+            root.classList.toggle('light', !scheme.dark);
+            root.classList.toggle('theme-dark', !!scheme.dark);
+            root.style.colorScheme = scheme.dark ? 'dark' : 'light';
+            root.setAttribute('data-color-scheme', scheme.id);
+            if (scheme.dark) lastDarkSchemeId = scheme.id;
+            else             lastLightSchemeId = scheme.id;
+            activeSchemeId = scheme.id;
+            storeScheme(scheme.id);
+            updateThemeToggleIcon(scheme.dark);
+            updateDynamicColors();
+        }
+
+        function updateThemeToggleIcon(isDark) {
+            const icon = document.getElementById('themeToggleIcon');
+            if (!icon) return;
+            icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        function toggleDarkLight() {
+            hideThemeMenu();
+            const current = getSchemeById(activeSchemeId);
+            if (!current) return;
+            if (current.dark) {
+                const target = getSchemeById(lastLightSchemeId) ? lastLightSchemeId : (colorConfig.schemes.find(s => !s.dark) || {}).id;
+                if (target) applyColorScheme(target);
+            } else {
+                const target = getSchemeById(lastDarkSchemeId) ? lastDarkSchemeId : (colorConfig.schemes.find(s => s.dark) || {}).id;
+                if (target) applyColorScheme(target);
+            }
+        }
+
+        function buildThemeMenuItems() {
+            const menu = document.getElementById('themeContextMenu');
+            if (!menu) return;
+            menu.innerHTML = '';
+            const header = document.createElement('div');
+            header.className = 'theme-menu-header';
+            header.textContent = isGerman ? 'Farbschema' : 'Theme';
+            menu.appendChild(header);
+            const schemes = colorConfig.schemes || [];
+            const langTag = isGerman ? 'de' : 'en';
+            schemes.forEach(s => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'theme-menu-item' + (s.id === activeSchemeId ? ' active' : '');
+                
+                const nameEl = document.createElement('span');
+                nameEl.className = 'scheme-name ml-2';
+                const name = s.name || {};
+                nameEl.textContent = (typeof name === 'string' ? name : (name[langTag] || name.de || name.en || s.id));
+                btn.appendChild(nameEl);
+                
+                btn.addEventListener('click', () => { applyColorScheme(s.id); hideThemeMenu(); });
+                menu.appendChild(btn);
+            });
+        }
+
+        function showThemeMenu(e) {
+            if (e) e.preventDefault();
+            const menu = document.getElementById('themeContextMenu');
+            if (!menu) return;
+            buildThemeMenuItems();
+            menu.classList.add('open');
+        }
+
+        function hideThemeMenu() {
+            const menu = document.getElementById('themeContextMenu');
+            if (menu) menu.classList.remove('open');
+        }
+
+        function storageKey() { return (colorConfig && colorConfig.storageKey) || 'cheatSheetDHCP.scheme'; }
+        function storeScheme(id) { try { localStorage.setItem(storageKey(), id); } catch (_) {} }
+        function readStoredScheme() { try { return localStorage.getItem(storageKey()); } catch (_) { return null; } }
+
+
+        /* ==================================================================
+           ANIMATION / SIMULATION LOGIC FOR DORA
+           ================================================================== */
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let lastTime = 0;
+
+        let clientBox = {x:0, y:0, w:80, h:120};
+        let serverBox = {x:0, y:0, w:80, h:160};
+        
+        const PACKET_SPEED = 400; // px per second
+
+        let doraState = {
+            phase: -1, // -1: Idle, 0: Discover, 1: Offer, 2: Request, 3: Ack, 4: Done
+            statusText: "",
+            clientIP: "0.0.0.0",
+            serverPool: "192.168.1.50"
+        };
+        
+        let activePacket = null; // Only one packet flies at a time in DORA
+
+        function resizeCanvas() {
+            const wrapper = canvas.parentElement;
+            if(!wrapper) return;
+            const rect = wrapper.getBoundingClientRect();
+            if(rect.width === 0) return;
+
+            width = canvas.width = rect.width;
+            height = canvas.height = rect.height;
+
+            clientBox = { x: 40, y: height/2 - 60, w: 90, h: 100 };
+            serverBox = { x: width - 130, y: height/2 - 80, w: 90, h: 140 };
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        class DoraPacket {
+            constructor(phase, startX, targetX, y) {
+                this.phase = phase; // 0=D, 1=O, 2=R, 3=A
+                this.startX = startX;
+                this.targetX = targetX;
+                this.x = startX;
+                this.y = y;
+                this.progress = 0;
+                this.dead = false;
+                
+                if (phase === 0) { this.color = C_D; this.label = "DISCOVER"; this.isBroadcast = true; }
+                else if (phase === 1) { this.color = C_O; this.label = "OFFER"; this.isBroadcast = false; }
+                else if (phase === 2) { this.color = C_R; this.label = "REQUEST"; this.isBroadcast = true; }
+                else { this.color = C_A; this.label = "ACK"; this.isBroadcast = false; }
+            }
+
+            update(dt) {
+                if(this.dead) return;
+                const distance = Math.abs(this.targetX - this.startX);
+                const step = (PACKET_SPEED * dt) / distance;
+                this.progress += step;
+
+                if (this.progress >= 1) {
+                    this.progress = 1;
+                    this.dead = true;
+                    onPacketArrive(this.phase);
+                }
+                this.x = this.startX + (this.targetX - this.startX) * this.progress;
+            }
+
+            draw(ctx) {
+                if(this.dead) return;
+                
+                // If broadcast, draw rings
+                if (this.isBroadcast) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 30 + (Math.sin(Date.now()/150) * 10), 0, 2*Math.PI);
+                    ctx.strokeStyle = this.color;
+                    ctx.globalAlpha = 0.3;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.globalAlpha = 1.0;
+                }
+
+                let w = 85, h = 26;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.roundRect(this.x - w/2, this.y - h/2, w, h, 6);
+                ctx.fill();
+
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 11px Inter";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(this.label, this.x, this.y + 1);
+            }
+        }
+
+        function updateSimStatusText() {
+            if (doraState.phase === 0) doraState.statusText = isGerman ? "Schritt 1: DISCOVER (Ich brauche eine IP!)" : "Step 1: DISCOVER (I need an IP!)";
+            else if (doraState.phase === 1) doraState.statusText = isGerman ? "Schritt 2: OFFER (Wie wäre es mit 192.168.1.50?)" : "Step 2: OFFER (How about 192.168.1.50?)";
+            else if (doraState.phase === 2) doraState.statusText = isGerman ? "Schritt 3: REQUEST (Ja, ich nehme die 192.168.1.50!)" : "Step 3: REQUEST (Yes, I'll take 192.168.1.50!)";
+            else if (doraState.phase === 3) doraState.statusText = isGerman ? "Schritt 4: ACKNOWLEDGE (Bestätigt. Gehört dir!)" : "Step 4: ACKNOWLEDGE (Confirmed. It's yours!)";
+            else if (doraState.phase === 4) doraState.statusText = isGerman ? "Erfolgreich verbunden!" : "Successfully connected!";
+            else doraState.statusText = isGerman ? "Warte auf Start..." : "Waiting to start...";
+        }
+
+        function startSimulation() {
+            doraState.phase = 0;
+            doraState.clientIP = "0.0.0.0";
+            updateSimStatusText();
+            activePacket = new DoraPacket(0, clientBox.x + clientBox.w, serverBox.x, height/2);
+        }
+
+        function onPacketArrive(completedPhase) {
+            setTimeout(() => {
+                doraState.phase = completedPhase + 1;
+                updateSimStatusText();
+
+                if (doraState.phase === 1) {
+                    activePacket = new DoraPacket(1, serverBox.x, clientBox.x + clientBox.w, height/2);
+                } else if (doraState.phase === 2) {
+                    activePacket = new DoraPacket(2, clientBox.x + clientBox.w, serverBox.x, height/2);
+                } else if (doraState.phase === 3) {
+                    activePacket = new DoraPacket(3, serverBox.x, clientBox.x + clientBox.w, height/2);
+                } else if (doraState.phase === 4) {
+                    doraState.clientIP = doraState.serverPool; // IP assigned!
+                    activePacket = null;
+                }
+            }, 400); // Short pause between phases for visual clarity
+        }
+
+        function drawEnvironment() {
+            // Center connecting line
+            ctx.strokeStyle = C_GRID;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath();
+            ctx.moveTo(clientBox.x + clientBox.w, height/2);
+            ctx.lineTo(serverBox.x, height/2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Status Text Top
+            ctx.fillStyle = C_TEXT;
+            ctx.font = "italic 16px Inter";
+            ctx.textAlign = "center";
+            ctx.fillText(doraState.statusText, width / 2, 40);
+
+            // Draw Client
+            ctx.fillStyle = C_PANEL;
+            ctx.strokeStyle = (doraState.phase === 4) ? C_A : C_GRID;
+            ctx.lineWidth = (doraState.phase === 4) ? 3 : 2;
+            ctx.beginPath();
+            ctx.roundRect(clientBox.x, clientBox.y, clientBox.w, clientBox.h, 8);
+            ctx.fill(); ctx.stroke();
+            
+            // Client Screen
+            ctx.fillStyle = C_BG;
+            ctx.fillRect(clientBox.x + 10, clientBox.y + 10, clientBox.w - 20, 50);
+
+            ctx.fillStyle = C_TEXT;
+            ctx.font = "bold 14px Inter";
+            ctx.fillText("CLIENT", clientBox.x + clientBox.w/2, clientBox.y - 10);
+            
+            ctx.font = "11px Fira Code";
+            ctx.fillStyle = (doraState.clientIP === "0.0.0.0") ? C_ERR : C_A;
+            ctx.fillText("IP: " + doraState.clientIP, clientBox.x + clientBox.w/2, clientBox.y + 85);
+
+            // Draw Server
+            ctx.fillStyle = C_PANEL;
+            ctx.strokeStyle = C_GRID;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(serverBox.x, serverBox.y, serverBox.w, serverBox.h, 8);
+            ctx.fill(); ctx.stroke();
+            
+            // Server Racks
+            ctx.fillStyle = C_BG;
+            ctx.fillRect(serverBox.x + 10, serverBox.y + 20, serverBox.w - 20, 20);
+            ctx.fillRect(serverBox.x + 10, serverBox.y + 50, serverBox.w - 20, 20);
+            ctx.fillRect(serverBox.x + 10, serverBox.y + 80, serverBox.w - 20, 20);
+
+            ctx.fillStyle = C_TEXT;
+            ctx.font = "bold 14px Inter";
+            ctx.fillText("DHCP SERVER", serverBox.x + serverBox.w/2, serverBox.y - 10);
+
+            ctx.font = "11px Inter";
+            ctx.fillStyle = C_O;
+            ctx.fillText(isGerman ? "Pool:" : "Pool:", serverBox.x + serverBox.w/2, serverBox.y + 115);
+            ctx.font = "11px Fira Code";
+            ctx.fillText(doraState.serverPool, serverBox.x + serverBox.w/2, serverBox.y + 128);
+
+        }
+
+        function animateLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
+            lastTime = timestamp;
+
+            ctx.clearRect(0, 0, width, height);
+
+            drawEnvironment();
+            if (activePacket) {
+                activePacket.update(dt);
+                activePacket.draw(ctx);
+            }
+
+            requestAnimationFrame(animateLoop);
+        }
+
+        /* ==================================================================
+           INIT
+           ================================================================== */
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const id = entry.target.getAttribute('id');
+                    const tocLink = document.querySelector(`.toc-link[href="#${id}"]`);
+                    if (entry.isIntersecting) {
+                        document.querySelectorAll('.toc-link').forEach(link => link.classList.remove('active'));
+                        if(tocLink) tocLink.classList.add('active');
+                    }
+                });
+            }, { rootMargin: '-10% 0px -80% 0px', threshold: [0, 0.1, 1] });
+
+            document.querySelectorAll('section, h3[id], div[id="intro"]').forEach((section) => {
+                observer.observe(section);
+            });
+
+            /* Download visibility */
+            updateDownloadVisibility();
+
+            /* Theme toggle button */
+            const themeBtn = document.getElementById('themeToggleBtn');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', (e) => { e.preventDefault(); toggleDarkLight(); });
+                themeBtn.addEventListener('contextmenu', (e) => { showThemeMenu(e); });
+            }
+            document.addEventListener('click', (e) => {
+                const menu = document.getElementById('themeContextMenu');
+                if (!menu || !menu.classList.contains('open')) return;
+                const btn = document.getElementById('themeToggleBtn');
+                if (menu.contains(e.target)) return;
+                if (btn && btn.contains(e.target)) return;
+                hideThemeMenu();
+            });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideThemeMenu(); });
+
+            updateDynamicColors();
+            updateSimStatusText();
+            setTimeout(() => {
+                resizeCanvas();
+                requestAnimationFrame(animateLoop);
+            }, 100);
+
+            initColorSchemes();
+        });
+    </script>
+</body>
+</html>
